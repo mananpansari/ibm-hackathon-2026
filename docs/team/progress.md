@@ -19,7 +19,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
 | [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | blocked |  |  |
-| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | blocked |  |  |
+| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | doing | 17 Oct | Dockerfile + vm_check.sh + run steps on b/11-deploy-linuxone; app tested locally; VM SSH refused on port 20882, needs access |
 | [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | blocked |  |  |
 
 ## C: Router and simulation

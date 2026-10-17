@@ -36,3 +36,19 @@ Put `BLOCKSCOUT_API_KEY=...` in `.env` (it's git-ignored), then run `python fetc
 - **Cost:** the full pull is about 4,550 calls at 20 credits each. The free key gives 100K credits a day (about 5,000 calls), resetting at 00:00 UTC.
 - **Cache:** every response is cached in `data/blockscout_cache.sqlite`, which is git-ignored and about 1 GB. A rerun only pays for URLs not already in the cache. Copy that file between machines rather than pulling again.
 - **Guards:** the pull stops by itself below 1,000 credits or at 3,600 calls per run.
+
+## Deploy on LinuxONE (#11)
+
+On the VM (s390x), from a clone of this repo:
+
+```bash
+bash vm_check.sh <lab-image>                      # read-only: NNPA, docker, TF/zDNN, XGBoost, llama.cpp
+docker build --build-arg BASE=<lab-image> -t sbys .
+docker run -d --name sbys -p 8000:8000 --env-file .env -v "$PWD/data:/app/data" sbys
+curl -s localhost:8000/score -H 'content-type: application/json' \
+  -d '{"customer":"c1","wallet":"0x0000000000000000000000000000000000000001","amount":500}'
+```
+
+- The snapshot comes from git, so there's no Blockscout pull on the VM. To give the live box free lookups for wallets already seen, copy `data/blockscout_cache.sqlite` over with `scp`.
+- `data/` is a volume, so payee memory survives container rebuilds. The key only enters at run time via `--env-file` (create `.env` with `chmod 600`). Neither is baked into the image.
+- `.env` is optional until the live box (#17).
