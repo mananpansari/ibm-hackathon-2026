@@ -1,0 +1,33 @@
+{
+ "question": "We need to ask you one question.\nBefore this payment goes out, please tell us in your own words what it is for.\nReal police, bank or government officers never ask you to move your savings to a 'safe' wallet. In your own words, why are you sending this money, and did anyone ask you to?\nSend my answer",
+ "answer_to_hold_s": 0.36,
+ "hold": "Your payment is on hold for a call-back.\nYour money has not been sent. It is safe in your account.\nOne of our fraud officers will call you on the phone number we have on file.\nPlease don't try to send this money another way while you wait.\nIf anyone is telling you to move money or keep this secret, you can hang up. Real officers will never ask you to do that.\n\nWhy: Your answer matches a known scam pattern (government impersonation). This is a large payment (20,000 USDT) to a wallet you have never paid before. You have never sent money to this wallet before.",
+ "demo_seconds": 87.1,
+ "demo_steps": [
+  "Payment 1: customer-1, 150 USDT, 2026-05-12 13:36 UTC \u2192 hold",
+  "Payment 2: customer-1, 78000 USDT, 2026-05-12 13:46 UTC \u2192 hold. The officer calls back and confirms the scam a day later (scripted, modelled): every later payment is held.",
+  "Payment 3: customer-2, 10 USDT, 2026-05-12 13:58 UTC \u2192 hold",
+  "Payment 4: customer-3, 2901 USDT, 2026-05-23 06:41 UTC \u2192 hold",
+  "Payment 5: customer-4, 10 USDT, 2026-06-27 10:13 UTC \u2192 hold",
+  "Payment 6: customer-5, 10 USDT, 2026-06-27 10:13 UTC \u2192 hold",
+  "Payment 7: customer-6, 1101 USDT, 2026-07-09 14:13 UTC \u2192 hold",
+  "Payment 8: customer-7, 198 USDT, 2026-07-12 08:22 UTC \u2192 hold",
+  "Payment 9: customer-6, 400 USDT, 2026-07-13 21:25 UTC \u2192 hold",
+  "Payment 10: customer-7, 23614 USDT, 2026-07-16 23:22 UTC \u2192 hold",
+  "Payment 11: customer-7, 1971 USDT, 2026-07-17 04:59 UTC \u2192 hold",
+  "Payment 12: customer-8, 10012 USDT, 2026-07-28 22:37 UTC \u2192 hold",
+  "Payment 13: customer-9, 2002 USDT, 2026-07-30 21:03 UTC \u2192 hold",
+  "Replay finished. Tether froze the wallet on 2026-08-05 14:49 UTC."
+ ],
+ "queue_rows": 8,
+ "why_card": "Why-card: customer-9 \u2192 0x74f645\u20260c48b8\n\n2,001.939 USDT at 2026-07-30 21:03 UTC \u00b7 tier hold \u00b7 expected loss 1,902 \u00b7 engine c9-0.1\n\n0x74f645934fd288dfcb6359870779f68c2b0c48b8\nSignals that fired\nA fraud officer confirmed this wallet as a scam. officermodelled\nThis is a large payment (2,002 USDT) to a wallet you have never paid before. customer_historyreal\nYou have never sent money to this wallet before. customer_historyreal\nWeak model signal: score 0.18; AUC 0.57 against similar wallets, so it never holds on its own. modelreal\nAssumed scam probability 95% once 'officer_confirmed' fires. configmodelled\nCustomer's answer\n\nNo question was asked.\n\nEarlier warnings on this wallet\nA fraud officer confirmed this wallet as a scam. officermodelled\n\nTether later froze this wallet, on 2026-08-05 14:49 UTC.\n\nMark wallet cleared Confirm scam\n\nEveryone who paid or tried to pay this wallet",
+ "live_not_in_snapshot": {
+  "seconds": 0.75,
+  "shown": "hold (history: live Blockscout) \u00b7 Tether has frozen this wallet's USDT. This is a large payment (1,000 USDT) to a wallet you have never paid before. You have never sent money to this wallet before."
+ },
+ "live_exchange": {
+  "seconds": 6.44,
+  "shown": "question (history: snapshot; too much history to score live (likely an exchange or service wallet), or Blockscout is slow) \u00b7 This is a large payment (1,000 USDT) to a wallet you have never paid before. You have never sent money to this wallet before."
+ },
+ "console_errors": []
+}
