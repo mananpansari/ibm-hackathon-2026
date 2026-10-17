@@ -1,0 +1,23 @@
+{
+ "v1 features, payment points": {
+  "cv_auc_volume_matched": 0.7597,
+  "cv_auc_random": 0.7696,
+  "time_holdout_auc_volume_matched": 0.7599,
+  "time_holdout_auc_random": 0.7598,
+  "time_holdout_late_frozen_wallets": 188
+ },
+ "v2 features, payment points": {
+  "cv_auc_volume_matched": 0.7642,
+  "cv_auc_random": 0.7694,
+  "time_holdout_auc_volume_matched": 0.7802,
+  "time_holdout_auc_random": 0.7938,
+  "time_holdout_late_frozen_wallets": 188
+ },
+ "v2 features, volume-matched negatives only": {
+  "cv_auc_volume_matched": 0.7708,
+  "cv_auc_random": 0.7531,
+  "time_holdout_auc_volume_matched": 0.7976,
+  "time_holdout_auc_random": 0.7659,
+  "time_holdout_late_frozen_wallets": 188
+ }
+}

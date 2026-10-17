@@ -3,7 +3,7 @@
 Trains a quick XGBoost on the 2024 - Jun 2026 snapshot rows, replays every Jul - Oct 2026
 frozen wallet and comparison wallet just before each inbound payment, sets the threshold
 so 1% of comparison wallets are flagged, and reports recall, lead time and payments that
-could be escalated (build-plan.md Results 1-2), next to a rules-only baseline.
+could be escalated (Results 1-2), next to a rules-only baseline.
 
     python feasibility.py
 """

@@ -27,7 +27,7 @@ QUESTIONS = {
             "intro": "Real police, bank or government officers never ask you to move your savings to a \"safe\" wallet.",
             "text": "Why are you sending this money?",
             "type": "single",
-            "free_text": True,  # the optional "Anything else you want to tell us?" box
+            "free_text": True,  # the optional box, labelled with the question answer_nlp was trained on
             "options": [
                 {"id": "known", "text": "Paying someone I know and trust", "next": None},
                 {"id": "own_platform", "text": "Investing on a platform I chose myself", "next": None},

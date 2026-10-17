@@ -1,4 +1,4 @@
-"""Result 1: model-flag lead time at 1% false alarms (build-plan.md sections 2, 6, 9).
+"""Result 1: model-flag lead time at 1% false alarms (docs/results1.md).
 
 Every test wallet is scored just before each inbound payment >= 10 USDT (as_of = that payment's ts,
 so features() only sees transfers with ts < as_of). Frozen wallets are scored only on payments before

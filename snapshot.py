@@ -1,4 +1,4 @@
-"""Snapshot: Tether freezes, positives, negatives, histories -> data/ (build-plan.md section 3).
+"""Snapshot: Tether freezes, positives, negatives, histories -> data/.
 
     python snapshot.py sample   # ~20 calls: freezes + a few wallets -> data/sample.csv
     python snapshot.py          # full pull, ~3,550 calls -> data/

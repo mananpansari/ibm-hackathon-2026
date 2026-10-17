@@ -38,7 +38,7 @@ Written 18 Oct, about 01:45 SGT. Submission is due before 10:00 SGT; code freeze
 - **Sources:**
   - SPF Annual Scam & Cybercrime Brief 2025: S$242.9M, 3,363 cases, S$72,229 average, 34% aged 65+.
   - `docs/feasibility.md` §1–2: the 129 days, 105 wallets and 2,657 payments.
-- **Check before recording:** the SPF figures against the PDF (CLAUDE.md lists some of them as unverified).
+- **Check before recording:** the SPF figures against the PDF (some of them are not yet verified).
 
 ### 4. Where it sits, 0:30–0:45
 - **On slide:** one diagram: **Exchange withdrawal flow → Score Before You Sign → HSM signing → blockchain**. Our box sits just before signing.
@@ -98,8 +98,8 @@ Written 18 Oct, about 01:45 SGT. Submission is due before 10:00 SGT; code freeze
 - **On slide (three facts):**
   - **≈1.3 ms** per decision (p50), **600–750 withdrawals/s** on one thread, 3 vCPU VM.
   - **NNPA verified**; the model ran on it, with **no speed-up** at this size, so we don't claim one.
-  - Everything runs in Docker on s390x. Granite runs locally: about 4 s per answer on this VM, so the live questions use templates and a keyword classifier.
-- **Sources:** `docs/nnpa-benchmark.md` (#15); `docs/team/progress.md` #14 and #11 rows; `docs/screenshots/`.
+  - Everything runs in Docker on s390x. The customer's free-text answer is read by mpnet on NNPA, about 8 ms per answer (18× the CPU); Granite took about 4 s here, so it isn't used.
+- **Sources:** `docs/nnpa-benchmark.md` (#15); `docs/answer-classifier.md`; `docs/screenshots/`.
 
 ### 12. Close, 2:50–3:00
 - **On slide:** "Score before you sign." Three next steps: **signing inside Digital Asset Haven HSMs · sharing confirmed wallets between banks · more languages**. Team names and roles. Repo URL.
@@ -121,7 +121,7 @@ Written 18 Oct, about 01:45 SGT. Submission is due before 10:00 SGT; code freeze
 |---|---|
 | Value to community & theme | Elderly victims of impersonation scams; a real-time decision before an irreversible transfer; most of the loss is in the repeat payments we stop |
 | Novelty | Not wallet detection: a payee memory shared across customers, plus one question back, so one customer's warning protects the next |
-| Technical design & LinuxONE | One tested decision engine, point-in-time everywhere, hash-chained log; measured latency and NNPA on LinuxONE; Docker on s390x; local Granite |
+| Technical design & LinuxONE | One tested decision engine, point-in-time everywhere, hash-chained log; measured latency and NNPA on LinuxONE; Docker on s390x; local answer classifier (mpnet on NNPA) |
 | Execution & pitch | Live demo on a real wallet Tether later froze; a paste-any-address box for judges; real vs modelled labelled; an honest failure story |
 
 ### B3. Trust and responsible AI
@@ -141,14 +141,14 @@ Written 18 Oct, about 01:45 SGT. Submission is due before 10:00 SGT; code freeze
 - Tether USDT `AddedBlackList` events (the label and clock).
 - Blockscout USDT histories (one call per wallet).
 - fesevu scam labels; the OFAC list (removed from the data).
-- BothBosu scam dialogues, plus our own Singapore answers (classifier test).
+- BothBosu scam dialogues, plus our own Singapore answers (classifier test) and 435 synthetic answers (`data/answers_train.csv`, `docs/answer-classifier.md`).
 - SPF Scam & Cybercrime Brief 2025.
 
 Links are in the idea doc's sources. Kaggle and Elliptic++ were considered and **not** used, because their features can't be computed live.
 
 ### B6. If asked about the model
 - **Scorecard:** `docs/model_scores.md` (`model_report.py`, PR #36): ensemble AUC 0.596 against volume-matched wallets, out of time.
-- **Experiment (not in the product):** `aariv/model-v2`, a payment-level model with 26 features. It ranks payments better (AUC 0.814 vs 0.761 per payment) but catches fewer wallets at 5% (14 vs 22 of 134). Kept as research (`docs/model_v2.md`).
+- **Experiment (not in the product):** model v2 (`docs/model_v2.md`), a payment-level model with 26 features. It ranks payments better (AUC 0.814 vs 0.761 per payment) but catches fewer wallets at 5% (14 vs 22 of 134). Kept as research (`docs/model_v2.md`).
 - **PR #37** moves the model's question cut-off from a 1% to a 5% false-alarm budget. A model flag only asks, never holds, and a question is cheap.
 
 ---

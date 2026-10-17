@@ -1,7 +1,7 @@
 """Score API, customer page and officer console (#4, #8, #12, #13, #17, UI v2). A thin wrapper around
 C's engine (engine.py): every tier comes from engine.decide(); this file loads data, sets the
 injected clock and moves JSON. Structured answers, outcome codes, wallet facts and personas come
-from A's modules (answers.py, payee_memory.py, wallet_facts.py, data/demo/); see docs/team/ui-v2.md.
+from A's modules (answers.py, payee_memory.py, wallet_facts.py, data/demo/).
 
 The engine reads the snapshot's recorded histories. Only the live box (/live) touches
 Blockscout, server-side through fetch.py (key from the environment or .env, never sent to a
@@ -17,6 +17,7 @@ import itertools
 import json
 import os
 import platform
+import sys
 import time
 import types
 from dataclasses import asdict
@@ -29,6 +30,7 @@ from pydantic import BaseModel, Field
 
 import answer_nlp
 import answers
+import granite
 from decision_log import DecisionLog
 from engine import Engine, RecordedHistories, Withdrawal, to_dict
 from payee_memory import REASON_CODES, OfficerOutcome, PayeeMemory, load_freezes, outcome_for
@@ -65,10 +67,14 @@ clock = {"now": 0}  # the engine's injected clock; set to each withdrawal's time
 
 # Only a classify(): the page asks answers.QUESTIONS itself, so the engine needn't wait up to 2 s for
 # Granite to word a question nobody shows (StructuredClassifier falls back to the template).
-# B's mpnet classifier reads the free-text box (granite's keyword rules if the model is missing);
-# one call now loads the model at startup (about 11 s on the VM) instead of on the first customer.
-FREE_TEXT = types.SimpleNamespace(classify=answer_nlp.classify)
-answer_nlp.classify("warm up")
+# B's mpnet classifier reads the free-text box (granite's keyword rules if the model is missing); one call
+# loads it at startup (about 11 s on the VM) instead of on the first customer. On macOS the box uses granite's
+# keyword rules: PyTorch (mpnet) and TensorFlow (the wallet model) segfault in one process there, either order.
+if sys.platform == "darwin":
+    FREE_TEXT = types.SimpleNamespace(classify=granite.classify)
+else:
+    FREE_TEXT = types.SimpleNamespace(classify=answer_nlp.classify)
+    answer_nlp.classify("warm up")
 
 
 def history(wallet, as_of):
@@ -100,7 +106,12 @@ app = FastAPI(title="Score Before You Sign")
 class WithdrawalIn(BaseModel):
     customer: str = Field(min_length=1, max_length=64)
     wallet: str = Field(pattern=WALLET)
-    amount: float = Field(gt=0, le=1e9)
+    amount: float = Field(gt=0, le=1e9)  # in USDT: the engine scores every payment in USDT
+    asset: Literal["USDT", "ETH"] = "USDT"  # what the customer sends; display only (an ETH amount arrives as its USDT value)
+    qty: Optional[float] = Field(default=None, gt=0, le=1e9)  # the amount in `asset`, for display
+    # --- customer page --- demo replay: decide at a real past payment's time (the injected clock), so the
+    # video's Mrs Tan payment is checked as on 12 May 2026, before Tether's freeze. Omitted = now.
+    at: Optional[int] = Field(default=None, gt=0)
 
 
 class Answer(BaseModel):
@@ -145,7 +156,7 @@ def decide(w, answer=None, answer_kind=None):
     d = to_dict(engine.decide(Withdrawal(w["customer"], w["wallet"], w["amount"], w["time"]), answer, answer_kind))
     d["decide_ms"] = round((time.perf_counter() - t0) * 1000, 2)
     d["id"] = next(ids)
-    d.update(ref=f"SBYS-{d['id']:04d}", host=HOST, model_on=model_score is not None, persona=persona(w["customer"]))
+    d.update(ref=f"SL-{d['id']:04d}", host=HOST, model_on=model_score is not None, persona=persona(w["customer"]))
     cases[d["id"]] = {"decision": d, "withdrawal": w, "answer": answer, "status": "open", "held_at": int(time.time()),
                       "claimed_by": None, "events": [{"ts": int(time.time()), "what": f"Decided: {d['tier']}", "who": "engine"}]}
     return d
@@ -158,7 +169,22 @@ def answered(w, answer, kind=None):
 
 @app.post("/score")
 async def score(w: WithdrawalIn):
-    return decide({**w.model_dump(), "wallet": w.wallet.lower(), "time": int(time.time())})
+    now = int(time.time())
+    if w.at is not None and w.at > now:
+        raise HTTPException(422, "at must not be in the future")
+    return decide({**w.model_dump(exclude={"at"}), "wallet": w.wallet.lower(), "time": w.at or now})
+
+
+@app.get("/activity")
+async def activity(limit: int = 50):
+    """Every check, newest first, for the officer console's live feed (not just holds)."""
+    rows = []
+    for id, c in sorted(cases.items(), reverse=True)[:max(1, min(limit, 200))]:
+        d, w = c["decision"], c["withdrawal"]
+        rows.append({"id": id, "ref": d["ref"], "tier": d["tier"], "status": c["status"], "at": c["held_at"],
+                     "customer": w["customer"], "persona": d["persona"], "wallet": w["wallet"], "amount": w["amount"],
+                     "asset": w.get("asset", "USDT"), "qty": w.get("qty"), "answered": c["answer"] is not None})
+    return rows
 
 
 @app.get("/questions")
@@ -199,6 +225,18 @@ async def cancel(c: CaseId):
     case_["status"] = "cancelled"  # this payment only: payee memory is unchanged
     event(case_, "Cancelled by the customer", "customer")
     return {"id": c.id, "status": "cancelled"}
+
+
+@app.post("/sent")
+async def sent(c: CaseId):  # the customer pressed Send after go-ahead or a warning (simulated: no signing here)
+    if c.id not in cases:
+        raise HTTPException(404, "unknown withdrawal")
+    case_ = cases[c.id]
+    if case_["decision"]["tier"] not in ("release", "warning"):
+        raise HTTPException(409, "only a released or warned payment can be sent")
+    case_["status"] = "sent"
+    event(case_, "Sent by the customer", "customer")
+    return {"id": c.id, "status": "sent"}
 
 
 @app.post("/claim")
@@ -260,13 +298,18 @@ async def outcome(o: Outcome):
         raise HTTPException(422, str(e))
     c, ts = cases[o.id], int(time.time())
     who = c["claimed_by"] or "officer"
-    if result:
+    demo_case = demo["pending"] and demo["pending"]["case"] == o.id
+    if demo_case and o.decision != "keep":
+        demo["pending"] = None  # the officer decided Mrs Tan's case; the spine won't confirm it for them
+    if demo_case and result == "confirmed":
+        _demo_confirm(c["withdrawal"], who)  # the spine's modelled confirmation, a day after her hold
+    elif result:
         officer(wallet, result, ts, who, reason=o.reason)
     if o.decision != "keep":
         c["status"] = "closed"
     event(c, f"Outcome: {o.decision} · {REASON_CODES[o.reason]}" + (f" · call: {o.call}" if o.call else "")
           + (f" · wallet {result}" if result else ""), who)
-    return {"id": o.id, "status": c["status"], "outcome": result}
+    return {"id": o.id, "status": c["status"], "outcome": result, "modelled": bool(demo_case and result == "confirmed")}
 
 
 @app.get("/case/{id}")
@@ -324,7 +367,15 @@ def _demo_wallet():
     return os.environ.get("DEMO_WALLET", "0x74f645934fd288dfcb6359870779f68c2b0c48b8").lower()
 
 
-demo = {"wallet": None, "step": 0, "confirmed": None}
+# pending: Mrs Tan's hold waits for the officer console (claim, Record outcome). Her confirmation is
+# applied when the officer submits it, or by the next /demo/next if nobody did, so the numbers never move.
+demo = {"wallet": None, "step": 0, "confirmed": None, "pending": None}
+
+
+def _demo_confirm(w, who):
+    officer(w["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, f"{who} (demo script, modelled)",
+            kind="modelled", reason="confirmed_impersonation")
+    demo["confirmed"] = w["wallet"]
 
 
 @app.post("/demo/reset")
@@ -332,7 +383,7 @@ async def demo_reset():
     global engine
     engine = new_engine()
     cases.clear()
-    demo.update(wallet=_demo_wallet(), step=0, confirmed=None)
+    demo.update(wallet=_demo_wallet(), step=0, confirmed=None, pending=None)
     return {"wallet": demo["wallet"], "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
 
 
@@ -343,6 +394,10 @@ async def demo_next():
     pays = _pays(RECORDED.by_addr[demo["wallet"]])
     if demo["step"] >= len(pays):
         return {"done": True, "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
+    auto = demo["pending"]
+    if auto:  # nobody recorded Mrs Tan's outcome on the console: the script does, as before
+        demo["pending"] = None
+        _demo_confirm(cases[auto["case"]]["withdrawal"], "officer")
     t, demo["step"] = pays[demo["step"]], demo["step"] + 1
     step = demo["step"]
     customer = "mrs-tan" if step == TAN_STEP else f"customer-{2 if step == 1 else step}"  # personas customer-2..13
@@ -352,13 +407,22 @@ async def demo_next():
     if asked:
         cases[d["id"]]["status"] = "answered"
         d = answered(w, COACHED_ANSWER, kind="modelled")
-    confirmed = not demo["confirmed"] and asked and d["tier"] == "hold"
-    if confirmed:
-        officer(demo["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, "officer (demo script, modelled)",
-                kind="modelled", reason="confirmed_impersonation")
-        demo["confirmed"] = demo["wallet"]
+    awaiting = not demo["confirmed"] and asked and d["tier"] == "hold"
+    if awaiting:
+        demo["pending"] = {"case": d["id"]}
     return {"done": False, "step": step, "withdrawal": w, "decision": d, "asked": asked,
-            "answer": COACHED_ANSWER if asked else None, "officer_confirmed": confirmed}
+            "answer": COACHED_ANSWER if asked else None, "awaiting_officer": awaiting,
+            "officer_confirmed": bool(auto)}
+
+
+# --- customer page ---
+@app.get("/customer/demo-payment")
+async def customer_demo_payment():
+    """Mrs Tan's real payment for the video (docs/demo-script.md §3): the demo wallet's payment TAN_STEP, at its
+    real time. The customer page fills the form with it; the engine still decides through /score."""
+    wallet = demo["wallet"] or _demo_wallet()
+    t = _pays(RECORDED.by_addr[wallet])[TAN_STEP - 1]
+    return {"customer": "mrs-tan", "wallet": wallet, "amount": t["usdt"], "at": t["ts"]}
 
 
 @app.get("/")

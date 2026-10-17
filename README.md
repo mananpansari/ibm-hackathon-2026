@@ -1,6 +1,6 @@
 # Score Before You Sign
 
-IBM Z Datathon 2026. Plan: `build-plan.md`. Current spec: issue #1. Why we reframed: `docs/feasibility.md`.
+IBM Z Datathon 2026. Spec: issue #1. Why we reframed: `docs/feasibility.md`.
 
 ## Data (P1)
 

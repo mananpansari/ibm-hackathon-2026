@@ -93,6 +93,7 @@ with sync_playwright() as p:
     page.screenshot(path=str(OUT / "7-officer-outcome.png"), full_page=True)
     page.click("#v-outcome button:has-text('Submit decision')")
     page.wait_for_selector("#v-queue:not([hidden])")
+    page.wait_for_timeout(1000)  # the queue re-renders after the view switches
     report["queue_rows_after_outcome"] = page.locator("#queue tr").count()
 
     # 3. Live box
