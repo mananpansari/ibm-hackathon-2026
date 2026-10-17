@@ -18,9 +18,9 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
-| [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | doing | 17 Oct | Models trained + saved (models/, val AUC 0.87 by wallet; out-of-time 0.57 vs matched). `model.score(features) -> float or None`, 1.5 ms on TF 2.21. Engine wiring waits on #3. Branch b/5-weak-model-signal |
-| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | done | 17 Oct | Running on VM bob1 from the lab image (127.0.0.1:8000, stub engine); verified via SSH tunnel with 5 test cases. Not public: port not opened. Branch b/11-deploy-linuxone (merge after #4) |
-| [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | blocked |  |  |
+| [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | done | 17 Oct | On main and closed: XGBoost + MLP (val AUC 0.87 by wallet; out-of-time 0.57 vs matched), trained in the lab image so they load on s390x; MLP in tf.function so it runs on NNPA; engine uses it as a weak signal (asks, never holds) |
+| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | done | 17 Oct | On main (PR #23). Container from the lab image on VM bob1 (127.0.0.1:8000, SSH tunnel). Not public: port not opened |
+| [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | review | 17 Oct | decide() p50 about 1.3 ms, about 600–750 withdrawals/s; MLP verified on NNPA but no speed-up, and 2/2,000 tiers shift (DLFLOAT16). docs/nnpa-benchmark.md |
 
 ## C: Router and simulation
 
@@ -29,7 +29,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 | [#3](https://github.com/mananpansari/ibm-hackathon-2026/issues/3) | Decision engine core: release or warn, logged | - | done | 17 Oct | Merged (PR #18) and on `main` |
 | [#6](https://github.com/mananpansari/ibm-hackathon-2026/issues/6) | Shared payee memory and call-back hold | #3 | done | 17 Oct | Merged (PR #19) and on `main` via D's merge; includes A's replay fixes (holds renew, counterparty freeze only asks, model hook) |
 | [#7](https://github.com/mananpansari/ibm-hackathon-2026/issues/7) | Question tier in the engine | #6 | done | 17 Oct | Merged (PR #22) and on `main`; D's app uses it. Later review fixes (customer_reasons, model_flag 0.78) ride in PR #25 |
-| [#9](https://github.com/mananpansari/ibm-hackathon-2026/issues/9) | Capacity-aware holds and Result 3 sweep | #6 | review | 17 Oct | PR #25 into `main`: capacity + Result 3 (`sweep.py`, `docs/result3.md`, `docs/result3.svg`); checks pass on laptop and LinuxONE |
+| [#9](https://github.com/mananpansari/ibm-hackathon-2026/issues/9) | Capacity-aware holds and Result 3 sweep | #6 | done | 17 Oct | Merged (PR #25) and on `main`: `Config(daily_capacity=N)` + Result 3 (`docs/result3.md`, `docs/result3.svg`) |
 
 ## D: App and delivery
 
@@ -76,4 +76,6 @@ Short dated lines for anything others need to know (decisions, blockers, handove
 - 17 Oct (C): #9 capacity: `Config(daily_capacity=N)` allows N holds per Singapore day (off by default, so the app is unchanged). When full, a bigger expected loss takes the smallest hold's slot and that customer gets a question, returned as `decision.bumped` (D: show it to that customer); otherwise the new one gets a question (`capacity_full`). Payee memory keeps the wallet flagged either way. Result 3 sweep compares ladder / rules-only / fixed threshold / call everyone at equal calls per day, on real payments packed into 30 bank days; modelled inputs labelled.
 - 17 Oct (C): #3, #6, #7 done (merged, on `main`). Note: #19 and #22 were merged into their stacked base branches, not `p1/data-pipeline`; the work reached `main` through D's merge. #9 is draft PR #25, now targeting `main`.
 - 17 Oct (C): Result 3 done (`docs/result3.md`, chart `docs/result3.svg`). At equal call-backs the ladder averts more scam USDT than rules-only, a fixed threshold and calling everyone in all 21 settings (scam rate 0.1/0.5/1%, 0-250 calls/day); at 0.5% and 100 calls/day: 36% vs 7% for the best baseline. Caveats for the slide: question stop rate (25%), answer rates, officer accuracy and scam rate are modelled; ~20-30% of legitimate payments get a question on this (volume-matched) traffic; Tether-freeze rules alone avert 0%.
+- 17 Oct (D): Pitch, video and slides lead with "the first warning is the last payment" and the what-we-tried-and-dropped story (detector no-go, docs/feasibility.md); no "flagged N days before the freeze" claim. The officer why-card now says only "Tether later froze this wallet, on <date>" (no day count).
+- 17 Oct (C): #9 done (PR #25 merged to `main`, issue closed). All C tickets (#3, #6, #7, #9) done. D: to cap holds in the app, set `Config(daily_capacity=N)` in `new_engine()` and show `decision.bumped`'s question to that customer.
 - 17 Oct (A): #16 re-synced on main's engine (with #6 fixes and #7 question tier). Demo wallet `0x74f645…c48b8` unchanged: officer confirms → all 12 later payments held (120,229 USDT), 85 days before the freeze. Answer-only now holds payments 2–4 (was 2–3). `docs/demo-script.md` results lines updated to `docs/results.md`: freezes alone warn 3 and hold 0; the "legitimate holds 0.02%" line is removed (false reports on busy payees are the open risk). D: demo story and DEMO_WALLET unchanged.

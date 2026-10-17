@@ -120,9 +120,9 @@ async function showCase(id) {
   } else card.append(el("p", "None before this withdrawal.", "muted"));
 
   if (c.tether_froze_at) {
-    const days = Math.round((c.tether_froze_at - w.time) / 86400);
-    card.append(el("p", days > 0 ? `Tether froze this wallet on ${date(c.tether_froze_at)}, ${days} days after this withdrawal.`
-                                 : `Tether froze this wallet on ${date(c.tether_froze_at)}.`, "freeze"));
+    // The pitch is "the first warning is the last payment", not lead time: state the freeze, no day count.
+    card.append(el("p", c.tether_froze_at > w.time ? `Tether later froze this wallet, on ${date(c.tether_froze_at)}.`
+                                                   : `Tether froze this wallet on ${date(c.tether_froze_at)}.`, "freeze"));
   }
 
   const act = el("p");
