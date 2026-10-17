@@ -159,30 +159,30 @@ async def case(id: int):
 
 
 def _pull(addr):
-    import snapshot  # fetch.py's cache, throttle and 1,000-credit guard (snapshot.history uses bulk calls)
-    return snapshot.history(addr, "live", 1000)
+    import snapshot  # live_history: fetch.py's live mode (one try, 6 s, 100-credit floor); never raises
+    return snapshot.live_history(addr)
 
 
 @app.post("/live")
 async def live(l: Live):
     addr = l.wallet.lower()
     try:
-        h = await asyncio.wait_for(asyncio.wrap_future(pool.submit(_pull, addr)), LIVE_TIMEOUT_S)
-    except (Exception, SystemExit):  # no key (SystemExit), timeout, credits, network
-        h = None
-    if h:
-        LIVE[addr] = h
-    src = "live Blockscout" if h else "snapshot" if addr in RECORDED.by_addr else "none"
+        r = await asyncio.wait_for(asyncio.wrap_future(pool.submit(_pull, addr)), LIVE_TIMEOUT_S)
+    except (Exception, SystemExit):  # backstop: live_history already turns failures into a status
+        r = {"status": "unavailable", "message": "Blockscout didn't answer in time.", "history": None}
+    if r["history"]:
+        LIVE[addr] = r["history"]
+    src = "live Blockscout" if r["history"] else "snapshot" if addr in RECORDED.by_addr else "none"
     d = decide({"customer": "judge", "wallet": addr, "amount": l.amount, "time": int(time.time())})
-    return {**d, "history_source": src}
+    return {**d, "history_source": src, "live_status": r["status"], "live_message": r["message"]}
 
 
 # Demo spine (#17): replay one frozen wallet's real payments in time order. Customers are the
-# sending wallets (payments from the same sender are the same customer). Customer 1 answers like
-# a coached victim; the first different customer to pay is held because of it; an officer calls
-# back and confirms the scam (both scripted: modelled), so every later payment is held until the
-# freeze. Agreed with A for #16: "the engine holds all 12 once an officer confirms".
-CONFIRM_AFTER_S = 3600  # scripted call-back one hour after that hold
+# sending wallets (payments from the same sender are the same customer). As in docs/demo-script.md:
+# customer 1 answers like a coached victim; the next payment is held by that warning; an officer
+# calls back and confirms the scam (both scripted: modelled), so every later payment is held until
+# the freeze ("the engine holds all 12 once an officer confirms").
+CONFIRM_AFTER_S = 86400  # the officer confirms a day after that hold, #10's officer delay
 
 
 def _pays(h):
@@ -220,7 +220,7 @@ async def demo_next():
     w = {"customer": customer, "wallet": demo["wallet"], "amount": t["usdt"], "time": t["ts"]}
     # customer 1's first payment is asked and answered like a coached victim (modelled); the rest just pay
     d = answered(w, COACHED, kind="modelled") if demo["step"] == 1 else decide(w)
-    confirmed = not demo["confirmed"] and customer != "customer-1" and d["tier"] == "hold"
+    confirmed = not demo["confirmed"] and demo["step"] > 1 and d["tier"] == "hold"
     if confirmed:
         officer(demo["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, "officer (demo script, modelled)")
         demo["confirmed"] = demo["wallet"]
