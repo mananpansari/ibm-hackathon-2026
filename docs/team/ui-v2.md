@@ -284,7 +284,7 @@ If it's ready and merged by **03:00**, D switches `StructuredClassifier(granite)
 
 ## Round 2: team feedback on the merged pages (18 Oct, 02:15)
 
-The team reviewed the merged pages and found them disconnected from what we had agreed. A fixed them on `aanya/ui-v2-fixes` (with D's OK on `app.py`, `static/*`).
+The team reviewed the merged pages and found them disconnected from what we had agreed. A fixed them on `aanya/ui-v2-fixes`, in D's files (`app.py`, `static/*`) because of the time left; **D reviews the PR before it merges**.
 
 | Feedback | Fix | Status |
 |---|---|---|
