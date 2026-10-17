@@ -283,13 +283,18 @@ async def outcome(o: Outcome):
         raise HTTPException(422, str(e))
     c, ts = cases[o.id], int(time.time())
     who = c["claimed_by"] or "officer"
-    if result:
+    demo_case = demo["pending"] and demo["pending"]["case"] == o.id
+    if demo_case and o.decision != "keep":
+        demo["pending"] = None  # the officer decided Mrs Tan's case; the spine won't confirm it for them
+    if demo_case and result == "confirmed":
+        _demo_confirm(c["withdrawal"], who)  # the spine's modelled confirmation, a day after her hold
+    elif result:
         officer(wallet, result, ts, who, reason=o.reason)
     if o.decision != "keep":
         c["status"] = "closed"
     event(c, f"Outcome: {o.decision} · {REASON_CODES[o.reason]}" + (f" · call: {o.call}" if o.call else "")
           + (f" · wallet {result}" if result else ""), who)
-    return {"id": o.id, "status": c["status"], "outcome": result}
+    return {"id": o.id, "status": c["status"], "outcome": result, "modelled": bool(demo_case and result == "confirmed")}
 
 
 @app.get("/case/{id}")
@@ -347,7 +352,15 @@ def _demo_wallet():
     return os.environ.get("DEMO_WALLET", "0x74f645934fd288dfcb6359870779f68c2b0c48b8").lower()
 
 
-demo = {"wallet": None, "step": 0, "confirmed": None}
+# pending: Mrs Tan's hold waits for the officer console (claim, Record outcome). Her confirmation is
+# applied when the officer submits it, or by the next /demo/next if nobody did, so the numbers never move.
+demo = {"wallet": None, "step": 0, "confirmed": None, "pending": None}
+
+
+def _demo_confirm(w, who):
+    officer(w["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, f"{who} (demo script, modelled)",
+            kind="modelled", reason="confirmed_impersonation")
+    demo["confirmed"] = w["wallet"]
 
 
 @app.post("/demo/reset")
@@ -355,7 +368,7 @@ async def demo_reset():
     global engine
     engine = new_engine()
     cases.clear()
-    demo.update(wallet=_demo_wallet(), step=0, confirmed=None)
+    demo.update(wallet=_demo_wallet(), step=0, confirmed=None, pending=None)
     return {"wallet": demo["wallet"], "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
 
 
@@ -366,6 +379,10 @@ async def demo_next():
     pays = _pays(RECORDED.by_addr[demo["wallet"]])
     if demo["step"] >= len(pays):
         return {"done": True, "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
+    auto = demo["pending"]
+    if auto:  # nobody recorded Mrs Tan's outcome on the console: the script does, as before
+        demo["pending"] = None
+        _demo_confirm(cases[auto["case"]]["withdrawal"], "officer")
     t, demo["step"] = pays[demo["step"]], demo["step"] + 1
     step = demo["step"]
     customer = "mrs-tan" if step == TAN_STEP else f"customer-{2 if step == 1 else step}"  # personas customer-2..13
@@ -375,13 +392,12 @@ async def demo_next():
     if asked:
         cases[d["id"]]["status"] = "answered"
         d = answered(w, COACHED_ANSWER, kind="modelled")
-    confirmed = not demo["confirmed"] and asked and d["tier"] == "hold"
-    if confirmed:
-        officer(demo["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, "officer (demo script, modelled)",
-                kind="modelled", reason="confirmed_impersonation")
-        demo["confirmed"] = demo["wallet"]
+    awaiting = not demo["confirmed"] and asked and d["tier"] == "hold"
+    if awaiting:
+        demo["pending"] = {"case": d["id"]}
     return {"done": False, "step": step, "withdrawal": w, "decision": d, "asked": asked,
-            "answer": COACHED_ANSWER if asked else None, "officer_confirmed": confirmed}
+            "answer": COACHED_ANSWER if asked else None, "awaiting_officer": awaiting,
+            "officer_confirmed": bool(auto)}
 
 
 @app.get("/")
