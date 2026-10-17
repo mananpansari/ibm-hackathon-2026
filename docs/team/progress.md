@@ -11,8 +11,8 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
 | [#2](https://github.com/mananpansari/ibm-hackathon-2026/issues/2) | Commit P1 snapshot and feasibility evidence | - | done | 17 Oct | Snapshot + feasibility committed (5be122e) |
-| [#10](https://github.com/mananpansari/ibm-hackathon-2026/issues/10) | Result 2 replay through the engine | #2, #6 | blocked |  |  |
-| [#16](https://github.com/mananpansari/ibm-hackathon-2026/issues/16) | Demo wallet and narration numbers | #10 | blocked |  |  |
+| [#10](https://github.com/mananpansari/ibm-hackathon-2026/issues/10) | Result 2 replay through the engine | #2, #6 | review | 17 Oct | `replay.py` on `aanya/10-replay` (stacked on #6; not pushed yet). Results in `docs/results.md` |
+| [#16](https://github.com/mananpansari/ibm-hackathon-2026/issues/16) | Demo wallet and narration numbers | #10 | doing | 17 Oct | Shortlist + script draft on `aanya/16-demo-prep`; recheck numbers against the final `docs/results.md` |
 
 ## B: Models and platform
 
@@ -52,3 +52,4 @@ Short dated lines for anything others need to know (decisions, blockers, handove
 - 17 Oct (C): #6 decisions: report half-life 7 days (not 6 h), one report holds other customers' payments, latest officer outcome wins, transfers under 10 USDT never link wallets. Finding for #10 (A): with Tether freezes only (no reports), 0/765 payments to 25 frozen test wallets were held (0/9,787 on volume-matched), so Result 2 rests on customer reports/answers, which are modelled.
 - 17 Oct (C): #6 in review (PR #19, stacked on #3's PR #18). Unblocks #10 (A) and #12 (D): call `engine.record(Report/OfficerOutcome/Freeze)`; load Tether freezes with `engine.memory.add_freezes(payee_memory.load_freezes())`; replay reports should use `Report(..., kind="modelled")`.
 - 17 Oct (C): Fixed the three issues Aanya's #10 replay found (pushed to PR #19): (1) each held payment renews the report (same real/modelled kind), so holds no longer fade after 7 days while victims keep paying; officer "cleared" ends it. (2) Counterparty Tether freeze is now a weak signal: warning, never hold (p 0.02). (3) `Engine(..., model=model.score, known_bad=...)` adds B's score as `model_flag` (>= `Config.model_flag`, default 0.9, warns) or `model_score` (informational). #10 should re-run.
+- 17 Oct (A): #10 Result 2 in review. 134 frozen wallets, 2,791 payments. Tether freezes alone hold 3 payments (2 wallets) and 251 legitimate ones. Customer answers (modelled, r = 0.5) hold ~1,940; with call-back officers (modelled, 90% right) ~2,490, and legitimate holds fall to ~45. Model flag "not available" until the engine calls B's `model.score()`. Notes for C (half-life, counterparty-freeze tier, officer outcome `kind`) sent separately.
