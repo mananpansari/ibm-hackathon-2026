@@ -101,12 +101,13 @@
   .said dt { font: 700 13px var(--mono); color: var(--ink); width: 2.5rem; }
   .quote { font-size: 16px; }
   .freeze { color: var(--hold); font-weight: 800; }
-  #graph { height: 18rem; background: var(--g2); border: 1px solid var(--rule); }
+  #graph { height: 24rem; background: var(--g2); border: 1px solid var(--rule); }
   .check label { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); cursor: pointer; }
   .check input { width: 18px; height: 18px; accent-color: var(--ink); margin-top: 2px; }
   ol.log { list-style: none; margin: 0; padding: 0; font: 500 13px var(--mono); }
   ol.log li { display: grid; grid-template-columns: 4.5rem 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--rule); }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; position: sticky; bottom: 0; padding: 14px 0; background: var(--g); border-top: 2px solid var(--ink); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; padding: 14px 0; border-top: 2px solid var(--ink); }
+  .casehead .actions { margin-left: auto; padding: 0; border: 0; }
   .actions button { padding: 12px 20px; font-size: 15px; }
 
   form.outcome { max-width: 760px; }
@@ -379,7 +380,8 @@ async function showCase(id) {
   left.append(pay, cust, told, why);
   right.append(rec, flow, block("Call checklist", chk), block("Activity log", log));
   grid.append(left, right);
-  box.replaceChildren(back, head, grid, acts);
+  head.append(acts);  // in the header, so the next step is visible without scrolling
+  box.replaceChildren(back, head, grid);
   view("case");
   drawGraph(w.wallet, c.payers || [], f?.out_flows || []);
 }
@@ -387,7 +389,7 @@ async function showCase(id) {
 function drawGraph(wallet, payers, outs) {
   const els = [{ data: { id: wallet, label: short(wallet), wallet: 1 } }];
   const last = new Map(payers.map((p) => [p.customer, p]));
-  for (const [cu, p] of last) els.push({ data: { id: "c:" + cu, label: `${cu} · ${Math.round(p.amount)} · ${p.tier}` } });
+  for (const [cu, p] of last) els.push({ data: { id: "c:" + cu, label: `${cu.replace("customer-", "c")} · ${Math.round(p.amount).toLocaleString()}` } });  // tier is the edge colour
   payers.forEach((p, i) => els.push({ data: { id: "e" + i, source: "c:" + p.customer, target: wallet, color: TIER_COLOR[p.tier] || "#555b53" } }));
   outs.forEach((o, i) => {
     els.push({ data: { id: "o:" + o.to, label: `${short(o.to)} · ${Math.round(o.usdt)}`, out: 1 } });
@@ -397,7 +399,8 @@ function drawGraph(wallet, payers, outs) {
   if (!window.cytoscape) { $("graph").textContent = "Graph library didn't load (offline)."; return; }
   cy = cytoscape({
     container: $("graph"), elements: els, userZoomingEnabled: false,
-    layout: { name: "breadthfirst", directed: true, spacingFactor: 1.1 },
+    // wallet in the middle, payers around it, where the money went next on the outer ring
+    layout: { name: "concentric", concentric: (n) => (n.data("wallet") ? 3 : n.data("out") ? 1 : 2), levelWidth: () => 1, minNodeSpacing: 34 },
     style: [
       { selector: "node", style: { label: "data(label)", "font-family": "JetBrains Mono, monospace", "font-size": 9, color: "#0e1116", "background-color": "#0e1116", width: 12, height: 12, "text-margin-y": -4 } },
       { selector: "node[wallet]", style: { "background-color": "#d7261e", width: 28, height: 28, "font-size": 11, "font-weight": "bold" } },
