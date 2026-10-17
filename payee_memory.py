@@ -62,7 +62,9 @@ class Evidence:
 class PayeeMemory:
     def __init__(self, path=":memory:", half_life_s=7 * DAY, hold_threshold=0.5):
         self.half_life_s, self.hold_threshold = half_life_s, hold_threshold
-        self.db = sqlite3.connect(str(path))
+        # The app may create memory on one thread and serve from another (uvicorn workers, test
+        # clients). It calls the engine from one thread at a time, so sharing the connection is safe.
+        self.db = sqlite3.connect(str(path), check_same_thread=False)
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS paid (customer TEXT, wallet TEXT, ts INTEGER, PRIMARY KEY (customer, wallet));
             CREATE TABLE IF NOT EXISTS reports (wallet TEXT, ts INTEGER, source TEXT, kind TEXT, actor TEXT, note TEXT);
@@ -191,6 +193,11 @@ def _self_check():
     with tempfile.TemporaryDirectory() as d:  # the SQLite file survives a restart
         PayeeMemory(Path(d) / "m.sqlite").add(Report("0xp", 1))
         assert PayeeMemory(Path(d) / "m.sqlite").evidence("0xp", 2)
+    import threading
+    m = PayeeMemory()
+    t = threading.Thread(target=lambda: m.add(Report("0xt", 1)))
+    t.start(); t.join()
+    assert m.evidence("0xt", 2), "usable from another thread"
     print(f"self-check passed: payee memory ({len(fz)} non-OFAC freezes loadable)")
 
 

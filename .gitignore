@@ -8,6 +8,7 @@ data/blockscout_cache.sqlite*
 data/*.zst
 snapshot.log
 snapshot.err
+data/bothbosu_test.csv
 
 # Models (download steps go in README)
 *.gguf
@@ -24,3 +25,4 @@ venv/
 # OS / editor
 .DS_Store
 .vscode/
+data/decisions*.jsonl

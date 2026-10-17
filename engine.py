@@ -8,7 +8,10 @@ One deep module behind one seam (issue #1).
   everything else, so a scam wallet's 2nd payment is held, and each held attempt renews the
   report. Weak evidence (a Tether freeze of a wallet it has dealt with, B's model flag) warns
   but never holds on its own.
-Later slices add the question tier (#7) and capacity (#9).
+- #7: a first-time payee at or above Config.large_usdt, or weak evidence, gets one question
+  (Granite via D's granite module, else a template). decide(w, answer) re-decides it: a
+  confirming answer holds and warns every other customer paying the wallet; a clean one releases.
+Later slices add capacity (#9).
 
 The engine never reads the wall clock or the network: the clock, the wallet-history source
 and payee memory are injected, so the same code serves the live API, the Result 2 replay and
@@ -25,9 +28,11 @@ from decision_log import DecisionLog
 from features import features
 from payee_memory import DAY, Freeze, OfficerOutcome, PayeeMemory, Report, load_freezes
 
-ENGINE_VERSION = "c6-0.1"
+ENGINE_VERSION = "c7-0.1"
 TIERS = ("release", "warning", "question", "hold")
 DATA = Path(__file__).resolve().parent / "data"
+TEMPLATE_QUESTION = ("Real police, bank or government officers never ask you to move your savings to a 'safe' wallet. "
+                     "In your own words, why are you sending this money, and did anyone ask you to?")
 MIN_USDT = 10  # as in features.py: dust (e.g. address poisoning) never links a wallet to a freeze
 
 InMemoryMemory = PayeeMemory  # the #3 name; PayeeMemory() defaults to an in-memory SQLite db
@@ -58,6 +63,7 @@ class Decision:
     withdrawal: Withdrawal
     decided_at: int
     engine_version: str = ENGINE_VERSION
+    question: str = None  # question tier only: what to ask the customer
 
 
 @dataclass
@@ -69,16 +75,19 @@ class Config:
     # P(scam) once a signal has fired; the strongest signal wins.
     p_signal: dict = None
     model_flag: float = 0.9  # B's model.score() at or above this escalates; set from the 1% false-alarm cut
+    large_usdt: float = 1000  # a first-time payee at or above this gets a question, not a warning
 
     def __post_init__(self):
         self.p_signal = self.p_signal or {
             # hold signals
             "officer_confirmed": 0.95,
             "destination_freeze": 0.6,
+            "answer_confirms_script": 0.5,
             "memory_hit": 0.3,
-            # weak signals: warn (a question once #7 lands), never hold on their own
+            # question signals: ask, never hold on their own
             "counterparty_freeze": 0.02,
             "model_flag": 0.02,
+            "large_new_payee": 0.02,
         }
 
 
@@ -102,14 +111,19 @@ class RecordedHistories:
 
 
 class Engine:
-    def __init__(self, history, memory, clock, log, config=None, model=None, known_bad=frozenset()):
+    def __init__(self, history, memory, clock, log, config=None, model=None, known_bad=frozenset(), classifier=None):
         """model: features dict -> P or None (B's model.score); optional, decisions work without it.
-        known_bad: the static scam list for the model's touched_known_bad feature, as in training."""
+        known_bad: the static scam list for the model's touched_known_bad feature, as in training.
+        classifier: D's granite module, or anything with ask(withdrawal, reasons) -> str and
+        classify(answer) -> {"scam_type", "confirms_script", "source"[, "kind"]}. Without one the
+        question is the template and answers can't be decided."""
         self.history, self.memory, self.clock, self.log = history, memory, clock, log
         self.config = config or Config()
-        self.model, self.known_bad = model, known_bad
+        self.model, self.known_bad, self.classifier = model, known_bad, classifier
 
-    def decide(self, w, answer=None):
+    def decide(self, w, answer=None, answer_kind=None):
+        """Decide a withdrawal. Call again with the customer's `answer` to re-decide a question.
+        answer_kind="modelled" marks a simulated answer (demo, replay) whatever the classifier says."""
         now = self.clock()
         c = self.config
         known = self.memory.paid_before(w.customer_id, w.wallet, now)
@@ -123,38 +137,73 @@ class Engine:
         info = self._model_signal(h, now, frozen_cps)
         weak += [r for r in info if r.signal == "model_flag"]
         info = [r for r in info if r.signal != "model_flag"]
+        if not known and w.amount_usdt >= c.large_usdt:
+            weak.append(Reason("large_new_payee", "customer_history", "real",
+                               f"This is a large payment ({w.amount_usdt:,.0f} USDT) to a wallet you have never paid before."))
+        cls = None
+        if answer is not None:
+            if self.classifier is None:
+                raise ValueError("an answer needs a classifier (D's granite module or a stub)")
+            cls = dict(self.classifier.classify(answer))
+            if answer_kind:
+                cls["kind"] = answer_kind
+            kind = cls.get("kind", "real")  # the replay's simulated answers say "modelled"
+            if cls["confirms_script"]:
+                holds.append(Reason("answer_confirms_script", cls["source"], kind,
+                                    f"Your answer matches a known scam pattern ({cls['scam_type'].replace('_', ' ')})."))
+            else:
+                info.append(Reason("answer_ok", cls["source"], kind, "Your answer doesn't match any scam pattern we know."))
+        question = None
         if holds:
-            tier = "hold"
-            top = max(holds, key=lambda r: c.p_signal[r.signal])
-            p = c.p_signal[top.signal]
-            reasons = holds + weak + [payee] + info + [Reason("p_signal", "config", "modelled",
-                                                              f"Assumed scam probability {p:.0%} once '{top.signal}' fires.")]
+            tier, top = "hold", max(holds, key=lambda r: c.p_signal[r.signal])
+        elif cls is not None:
+            tier, top = "release", None  # a clean answer releases, weak signals and all
         elif weak:
-            # Weak evidence warns even a known payee; it never holds on its own (#6 replay: counterparty
-            # freezes held 251 legitimate payments on 3 comparison wallets for 3 scam payments).
-            tier = "warning"
-            top = max(weak, key=lambda r: c.p_signal[r.signal])
-            p = c.p_signal[top.signal]
-            reasons = weak + [payee] + info + [Reason("p_signal", "config", "modelled",
-                                                      f"Assumed scam probability {p:.0%} once '{top.signal}' fires.")]
+            # Unusual or weakly flagged: one question. Weak evidence never holds on its own (#6 replay:
+            # counterparty freezes held 251 legitimate payments on 3 comparison wallets for 3 scam payments).
+            tier, top = "question", max(weak, key=lambda r: c.p_signal[r.signal])
         else:
-            tier, mult = ("release", c.known_payee_mult) if known else ("warning", c.first_time_mult)
+            tier, top = ("release" if known else "warning"), None
+        if top is not None:
+            p = c.p_signal[top.signal]
+            prior = Reason("p_signal", "config", "modelled", f"Assumed scam probability {p:.0%} once '{top.signal}' fires.")
+        else:
+            mult = c.known_payee_mult if known else c.first_time_mult
             p = min(1.0, c.base_rate * mult)
-            reasons = [payee] + info + [Reason("base_rate", "config", "modelled",
-                                               f"Assumed scam rate {c.base_rate:.1%} x {mult:g} for this payee type.")]
-        d = Decision(tier, tuple(reasons), p, w.amount_usdt * p, w, now)
+            prior = Reason("base_rate", "config", "modelled", f"Assumed scam rate {c.base_rate:.1%} x {mult:g} for this payee type.")
+        reasons = holds + weak + [payee] + info + [prior]
+        if tier == "question":
+            question = self._ask(w, reasons)
+        d = Decision(tier, tuple(reasons), p, w.amount_usdt * p, w, now, question=question)
         if tier == "hold":
             # Another attempt to pay a reported wallet is itself evidence: renew the report so the hold
             # outlives one half-life (wallets collect for a median of 129 days). Kept per kind, so a
             # modelled report only ever renews modelled evidence. An officer's "cleared" ends it.
             for kind in sorted({e.kind for e in evidence if e.signal == "memory_hit"}):
                 self.memory.add(Report(w.wallet, w.ts, source="held_payment", kind=kind, actor=w.customer_id))
-        else:
-            # Release and warning let the payment go ahead, so the customer now knows this payee.
-            # A held payment hasn't gone anywhere yet.
+            # A confirming answer warns every other customer paying this wallet.
+            if cls is not None and cls["confirms_script"]:
+                self.memory.add(Report(w.wallet, w.ts, source="customer_answer", kind=cls.get("kind", "real"),
+                                       actor=w.customer_id, note=cls["scam_type"]))
+        elif tier in ("release", "warning"):
+            # These let the payment go ahead, so the customer now knows this payee. A held payment or
+            # an unanswered question hasn't gone anywhere yet.
             self.memory.note_paid(w.customer_id, w.wallet, w.ts)
-        self.log.append({"inputs": {"withdrawal": asdict(w), "answer": answer}, "decision": to_dict(d)})
+        self.log.append({"inputs": {"withdrawal": asdict(w), "answer": answer, "classified": cls},
+                         "decision": to_dict(d)})
         return d
+
+    def _ask(self, w, reasons):
+        if self.classifier is not None:
+            try:
+                q = self.classifier.ask({"customer": w.customer_id, "wallet": w.wallet, "amount": w.amount_usdt, "time": w.ts},
+                                        [{"signal": r.signal, "text": r.detail, "source": r.source, "kind": r.kind}
+                                         for r in reasons if r.signal not in ("p_signal", "base_rate")])
+                if q:
+                    return q
+            except Exception:  # Granite trouble must never break a decision
+                pass
+        return TEMPLATE_QUESTION
 
     def record(self, event):
         """Customer reports, officer outcomes and Tether freezes go into payee memory (and the log)."""
@@ -229,10 +278,10 @@ def _self_check():
             raise AssertionError("engine used the wall clock or network")
         time.time = socket.socket = urllib.request.urlopen = boom
         try:
-            first = eng.decide(Withdrawal("alice", "0xw", 5_000, clock.now))
+            first = eng.decide(Withdrawal("alice", "0xw", 500, clock.now))
             clock.now += H
             again = eng.decide(Withdrawal("alice", "0xw", 5_000, clock.now))
-            bob = eng.decide(Withdrawal("bob", "0xw", 2_000, clock.now))
+            bob = eng.decide(Withdrawal("bob", "0xw", 200, clock.now))
             eng.record(Report("0xw", clock.now, actor="bob"))
         finally:
             time.time, socket.socket, urllib.request.urlopen = real
@@ -240,7 +289,7 @@ def _self_check():
         assert first.tier == "warning" and first.reasons[0].signal == "first_time_payee", first
         assert again.tier == "release" and again.reasons[0].signal == "known_payee", again
         assert bob.tier == "warning", "a first-time payee for bob, whatever alice did"
-        assert first.expected_loss == 5_000 * 0.01 and again.p_scam < first.p_scam
+        assert first.expected_loss == 500 * 0.01 and again.p_scam < first.p_scam
         assert first.decided_at == 100 * H, "now comes from the injected clock"
         entries = [json.loads(line) for line in (d / "decisions.jsonl").read_text().splitlines()]
         assert [e.get("decision", {}).get("tier", e.get("event")) for e in entries] == ["warning", "release", "warning", "Report"]
@@ -256,13 +305,13 @@ def _self_check():
         def fresh(history=no_history, now=0):
             return Engine(history, PayeeMemory(), FixedClock(now), DecisionLog(d / f"e{time.monotonic_ns()}.jsonl"))
 
-        def at(eng, now, who, wallet="0xscam", amount=1_000):
+        def at(eng, now, who, wallet="0xscam", amount=500):
             eng.clock.now = now
             return eng.decide(Withdrawal(who, wallet, amount, now))
 
         # Customer B is held because of customer A's report, and A's own 2nd payment too.
         eng = fresh()
-        assert at(eng, 1 * H, "mrs_tan", amount=20_000).tier == "warning"
+        assert at(eng, 1 * H, "mrs_tan", amount=900).tier == "warning"
         eng.record(Report("0xscam", 2 * H, actor="mrs_tan", note="caller said he was police"))
         held = at(eng, 3 * H, "mr_lim", amount=8_000)
         assert held.tier == "hold" and held.reasons[0].signal == "memory_hit", held
@@ -318,10 +367,10 @@ def _self_check():
         eng.memory.add_freezes([("0xmule", 20 * H), ("0xdust", 5 * H), ("0xlater", 6 * H)])
         assert at(eng, 10 * H, "bob").reasons[0].signal == "first_time_payee", "mule frozen later; dust and future senders don't count"
         cp = at(eng, 21 * H, "bob")
-        assert cp.tier == "warning" and cp.reasons[0].signal == "counterparty_freeze" and cp.reasons[0].kind == "real", cp
+        assert cp.tier == "question" and cp.reasons[0].signal == "counterparty_freeze" and cp.reasons[0].kind == "real", cp
         assert cp.p_scam == 0.02, "weak evidence, even for a known payee"
         eng.record(OfficerOutcome("0xscam", "cleared", 22 * H))
-        assert at(eng, 23 * H, "bob").tier == "release", "an officer can clear a counterparty-freeze warning"
+        assert at(eng, 23 * H, "bob").tier == "release", "an officer can clear a counterparty-freeze question"
         eng.record(Freeze("0xscam", 30 * H))
         frz = at(eng, 31 * H, "erin")
         assert frz.tier == "hold" and frz.reasons[0].signal == "destination_freeze"
@@ -333,12 +382,92 @@ def _self_check():
             eng = Engine(history, PayeeMemory(), FixedClock(10 * H), DecisionLog(d / f"m{score}.jsonl"), model=model)
             eng.memory.note_paid("bob", "0xscam", 1)
             dec = eng.decide(Withdrawal("bob", "0xscam", 100, 10 * H))
-            assert dec.tier == tier and (sig is None) == all(not r.signal.startswith("model") for r in dec.reasons), (score, dec)
+            assert dec.tier == {"warning": "question"}.get(tier, tier) and (sig is None) == all(not r.signal.startswith("model") for r in dec.reasons), (score, dec)
             assert all(r.signal != "model_flag" or r.kind == "real" for r in dec.reasons)
         assert seen[0]["n_pay_in"] == 1 and seen[0]["usd_in"] == 500, "model sees point-in-time features() only"
         eng = Engine(history, PayeeMemory(), FixedClock(10 * H), DecisionLog(d / "m_hold.jsonl"), model=lambda f: 0.99)
         eng.record(Report("0xscam", 1))
         assert eng.decide(Withdrawal("carol", "0xscam", 100, 10 * H)).tier == "hold", "a hold still beats a model flag"
+
+        # ---- #7: question tier ----
+        class StubClassifier:  # stands in for D's granite module
+            def __init__(self, kind="real", broken=False):
+                self.kind, self.broken, self.asked = kind, broken, []
+
+            def ask(self, withdrawal, reasons):
+                if self.broken:
+                    raise ConnectionError("Granite down")
+                self.asked.append((withdrawal, reasons))
+                return "Did someone on a call tell you to send this?"
+
+            def classify(self, answer):
+                yes = "officer" in answer.lower()
+                return {"scam_type": "government_impersonation" if yes else "none", "confirms_script": yes,
+                        "source": "stub", "kind": self.kind}
+
+        def asking(cls=None):
+            return Engine(no_history, PayeeMemory(), FixedClock(0), DecisionLog(d / f"q{time.monotonic_ns()}.jsonl"),
+                          classifier=cls or StubClassifier())
+
+        # A large payment to a new payee gets one question; small ones a warning; repeat payees release.
+        eng = asking()
+        eng.clock.now = 1 * H
+        q = eng.decide(Withdrawal("mrs_tan", "0xscam", 20_000, 1 * H))
+        assert q.tier == "question" and q.question == "Did someone on a call tell you to send this?", q
+        assert q.reasons[0].signal == "large_new_payee" and q.expected_loss == 20_000 * 0.02
+        w_sent, r_sent = eng.classifier.asked[0]
+        assert w_sent["amount"] == 20_000 and all("text" in r for r in r_sent), "granite.ask gets D's dict shape"
+        assert not any(r["signal"] in ("p_signal", "base_rate") for r in r_sent), "no modelled priors in the prompt"
+        assert not eng.memory.paid_before("mrs_tan", "0xscam", 2 * H), "an unanswered question hasn't paid"
+        assert at(eng, 1 * H, "small", amount=999).tier == "warning"
+
+        # A confirming answer holds and warns every other customer paying the wallet.
+        coached = "The police officer said my account is linked to a crime"
+        held = eng.decide(Withdrawal("mrs_tan", "0xscam", 20_000, 1 * H), answer=coached)
+        assert held.tier == "hold" and held.reasons[0].signal == "answer_confirms_script" and held.p_scam == 0.5, held
+        assert "government impersonation" in held.reasons[0].detail and held.reasons[0].kind == "real"
+        nxt = at(eng, 2 * H, "mr_lim", amount=50)
+        assert nxt.tier == "hold" and nxt.reasons[0].signal == "memory_hit" and nxt.reasons[0].source == "customer_answer", nxt
+
+        # A clean answer releases, and the customer then knows the payee.
+        eng = asking()
+        eng.clock.now = 1 * H
+        assert eng.decide(Withdrawal("bob", "0xw", 5_000, 1 * H)).tier == "question"
+        ok = eng.decide(Withdrawal("bob", "0xw", 5_000, 1 * H), answer="Paying my own exchange account")
+        assert ok.tier == "release" and any(r.signal == "answer_ok" for r in ok.reasons), ok
+        assert at(eng, 2 * H, "bob", "0xw", 5_000).tier == "release" and not eng.memory.evidence("0xw", 3 * H)
+
+        # A clean answer never overrides a hold that memory already had.
+        eng = asking()
+        eng.record(Report("0xscam", 0))
+        eng.clock.now = 1 * H
+        assert eng.decide(Withdrawal("bob", "0xscam", 50, 1 * H), answer="It's for my nephew").tier == "hold"
+
+        # Granite down: the template question. No classifier: answers can't be decided.
+        eng = asking(StubClassifier(broken=True))
+        assert at(eng, 1 * H, "bob", amount=5_000).question == TEMPLATE_QUESTION
+        eng = Engine(no_history, PayeeMemory(), FixedClock(1 * H), DecisionLog(d / "nocls.jsonl"))
+        assert eng.decide(Withdrawal("bob", "0xw", 5_000, 1 * H)).question == TEMPLATE_QUESTION
+        try:
+            eng.decide(Withdrawal("bob", "0xw", 5_000, 1 * H), answer="hi")
+            raise AssertionError("an answer without a classifier must fail loudly")
+        except ValueError:
+            pass
+
+        # The caller can mark a simulated answer as modelled (the demo's coached customer 1).
+        eng = asking()
+        eng.clock.now = 1 * H
+        demo = eng.decide(Withdrawal("customer-1", "0xscam", 300, 1 * H), answer=coached, answer_kind="modelled")
+        assert demo.tier == "hold" and demo.reasons[0].kind == "modelled"
+        assert {e.kind for e in eng.memory.evidence("0xscam", 2 * H)} == {"modelled"}
+
+        # Simulated (modelled) answers stay modelled all the way into payee memory.
+        eng = asking(StubClassifier(kind="modelled"))
+        eng.clock.now = 1 * H
+        eng.decide(Withdrawal("v1", "0xscam", 5_000, 1 * H), answer=coached)
+        assert {e.kind for e in eng.memory.evidence("0xscam", 2 * H)} == {"modelled"}
+        entry = json.loads(eng.log.path.read_text().splitlines()[-1])
+        assert entry["inputs"]["classified"]["confirms_script"] is True, "the log keeps what the classifier said"
 
         # Recorded histories with the real freeze list: holds come only from real evidence here.
         hist = RecordedHistories(("test_pos", "test_negv"))
@@ -360,7 +489,7 @@ def _self_check():
                             assert all(r.kind == "real" for r in dec.reasons if r.signal not in ("p_signal", "base_rate"))
             assert all(c["hold"] == 0 for c in count.values()), "no reports: Tether freezes of others never hold"
             print("recorded-history replay (25 wallets each, Tether freezes only, no reports):", count)
-    print("self-check passed: #3 release/warn/log and #6 shared memory, holds, outcomes, decay, freezes")
+    print("self-check passed: #3 release/warn/log, #6 shared memory/holds/renewal/freezes/model, #7 question tier")
 
 
 if __name__ == "__main__":

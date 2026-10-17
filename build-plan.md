@@ -3,6 +3,8 @@
 **IBM Z Datathon 2026 · companion to `score-before-you-sign.md`**
 Status: decisions Q1–Q18 settled in a grilling session on 17 Oct 2026. Team of 4. T+0 = actual kick-off; code freeze at 05:00 Sun (assumed T+20 for a 09:00 Sat start).
 
+> **Partly superseded (17 Oct):** the detector failed its feasibility test (`docs/feasibility.md`), so GitHub issue #1 reframes the project as "the first warning is the last payment". The headline is now Result 2; Result 1 (lead time, "headline in days") is dropped from the pitch. Where this plan disagrees with issue #1 or `docs/score-before-you-sign.md`, those win.
+
 ---
 
 ## 1. What changed from the idea doc

@@ -89,19 +89,72 @@ def known_bad():
     return set(txt.read_text().split())
 
 
+def _tokentx(addr, offset, bulk):
+    return fetch.get(bulk=bulk, module="account", action="tokentx", contractaddress=USDT, address=addr,
+                     sort="asc", page=1, offset=offset)
+
+
+def _as_history(addr, group, offset, freeze_ts, rows):
+    txs = [{"ts": int(t["timeStamp"]), "from": t["from"].lower(), "to": t["to"].lower(),
+            "usdt": int(t["value"]) / 1e6, "nonce": int(t["nonce"]), "hash": t["hash"]} for t in rows]
+    return {"address": addr, "group": group, "freeze_ts": freeze_ts, "truncated": len(rows) >= offset, "transfers": txs}
+
+
 def history(addr, group, offset, freeze_ts=None):
-    """One ascending USDT tokentx call. truncated = there may be more than `offset` transfers."""
+    """One ascending USDT tokentx call. truncated = there may be more than `offset` transfers.
+    group "live" goes through live_history (live credit floor, short timeout); None if it failed."""
+    if group == "live":
+        return live_history(addr, offset)["history"]
     try:
-        rows = fetch.get(module="account", action="tokentx", contractaddress=USDT, address=addr,
-                         sort="asc", page=1, offset=offset).get("result")
+        rows = _tokentx(addr, offset, bulk=True).get("result")
     except RuntimeError as e:  # one bad wallet must not stop the pull; a rerun retries it
         rows = str(e)
     if not isinstance(rows, list):
         log.warning("no history for %s: %s", addr, str(rows)[:120])
         return None
-    txs = [{"ts": int(t["timeStamp"]), "from": t["from"].lower(), "to": t["to"].lower(),
-            "usdt": int(t["value"]) / 1e6, "nonce": int(t["nonce"]), "hash": t["hash"]} for t in rows]
-    return {"address": addr, "group": group, "freeze_ts": freeze_ts, "truncated": len(rows) >= offset, "transfers": txs}
+    return _as_history(addr, group, offset, freeze_ts, rows)
+
+
+LIVE_MESSAGES = {
+    "ok": "USDT history fetched live from Blockscout",
+    "no_transfers": "no USDT transfers to or from this address",
+    "not_a_wallet": "this is a token contract or the zero address, not a wallet",
+    "too_much_history": "too much history to score live (likely an exchange or service wallet), or Blockscout is slow",
+    "no_credits": "the live Blockscout budget is used up",
+    "unavailable": "Blockscout is unavailable right now",
+    "invalid": "not an Ethereum address (0x followed by 40 hex characters)",
+}
+
+
+def live_history(addr, offset=1000):
+    """The live box's lookup; never raises. Returns {status, message, history}, with history the same
+    shape as the snapshot's (group "live", truncated at `offset` exactly as there) or None.
+    status: ok | no_transfers | not_a_wallet | too_much_history | no_credits | unavailable | invalid."""
+    def out(status, h=None, detail=None):
+        if detail:
+            log.warning("live %s: %s (%s)", addr, status, detail)
+        return {"status": status, "message": LIVE_MESSAGES[status], "history": h}
+    try:
+        addr = fetch.wallet(addr)
+    except ValueError:
+        return out("invalid")
+    if addr in (USDT, "0x" + "0" * 40):
+        return out("not_a_wallet")
+    try:
+        data = _tokentx(addr, offset, bulk=False)
+    except fetch.LiveTimeout as e:
+        return out("too_much_history", detail=e)
+    except fetch.OutOfCredits as e:
+        return out("no_credits", detail=e)
+    except RuntimeError as e:  # FetchError: HTTP error, network, no key
+        return out("unavailable", detail=e)
+    rows = data.get("result") if isinstance(data, dict) else None
+    if not isinstance(rows, list):  # Blockscout's own query timeout comes back as status 0 with a message
+        said = f"{data.get('message')} {rows}" if isinstance(data, dict) else str(data)
+        slow = "timeout" in said.lower() or "timed out" in said.lower()
+        return out("too_much_history" if slow else "unavailable", detail=said[:120])
+    h = _as_history(addr, "live", offset, None, rows)
+    return out("ok" if rows else "no_transfers", h)
 
 
 def positives(fz, ofac_set):
