@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fraud queue</title>
 <link rel="icon" href="data:,">
-<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js" integrity="sha384-IWROdLKRsN1UuJywMlWl7/blXQ8GEooN2n7dzTxfEPd7ybYIKCUJ2Ol/1Gpf3YV4" crossorigin="anonymous"></script>
 <style>
   /* The customer page's wireframe-grey system (static/customer.html), with the console's real/modelled tags kept. */
   :root {
@@ -116,8 +115,6 @@
   .said .free { border: 1.5px dashed #777; }
   .said .free small { display: block; color: var(--mut); font-size: 12px; }
   .freeze { color: var(--hold); font-weight: 700; }
-  .grid + section.block { margin-top: 16px; }
-  #graph { height: 18rem; background: #fafafa; border: 1px solid var(--soft); border-radius: 6px; }
   .check label { display: flex; gap: 10px; align-items: center; padding: 6px 0; cursor: pointer; }
   .check input, .radio input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink); flex: none; }
   ol.log { list-style: none; margin: 0; padding: 0; font-size: 14px; }
@@ -298,7 +295,6 @@ const sentAs = (r) => (r.asset && r.asset !== "USDT" && r.qty ? `sent as ${r.qty
 const mins = (s) => (s < 60 ? "<1 min" : Math.floor(s / 60) + " min");
 const ago = (ts) => { const d = now() - ts; return d < 3600 ? mins(d) + " ago" : d < 86400 ? Math.round(d / 3600) + " h ago" : Math.round(d / 86400) + " days ago"; };
 const tag = (kind) => el("span", kind, "tag " + kind);
-const TIER_COLOR = { hold: "#b3261e", question: "#2c3fd6", warning: "#b26a00", release: "#2e7d32" };
 const waitCls = (s) => (s >= 900 ? "red" : s >= 600 ? "amber" : "");  // the wireframe: amber at 10 min, red past the 15-min target
 // The engine words customer-facing reasons to the customer ("Your answer…"); the officer reads them about the customer.
 const aboutCustomer = (t) => t.replace(/\bYour\b/g, "Their").replace(/\byour\b/g, "their").replace(/\bYou have\b/g, "They have").replace(/\byou have\b/g, "they have").replace(/\bYou\b/g, "They").replace(/\byou\b/g, "they");
@@ -306,7 +302,7 @@ const aboutCustomer = (t) => t.replace(/\bYour\b/g, "Their").replace(/\byour\b/g
 const SIGNAL = { answer_confirms_script: "Answer matches a scam script", officer_confirmed: "Officer confirmed this wallet", memory_hit: "Earlier warning on this wallet",
   destination_freeze: "Tether froze this wallet", counterparty_freeze: "Paid by or to a frozen wallet", model_flag: "Model flag (weak)",
   large_new_payee: "Large payment, first-time payee", first_time_payee: "First-time payee" };
-let tab = "open", openCase = null, cy = null, playing = null, seen = null, QUESTIONS = null, REASONS = null, dirty = false;
+let tab = "open", openCase = null, playing = null, seen = null, QUESTIONS = null, REASONS = null, dirty = false;
 
 function view(name) {
   for (const v of ["queue", "case", "outcome"]) $("v-" + v).hidden = v !== name;
@@ -469,8 +465,6 @@ async function showCase(id) {
              ["Payee memory", c.prior_warnings?.length ? c.prior_warnings.map((m) => m.detail).join(" ") : "No earlier warnings"]);
   const rec = block(["Wallet record", tag("real")], dl(facts));
 
-  const g = el("div"); g.id = "graph";
-  const flow = block(["Money flow", el("span", "who paid this wallet, and where it went next (dashed)", "muted")], g);
   const chk = el("div", null, "check");
   for (const t of ["Confirm identity with two details", "Ask who they are sending to, without prompting", "Ask if anyone told them to keep it secret or hurry",
                    "Tell them real officers never ask them to move money", "Offer to cancel the payment"]) { const l = el("label"), i = el("input"); i.type = "checkbox"; l.append(i, el("span", t)); chk.append(l); }
@@ -482,39 +476,13 @@ async function showCase(id) {
   if (!mine && c.status === "open") { const cl = el("button", "Claim this case", "pri"); cl.onclick = () => claim(id); acts.append(cl); rec_b.className = ""; }
   acts.append(rec_b);
   const grid = el("div", null, "grid"), left = el("div"), right = el("div");
-  // as the wireframe: the story on the left (payment, customer, her answers), the evidence on the right; the graph full width
+  // as the wireframe: the story on the left (payment, customer, her answers), the evidence on the right
   left.append(pay, cust, told, block("Activity log", log));
   right.append(why, rec, block("Call checklist", chk));
   grid.append(left, right);
   head.append(acts);  // in the header, so the next step is visible without scrolling
-  box.replaceChildren(head, grid, flow);
+  box.replaceChildren(head, grid);
   view("case");
-  drawGraph(w.wallet, c.payers || [], f?.out_flows || []);
-}
-
-function drawGraph(wallet, payers, outs) {
-  const els = [{ data: { id: wallet, label: short(wallet), wallet: 1 } }];
-  const last = new Map(payers.map((p) => [p.customer, p]));
-  for (const [cu, p] of last) els.push({ data: { id: "c:" + cu, label: `${cu.replace("customer-", "c")} · ${Math.round(p.amount).toLocaleString()}` } });  // tier is the edge colour
-  payers.forEach((p, i) => els.push({ data: { id: "e" + i, source: "c:" + p.customer, target: wallet, color: TIER_COLOR[p.tier] || "#555b53" } }));
-  outs.forEach((o, i) => {
-    els.push({ data: { id: "o:" + o.to, label: `${short(o.to)} · ${Math.round(o.usdt)}`, out: 1 } });
-    els.push({ data: { id: "f" + i, source: wallet, target: "o:" + o.to, color: "#555b53", out: 1 } });
-  });
-  if (cy) cy.destroy();
-  if (!window.cytoscape) { $("graph").textContent = "Graph library didn't load (offline)."; return; }
-  cy = cytoscape({
-    container: $("graph"), elements: els, userZoomingEnabled: false,
-    // wallet in the middle, payers around it, where the money went next on the outer ring
-    layout: { name: "concentric", concentric: (n) => (n.data("wallet") ? 3 : n.data("out") ? 1 : 2), levelWidth: () => 1, minNodeSpacing: 34 },
-    style: [
-      { selector: "node", style: { label: "data(label)", "font-family": "ui-monospace, Menlo, monospace", "font-size": 9, color: "#0e1116", "background-color": "#1a1a1a", width: 12, height: 12, "text-margin-y": -4, "text-background-color": "#fafafa", "text-background-opacity": 0.9, "text-background-padding": 2 } },
-      { selector: "node[wallet]", style: { "background-color": "#b3261e", width: 28, height: 28, "font-size": 11, "font-weight": "bold" } },
-      { selector: "node[out]", style: { "background-color": "#ffffff", "border-width": 1.5, "border-style": "dashed", "border-color": "#555b53" } },
-      { selector: "edge", style: { "line-color": "data(color)", "target-arrow-color": "data(color)", "target-arrow-shape": "triangle", "curve-style": "bezier", width: 2 } },
-      { selector: "edge[out]", style: { "line-style": "dashed" } },
-    ],
-  });
 }
 
 // ---- record outcome
