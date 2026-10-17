@@ -28,6 +28,11 @@ from decision_log import DecisionLog
 from engine import Engine, RecordedHistories, Withdrawal, to_dict
 from payee_memory import OfficerOutcome, PayeeMemory, Report, load_freezes
 
+try:
+    from model import score as model_score  # B's weak signal (#5); warns at most, never holds
+except ImportError:  # no numpy (e.g. the slim base image): the engine decides without it
+    model_score = None
+
 HERE = Path(__file__).resolve().parent
 DATA = HERE / "data"
 WALLET = r"^0x[0-9a-fA-F]{40}$"
@@ -37,6 +42,7 @@ COACHED = "The police officer on the phone said my account is linked to a crime 
 RECORDED = RecordedHistories(("train_pos", "train_neg", "train_negv", "test_pos", "test_neg", "test_negv"))
 FROZEN_AT = {r["address"]: int(r["freeze_ts"]) for r in csv.DictReader(open(DATA / "freezes.csv"))}
 FREEZES = load_freezes()
+BAD = frozenset((DATA / "known_bad.txt").read_text().split())
 LIVE = {}  # histories pulled by the live box this run
 LOG = DecisionLog(DATA / "decisions.jsonl")  # one append-only chain across demo resets
 pool = concurrent.futures.ThreadPoolExecutor(2)
@@ -55,7 +61,7 @@ def history(wallet, as_of):
 def new_engine():
     memory = PayeeMemory()
     memory.add_freezes(FREEZES)
-    return Engine(history, memory, lambda: clock["now"], LOG)
+    return Engine(history, memory, lambda: clock["now"], LOG, model=model_score, known_bad=BAD)
 
 
 engine = new_engine()
@@ -126,13 +132,16 @@ async def queue():  # ponytail: ranked here until #9 gives the engine a capacity
     return sorted(latest.values(), key=lambda r: -r["expected_loss"])
 
 
+def officer(wallet, outcome, ts, officer_id):
+    engine.record(OfficerOutcome(wallet, outcome, ts, officer_id))
+    for c in cases.values():
+        if c["withdrawal"]["wallet"] == wallet and c["withdrawal"]["time"] <= ts:
+            c["status"] = outcome  # resolved: off the queue
+
+
 @app.post("/outcome")
 async def outcome(o: Outcome):
-    wallet = o.wallet.lower()
-    engine.record(OfficerOutcome(wallet, o.outcome, int(time.time()), "officer"))
-    for c in cases.values():
-        if c["withdrawal"]["wallet"] == wallet:
-            c["status"] = o.outcome
+    officer(o.wallet.lower(), o.outcome, int(time.time()), "officer")
     return await queue()
 
 
@@ -146,6 +155,10 @@ async def case(id: int):
                "time": o["withdrawal"]["time"], "tier": o["decision"]["tier"]}
               for o in cases.values() if o["withdrawal"]["wallet"] == w["wallet"]]
     prior = [asdict(e) for e in engine.memory.evidence(w["wallet"], w["time"])]
+    if w["wallet"] == demo["confirmed"]:  # ponytail: OfficerOutcome has no kind yet (asked C); the demo's is scripted
+        for r in prior + c["decision"]["reasons"]:
+            if r["signal"] == "officer_confirmed":
+                r["kind"] = "modelled"
     return {**c, "prior_warnings": prior, "payers": payers, "tether_froze_at": FROZEN_AT.get(w["wallet"]),
             "modelled_answer": c["answer"] == COACHED}
 
@@ -170,6 +183,10 @@ async def live(l: Live):
 
 
 # Demo spine (#17): replay one frozen wallet's real payments as customers 1..N, in time order.
+# Customer 1 answers like a coached victim, customer 2 is held because of it, an officer calls
+# back and confirms the scam (both scripted: modelled), so every later payment is held until the
+# freeze. Agreed with A for #16: "the engine holds all of them once an officer confirms".
+CONFIRM_AFTER_S = 3600  # scripted call-back one hour after customer 2's hold
 def _pays(h):
     return [t for t in h["transfers"] if t["to"] == h["address"] and t["from"] != h["address"]
             and t["usdt"] >= 10 and t["ts"] < h["freeze_ts"]]
@@ -184,7 +201,7 @@ def _demo_wallet():
     return min(cands, key=lambda h: h["address"])["address"]  # ponytail: deterministic stand-in until #16
 
 
-demo = {"wallet": None, "step": 0}
+demo = {"wallet": None, "step": 0, "confirmed": None}
 
 
 @app.post("/demo/reset")
@@ -192,7 +209,7 @@ async def demo_reset():
     global engine
     engine = new_engine()
     cases.clear()
-    demo.update(wallet=_demo_wallet(), step=0)
+    demo.update(wallet=_demo_wallet(), step=0, confirmed=None)
     return {"wallet": demo["wallet"], "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
 
 
@@ -207,8 +224,12 @@ async def demo_next():
     w = {"customer": f"customer-{demo['step']}", "wallet": demo["wallet"], "amount": t["usdt"], "time": t["ts"]}
     # customer 1 is asked and answers like a coached victim (modelled); everyone after just pays
     d = answered(w, COACHED, kind="modelled") if demo["step"] == 1 else decide(w)
+    confirmed = demo["step"] == 2 and d["tier"] == "hold"
+    if confirmed:
+        officer(demo["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, "officer (demo script, modelled)")
+        demo["confirmed"] = demo["wallet"]
     return {"done": False, "step": demo["step"], "of": len(pays), "withdrawal": w, "decision": d,
-            "answer": COACHED if demo["step"] == 1 else None}
+            "answer": COACHED if demo["step"] == 1 else None, "officer_confirmed": confirmed}
 
 
 @app.get("/")
