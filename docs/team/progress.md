@@ -18,7 +18,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
-| [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | blocked |  |  |
+| [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | doing | 17 Oct | Models trained + saved (models/, val AUC 0.87 by wallet; out-of-time 0.57 vs matched). `model.score(features) -> float or None`, 1.5 ms on TF 2.21. Engine wiring waits on #3. Branch b/5-weak-model-signal |
 | [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | blocked |  |  |
 | [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | blocked |  |  |
 
@@ -50,3 +50,4 @@ Short dated lines for anything others need to know (decisions, blockers, handove
 - 17 Oct (D): #4 score API + customer page on `advay/app-and-delivery`, running on a stub with #1's decide() shape. C: if your decision dict differs from engine_stub.py's docstring, tell me.
 - 17 Oct (D): App side of #4 #8 #12 #13 built on `engine_stub.py`, whose docstring is the engine contract the app needs (decide/record/queue/case). C: please match it or tell D. A: set DEMO_WALLET for #16. B: `uvicorn app:app` is what #11 deploys.
 - 17 Oct (D): app.py now runs on C's engine (merged `aariv/c6-payee-memory` into `advay/app-and-delivery`). Notes for C: (1) PayeeMemory's SQLite connection is per-thread, so the app runs engine routes on one thread (async); (2) the app needs `question` tier + answer handling (#7) and a ranked queue (#9) to drop its interim bridge and sort; (3) with the 7-day half-life the demo only holds payments within ~7 days of the first warning, so the demo wallet needs a quick 2nd payment (A, #16).
+- 17 Oct (B): #5 model signal ready as `model.score(feats)`; returns None when models are missing so the engine can decide without it. Trained on the TensorFlow backend (TF 2.21 locally) so the same file loads under TF/zDNN on the VM; don't train on torch (loading imports torch and crashes alongside TF).

@@ -1,0 +1,26 @@
+{
+ "features": [
+  "age_h",
+  "n_pay_in",
+  "n_senders_in",
+  "n_pay_in_6h",
+  "share_in_from_hot_wallets",
+  "usd_in",
+  "usd_out",
+  "out_in_ratio",
+  "max_in_usd",
+  "median_hold_h",
+  "n_out_counterparties",
+  "touched_known_bad"
+ ],
+ "rows": 8560,
+ "positives": 4275,
+ "wallets": 2225,
+ "validation_auc": {
+  "xgb": 0.865,
+  "mlp": 0.867,
+  "mean": 0.871
+ },
+ "out_of_time_auc_volume_matched": 0.565,
+ "note": "weak signal only"
+}
