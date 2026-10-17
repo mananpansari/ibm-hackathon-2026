@@ -100,3 +100,19 @@ On the VM, the demo replays the chosen frozen wallet payment by payment: the 1st
 - [ ] 2nd customer is held because of the 1st customer's answer
 - [ ] Live box scores a pasted address via the cached client and works from the snapshot if Blockscout is unreachable
 - [ ] Credit guard respected for live lookups
+
+## UI v2: customer page and officer console from the new wireframes
+
+**Blocked by:** A's UI v2 backend PR for phase 2 only (phase 1 runs on mock data). Plan, cut list, API contract and agent prompt: [ui-v2.md](ui-v2.md).
+
+### What to build
+
+Both pages rebuilt to the new wireframes ([customer](https://claude.ai/artifact/FiVzKZ5CvBBHKaJZnCRzah), [officer](https://claude.ai/artifact/V8tRFB8sGrZtuY8NRKequP)), and the additive `app.py` endpoints and fields they need. The customer page is labelled as a simulated exchange withdrawal screen. Wireframe sample text that contradicts our results (detector scores, per-question score path, invented counts) is replaced with real engine output or cut.
+
+## Acceptance criteria
+
+- [ ] Customer page: release, warning, Q1→Q2→Q3 branching and hold screens driven by the engine; fits 390 px
+- [ ] Officer page: ranked queue with summary, case view with real tagged reasons and wallet record, structured outcome form
+- [ ] Demo reset/next, live address box and graph still work; demo numbers unchanged
+- [ ] `app.py` changes are additive with no decision logic
+- [ ] PR merged by 03:30 SGT, 18 Oct; runs on the VM with screenshots

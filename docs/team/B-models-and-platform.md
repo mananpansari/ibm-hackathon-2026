@@ -54,3 +54,17 @@ On the VM, decide() latency and throughput are measured with the model's MLP inf
 - [ ] Benchmark runs through decide(), not the model alone
 - [ ] Method and hardware recorded with the numbers
 - [ ] No NNPA claim without a measured run
+
+## Free-text answer classifier (NLP model)
+
+**Blocked by:** none (in progress). Interface and deadline: [ui-v2.md](ui-v2.md), "Note for B".
+
+### What to build
+
+A classifier for the customer's optional free-text answer, trained partly on synthetic data, that plugs into A's `answers.StructuredClassifier` with one line: `classify(text) -> {"scam_type", "confirms_script", "source"}`, under 2 s on the VM, no network.
+
+## Acceptance criteria
+
+- [ ] Same output shape as `granite.classify`; loads on s390x
+- [ ] Accuracy reported separately on real (BothBosu, `data/sg_answers.csv`) and synthetic test data
+- [ ] Merged by 03:00 SGT, 18 Oct, or listed as a next step with its numbers
