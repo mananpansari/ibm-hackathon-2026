@@ -1,6 +1,28 @@
+# Secrets — never commit
+*.pem
 .env
-__pycache__/
+vm.local.md
+
+# Data: the API cache and raw downloads stay local; snapshot outputs may be committed
 data/blockscout_cache.sqlite*
 data/*.zst
 snapshot.log
 snapshot.err
+data/bothbosu_test.csv
+
+# Models (download steps go in README)
+*.gguf
+*.onnx
+models/
+
+# Python / notebooks
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+.vscode/
+data/decisions*.jsonl
