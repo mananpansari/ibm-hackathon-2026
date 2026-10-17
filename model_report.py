@@ -187,7 +187,8 @@ def run(folder, label, save):
     import numpy as np
     from engine import Config
     t0 = time.time()
-    v2 = bool(folder) and json.loads((Path(folder) / "meta.json").read_text()).get("feature_set") == "v2"
+    kind = json.loads((Path(folder) / "meta.json").read_text()).get("feature_set") if folder else None
+    v2 = kind == "v2"
     train = {r["address"] for r in csv.DictReader(open(F.DATA / "features.csv")) if r["group"].startswith("train")}
     v2_points = F.DATA / "model_v2" / "train_points.csv.gz"
     if v2_points.exists():
@@ -195,7 +196,14 @@ def run(folder, label, save):
         train |= {r["wallet"] for r in csv.DictReader(gzip.open(v2_points, "rt"))}
     hs, bad, frozen_at, ofac = load()
     assert not {h["address"] for g in hs.values() for h in g} & train, "test wallets in the training rows: stop"
-    if v2:
+    if kind == "hybrid":  # v1, v2 and the size-routed hybrid, all from one features_v2 pass
+        import hybrid
+        from features_v2 import FEATURES_V2, features_v2
+        meta = json.loads((Path(folder) / "meta.json").read_text())
+        score_fns = hybrid.scorers(meta)
+        pts = feature_points(hs, bad, frozen_at, ofac, features_v2, FEATURES_V2)
+        files = [HERE / "models" / "xgb.json", HERE / "models" / "mlp.keras", HERE / "models_v2" / "xgb.json", Path(folder) / "meta.json"]
+    elif v2:
         score_fns, feature_fn, names, meta = load_v2(folder)
         pts = feature_points(hs, bad, frozen_at, ofac, feature_fn, names)
         files = [Path(folder) / "xgb.json"]
