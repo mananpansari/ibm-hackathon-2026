@@ -1,0 +1,71 @@
+{
+ "feature_set": "v2",
+ "features": [
+  "age_h",
+  "n_pay_in",
+  "n_senders_in",
+  "n_pay_in_6h",
+  "share_in_from_hot_wallets",
+  "usd_in",
+  "usd_out",
+  "out_in_ratio",
+  "max_in_usd",
+  "median_hold_h",
+  "n_out_counterparties",
+  "touched_known_bad",
+  "first_in_usd",
+  "test_then_big",
+  "gap1_h",
+  "median_gap_in_h",
+  "share_round_in",
+  "n_hot_senders",
+  "share_repeat_sender_pays",
+  "hours_since_last_in",
+  "hours_since_last_out",
+  "share_forwarded_1h",
+  "n_pay_in_7d",
+  "usd_in_7d",
+  "senders_per_payment",
+  "out_in_count_ratio"
+ ],
+ "setup": "v2 features, volume-matched negatives only",
+ "negatives": [
+  "train_negv"
+ ],
+ "rows": 25209,
+ "wallets": 1596,
+ "params": {
+  "n_estimators": 400,
+  "max_depth": 4,
+  "learning_rate": 0.05,
+  "subsample": 0.8,
+  "colsample_bytree": 0.8,
+  "min_child_weight": 5,
+  "eval_metric": "logloss"
+ },
+ "points_per_wallet": 40,
+ "cv": {
+  "v1 features, payment points": {
+   "cv_auc_volume_matched": 0.7635,
+   "cv_auc_random": 0.7724,
+   "time_holdout_auc_volume_matched": 0.7573,
+   "time_holdout_auc_random": 0.76,
+   "time_holdout_late_frozen_wallets": 188
+  },
+  "v2 features, payment points": {
+   "cv_auc_volume_matched": 0.7656,
+   "cv_auc_random": 0.7693,
+   "time_holdout_auc_volume_matched": 0.7844,
+   "time_holdout_auc_random": 0.7919,
+   "time_holdout_late_frozen_wallets": 188
+  },
+  "v2 features, volume-matched negatives only": {
+   "cv_auc_volume_matched": 0.7693,
+   "cv_auc_random": 0.7479,
+   "time_holdout_auc_volume_matched": 0.8009,
+   "time_holdout_auc_random": 0.766,
+   "time_holdout_late_frozen_wallets": 188
+  }
+ },
+ "note": "weak signal only"
+}
