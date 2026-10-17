@@ -30,7 +30,7 @@ from decision_log import DecisionLog
 from features import features
 from payee_memory import DAY, Freeze, OfficerOutcome, PayeeMemory, Report, load_freezes
 
-ENGINE_VERSION = "c9-0.1"
+ENGINE_VERSION = "c9-0.3"
 TIERS = ("release", "warning", "question", "hold")
 DATA = Path(__file__).resolve().parent / "data"
 TEMPLATE_QUESTION = ("Real police, bank or government officers never ask you to move your savings to a 'safe' wallet. "
@@ -78,9 +78,13 @@ class Config:
     known_payee_mult: float = 0.1  # repeat payees much less so
     # P(scam) once a signal has fired; the strongest signal wins.
     p_signal: dict = None
-    # B's model.score() at or above this asks a question. 0.78 flags 1% of payments to comparison wallets
-    # and 16.8% of payments to frozen ones (24,522 test payments, scored in the LinuxONE lab container).
-    model_flag: float = 0.78
+    # B's model.score() at or above this asks a question. 0.59 is a 5% per-payment false-alarm budget:
+    # it flags 5% of payments to volume-matched normal wallets and 31.5% of scam payments, 28.2% of those
+    # in the last 90 days before the freeze (main's models at c4083d7, LinuxONE lab container, up to 40
+    # payments per wallet: 1,343 scam vs 16,734 normal payments; a 1% budget, cut 0.81, flags 14.4% / 7.9%).
+    # Why 5%: a model flag only ever asks a question, never holds, and a question is cheap for a normal
+    # customer, so a wider budget buys earlier questions at little cost. Not chosen because test numbers look better.
+    model_flag: float = 0.59
     large_usdt: float = 1000  # a first-time payee at or above this gets a question, not a warning
     daily_capacity: int = None  # officer call-backs per day; None = unlimited
     day_offset_s: int = 8 * 3600  # days run midnight to midnight Singapore time
@@ -425,6 +429,11 @@ def _self_check():
             assert dec.tier == {"warning": "question"}.get(tier, tier) and (sig is None) == all(not r.signal.startswith("model") for r in dec.reasons), (score, dec)
             assert all(r.signal != "model_flag" or r.kind == "real" for r in dec.reasons)
         assert seen[0]["n_pay_in"] == 1 and seen[0]["usd_in"] == 500, "model sees point-in-time features() only"
+        assert Config().model_flag == 0.59, "5% per-payment budget on volume-matched wallets (see Config)"
+        for score, sig in ((0.59, "model_flag"), (0.589, "model_score")):  # the cut-off itself flags
+            eng = Engine(history, PayeeMemory(), FixedClock(10 * H), DecisionLog(d / f"cut{score}.jsonl"), model=lambda f: score)
+            eng.memory.note_paid("bob", "0xscam", 1)
+            assert any(r.signal == sig for r in eng.decide(Withdrawal("bob", "0xscam", 100, 10 * H)).reasons), score
         eng = Engine(history, PayeeMemory(), FixedClock(10 * H), DecisionLog(d / "m_hold.jsonl"), model=lambda f: 0.99)
         eng.record(Report("0xscam", 1))
         assert eng.decide(Withdrawal("carol", "0xscam", 100, 10 * H)).tier == "hold", "a hold still beats a model flag"
