@@ -134,7 +134,7 @@ async function showCase(id) {
   box.append(card);
 
   const g = el("section", null, "card");
-  g.append(el("h2", `Everyone who paid or tried to pay this wallet (${c.payers.length})`), el("div", null));
+  g.append(el("h2", "Everyone who paid or tried to pay this wallet"), el("div", null));
   g.lastChild.id = "graph";
   box.append(g);
   drawGraph(w.wallet, c.payers);
@@ -168,7 +168,7 @@ async function outcome(wallet, o) {
 async function step() {
   const s = await api("/demo/next", {});
   if (s.done) { stop(); $("demo-status").textContent = `Replay finished. Tether froze the wallet on ${date(s.tether_froze_at)}.`; return; }
-  $("demo-status").textContent = `Payment ${s.step} of ${s.of}: ${s.withdrawal.customer}, ${Math.round(s.withdrawal.amount)} USDT, ${date(s.withdrawal.time)} → ${s.decision.tier}`;
+  $("demo-status").textContent = `Payment ${s.step}: ${s.withdrawal.customer}, ${Math.round(s.withdrawal.amount)} USDT, ${date(s.withdrawal.time)} → ${s.decision.tier}`;
   if (s.officer_confirmed) $("demo-status").textContent += ". An officer called back and confirmed the scam (scripted, modelled): every later payment is held.";
   if (s.decision.tier === "hold") selected = s.decision.id;
   await refresh();

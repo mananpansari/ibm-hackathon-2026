@@ -182,26 +182,26 @@ async def live(l: Live):
     return {**d, "history_source": src}
 
 
-# Demo spine (#17): replay one frozen wallet's real payments as customers 1..N, in time order.
-# Customer 1 answers like a coached victim, customer 2 is held because of it, an officer calls
+# Demo spine (#17): replay one frozen wallet's real payments in time order. Customers are the
+# sending wallets (payments from the same sender are the same customer). Customer 1 answers like
+# a coached victim; the first different customer to pay is held because of it; an officer calls
 # back and confirms the scam (both scripted: modelled), so every later payment is held until the
-# freeze. Agreed with A for #16: "the engine holds all of them once an officer confirms".
-CONFIRM_AFTER_S = 3600  # scripted call-back one hour after customer 2's hold
+# freeze. Agreed with A for #16: "the engine holds all 12 once an officer confirms".
+CONFIRM_AFTER_S = 3600  # scripted call-back one hour after that hold
+
+
 def _pays(h):
     return [t for t in h["transfers"] if t["to"] == h["address"] and t["from"] != h["address"]
             and t["usdt"] >= 10 and t["ts"] < h["freeze_ts"]]
 
 
 def _demo_wallet():
-    if os.environ.get("DEMO_WALLET"):  # A picks the final wallet in #16
-        return os.environ["DEMO_WALLET"].lower()
-    # 2nd payment within 3 days of the 1st, so customer 1's warning hasn't decayed (7-day half-life in #6)
-    cands = [h for h in RECORDED.by_addr.values() if h["group"] == "test_pos" and 6 <= len(p := _pays(h)) <= 15
-             and p[1]["ts"] - p[0]["ts"] < 3 * 86400]
-    return min(cands, key=lambda h: h["address"])["address"]  # ponytail: deterministic stand-in until #16
+    # A's #16 wallet as described (13 payments; 1 and 2 from one exchange wallet 10 min apart, 3 the
+    # first different sender, frozen 5 Aug 2026). DEMO_WALLET overrides.
+    return os.environ.get("DEMO_WALLET", "0x74f645934fd288dfcb6359870779f68c2b0c48b8").lower()
 
 
-demo = {"wallet": None, "step": 0, "confirmed": None}
+demo = {"wallet": None, "step": 0, "confirmed": None, "senders": {}}
 
 
 @app.post("/demo/reset")
@@ -209,7 +209,7 @@ async def demo_reset():
     global engine
     engine = new_engine()
     cases.clear()
-    demo.update(wallet=_demo_wallet(), step=0, confirmed=None)
+    demo.update(wallet=_demo_wallet(), step=0, confirmed=None, senders={})
     return {"wallet": demo["wallet"], "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
 
 
@@ -221,14 +221,15 @@ async def demo_next():
     if demo["step"] >= len(pays):
         return {"done": True, "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
     t, demo["step"] = pays[demo["step"]], demo["step"] + 1
-    w = {"customer": f"customer-{demo['step']}", "wallet": demo["wallet"], "amount": t["usdt"], "time": t["ts"]}
-    # customer 1 is asked and answers like a coached victim (modelled); everyone after just pays
+    customer = demo["senders"].setdefault(t["from"], f"customer-{len(demo['senders']) + 1}")
+    w = {"customer": customer, "wallet": demo["wallet"], "amount": t["usdt"], "time": t["ts"]}
+    # customer 1's first payment is asked and answered like a coached victim (modelled); the rest just pay
     d = answered(w, COACHED, kind="modelled") if demo["step"] == 1 else decide(w)
-    confirmed = demo["step"] == 2 and d["tier"] == "hold"
+    confirmed = not demo["confirmed"] and customer != "customer-1" and d["tier"] == "hold"
     if confirmed:
         officer(demo["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, "officer (demo script, modelled)")
         demo["confirmed"] = demo["wallet"]
-    return {"done": False, "step": demo["step"], "of": len(pays), "withdrawal": w, "decision": d,
+    return {"done": False, "step": demo["step"], "withdrawal": w, "decision": d,
             "answer": COACHED if demo["step"] == 1 else None, "officer_confirmed": confirmed}
 
 
