@@ -471,6 +471,7 @@ async function step() {
   const s = await realApi("/demo/next", {});
   if (s.done) { stop(); $("demo-status").textContent = `Replay finished. Tether froze the wallet on ${date(s.tether_froze_at)}.`; return; }
   $("demo-status").textContent = `Payment ${s.step}: ${s.withdrawal.customer}, ${Math.round(s.withdrawal.amount)} USDT, ${date(s.withdrawal.time)} → ${s.decision.tier}`;
+  if (s.asked) $("demo-status").textContent += " (the engine asked first; her answer, scripted and modelled, held it)";
   if (s.officer_confirmed) $("demo-status").textContent += ". The officer calls back and confirms the scam a day later (scripted, modelled): every later payment is held.";
   await refresh();
 }

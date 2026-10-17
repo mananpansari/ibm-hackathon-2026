@@ -300,12 +300,14 @@ async def live(l: Live):
     return {**d, "history_source": src, "live_status": r["status"], "live_message": r["message"]}
 
 
-# Demo spine (#17): replay one frozen wallet's real payments in time order. Customers are the
-# sending wallets (payments from the same sender are the same customer). As in docs/demo-script.md:
-# customer 1 answers like a coached victim; the next payment is held by that warning; an officer
-# calls back and confirms the scam (both scripted: modelled), so every later payment is held until
-# the freeze ("the engine holds all 12 once an officer confirms").
-CONFIRM_AFTER_S = 86400  # the officer confirms a day after that hold, #10's officer delay
+# Demo spine (#17, UI v2): replay one frozen wallet's real payments in time order, as in
+# docs/demo-script.md and demo_candidates.spine_numbers(). Every payment is its own customer (payments
+# 1 and 2 share an exchange hot wallet; grouping by sender would make Mrs Tan a known payee). Mrs Tan
+# is payment 2, the real 78,000 USDT: the engine itself asks about it, she answers like a coached
+# victim, and an officer confirms the scam a day after her hold (both scripted: modelled), so every
+# later payment is held until the freeze.
+TAN_STEP = 2  # docs/demo-script.md: the engine itself asks about this payment
+CONFIRM_AFTER_S = 86400  # the officer confirms a day after her hold, #10's officer delay
 
 
 def _pays(h):
@@ -319,7 +321,7 @@ def _demo_wallet():
     return os.environ.get("DEMO_WALLET", "0x74f645934fd288dfcb6359870779f68c2b0c48b8").lower()
 
 
-demo = {"wallet": None, "step": 0, "confirmed": None, "senders": {}}
+demo = {"wallet": None, "step": 0, "confirmed": None}
 
 
 @app.post("/demo/reset")
@@ -327,7 +329,7 @@ async def demo_reset():
     global engine
     engine = new_engine()
     cases.clear()
-    demo.update(wallet=_demo_wallet(), step=0, confirmed=None, senders={})
+    demo.update(wallet=_demo_wallet(), step=0, confirmed=None)
     return {"wallet": demo["wallet"], "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
 
 
@@ -339,17 +341,21 @@ async def demo_next():
     if demo["step"] >= len(pays):
         return {"done": True, "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
     t, demo["step"] = pays[demo["step"]], demo["step"] + 1
-    customer = demo["senders"].setdefault(t["from"], f"customer-{len(demo['senders']) + 1}")
+    step = demo["step"]
+    customer = "mrs-tan" if step == TAN_STEP else f"customer-{2 if step == 1 else step}"  # personas customer-2..13
     w = {"customer": customer, "wallet": demo["wallet"], "amount": t["usdt"], "time": t["ts"]}
-    # customer 1's first payment is asked and answered like a coached victim (modelled); the rest just pay
-    d = answered(w, COACHED_ANSWER, kind="modelled") if demo["step"] == 1 else decide(w)
-    confirmed = not demo["confirmed"] and demo["step"] > 1 and d["tier"] == "hold"
+    d = decide(w)
+    asked = step == TAN_STEP and d["tier"] == "question"  # the engine's own tier, before any scripted answer
+    if asked:
+        cases[d["id"]]["status"] = "answered"
+        d = answered(w, COACHED_ANSWER, kind="modelled")
+    confirmed = not demo["confirmed"] and asked and d["tier"] == "hold"
     if confirmed:
         officer(demo["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, "officer (demo script, modelled)",
                 kind="modelled", reason="confirmed_impersonation")
         demo["confirmed"] = demo["wallet"]
-    return {"done": False, "step": demo["step"], "withdrawal": w, "decision": d,
-            "answer": COACHED_ANSWER if demo["step"] == 1 else None, "officer_confirmed": confirmed}
+    return {"done": False, "step": step, "withdrawal": w, "decision": d, "asked": asked,
+            "answer": COACHED_ANSWER if asked else None, "officer_confirmed": confirmed}
 
 
 @app.get("/")
