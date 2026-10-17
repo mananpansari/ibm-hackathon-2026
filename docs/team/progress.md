@@ -19,7 +19,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
 | [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | blocked |  |  |
-| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | review | 17 Oct | Running on VM bob1 (127.0.0.1:8000, stub engine): page 200, /score ok, ~1 ms. Lab image has TF+zDNN plugin, XGBoost, sklearn, llama_cpp_python. Not public yet (needs firewall + port decision). Branch b/11-deploy-linuxone |
+| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | done | 17 Oct | Running on VM bob1 from the lab image (127.0.0.1:8000, stub engine); verified via SSH tunnel with 5 test cases. Not public: port not opened. Branch b/11-deploy-linuxone (merge after #4) |
 | [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | blocked |  |  |
 
 ## C: Router and simulation
