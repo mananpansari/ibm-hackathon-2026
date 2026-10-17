@@ -1,5 +1,5 @@
 {
- "note": "Fictional demo customers (sample data), in the order the demo wallet's real senders first pay: customer-N is the Nth distinct sending wallet. English only.",
+ "note": "Fictional demo customers (sample data), English only. customer-1 (TAN SIEW LIAN) is Mrs Tan, the demo's payment 2 (docs/demo-script.md); the app assigns the others to the other demo payments in order.",
  "customers": [
   {
    "customer": "customer-1",
