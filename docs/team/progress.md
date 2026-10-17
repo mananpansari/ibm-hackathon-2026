@@ -28,6 +28,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 |---|---|---|---|---|---|
 | [#3](https://github.com/mananpansari/ibm-hackathon-2026/issues/3) | Decision engine core: release or warn, logged | - | done | 17 Oct | Merged (PR #18) and on `main` |
 | [#6](https://github.com/mananpansari/ibm-hackathon-2026/issues/6) | Shared payee memory and call-back hold | #3 | done | 17 Oct | Merged (PR #19) and on `main` via D's merge; includes A's replay fixes (holds renew, counterparty freeze only asks, model hook) |
+| model flag 5% | Engine's model-flag cut-off from a 1% to a 5% per-payment false-alarm budget (0.78 -> 0.59) | #5 | review | 18 Oct | A model flag only asks a question, never holds, and a question is cheap for a normal customer. Cost measured on the VM (see PR). A: re-run Result 2 (#10) after it merges; Result 3 unaffected |
 | [#7](https://github.com/mananpansari/ibm-hackathon-2026/issues/7) | Question tier in the engine | #6 | done | 17 Oct | Merged (PR #22) and on `main`; D's app uses it. Later review fixes (customer_reasons, model_flag 0.78) ride in PR #25 |
 | [#9](https://github.com/mananpansari/ibm-hackathon-2026/issues/9) | Capacity-aware holds and Result 3 sweep | #6 | done | 17 Oct | Merged (PR #25) and on `main`: `Config(daily_capacity=N)` + Result 3 (`docs/result3.md`, `docs/result3.svg`) |
 
