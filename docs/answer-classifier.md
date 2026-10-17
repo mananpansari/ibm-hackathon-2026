@@ -4,6 +4,23 @@
 
 **Model:** `sentence-transformers/all-mpnet-base-v2` embeddings (pinned revision), followed by logistic regression (768 weights plus a bias in `models/answer_clf.json`). The threshold is 0.58. `p` is the head's score, **not a calibrated probability**.
 
+**Rule (keyword floor):** an answer is flagged if the model flags it **or** granite's keyword rules do. The model can add catches but never release an answer the rules would flag. The rules also read the whole answer, while the model reads only the first 256 tokens. `source` records which one fired: `mpnet answer classifier`, `mpnet answer classifier + keyword rules`, or `keyword rules (floor)`.
+
+## The keyword floor: trade-off
+
+A security review flagged that the model alone could release scam answers the keyword rules used to catch. The fix was measured on the same tests before it was adopted.
+
+| Rule | Persona: scams caught | Persona: legit flagged (tricky legit) | SG: caught, flagged |
+|---|---|---|---|
+| Model only | 76% | 5% (6%) | 21/21, 2/9 |
+| Keyword rules only (before this classifier) | 40% | 9% (24%) | 21/21, 0/9 |
+| **Model OR keyword rules (shipped)** | **81%** | **12% (27%)** | 21/21, 2/9 |
+
+- **What the floor recovers:** 5 persona scams the model released at scores of 0.25–0.44 (romance, a fake friend on a new number, voucher and ticket resale).
+- **What it costs:** legitimate answers that use scam-sounding words get flagged more often. For example, a partner met online who lives with the customer.
+- **Why it's worth it:** for a payment safety check, a missed scam is money gone for good, while a false flag costs a call-back that an officer can clear. Every flag also reports the wallet to other customers through payee memory, so false flags aren't free.
+- **Persona numbers are card-grouped CV.** The SG numbers come from the shipped model.
+
 ## Why this model
 
 All candidates were scored on the same answers. Here "flagged" means the share of legitimate answers wrongly flagged.
@@ -12,14 +29,15 @@ All candidates were scored on the same answers. Here "flagged" means the share o
 
 | Approach | Scams caught | Legit flagged | Per answer |
 |---|---|---|---|
-| **mpnet + LR trained on the answers here (card-grouped CV)** | **76%** | **5%** | 8 ms on NNPA |
+| **mpnet + LR + keyword floor (shipped; card-grouped CV)** | **81%** | **12%** | 8 ms on NNPA |
+| mpnet + LR trained on the answers here, model only (card-grouped CV) | 76% | 5% | 8 ms on NNPA |
 | mpnet + LR trained on one author's 226 answers, threshold fixed in advance | 46% | 3% | 8 ms on NNPA |
 | Keyword rules (`granite.keyword_classify`) | 40% | 9% | under 1 ms |
 | qwen2.5:3b, zero-shot (Mac GPU) | 62% | 24% | 0.7 s |
 | granite3.3:2b, zero-shot (Mac GPU) | 33% | 13% | 0.8 s |
 | granite-4.0-h-350m base (VM, in-process) | 11% | 3% | 8.0 s |
 
-**Test 2: the 30 SG answers** in `data/sg_answers.csv`, written by A and not used for training. The model catches 21 of 21 scams and flags 2 of 9 legitimate answers at threshold 0.58.
+**Test 2: the 30 SG answers** in `data/sg_answers.csv`, written by A and not used for training. The shipped rule catches 21 of 21 scams and flags 2 of 9 legitimate answers, the same with or without the floor.
 
 ## Training data (`data/answers_train.csv`, 435 answers)
 

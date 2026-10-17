@@ -6,6 +6,8 @@ plugs it in with one line (FREE_TEXT = types.SimpleNamespace(classify=answer_nlp
   NNPA when torch_nnpa is installed (the LinuxONE lab image), else Apple GPU, else CPU.
 - Head: 768 weights + bias in models/answer_clf.json (plain JSON, so it loads the same on s390x; no pickle).
 - p is the head's score, not a calibrated probability (trained with balanced classes on synthetic answers).
+- Keyword floor: an answer is flagged if granite's keyword rules OR the model flag it, so the model can only add
+  catches, never release one the rules would flag (they also read the whole text; the model reads 256 tokens).
 - The scam type comes from granite's keyword rules when they name one, else "other".
 - If torch, transformers or the mpnet weights are missing, it returns granite.keyword_classify() instead.
 
@@ -79,9 +81,12 @@ def classify(text):
     p = score(text)
     if p is None:
         return kw
-    confirms = p >= _head()["threshold"]
+    model_flag = p >= _head()["threshold"]
+    confirms = model_flag or kw["confirms_script"]  # keyword floor: the model may add catches, never drop one
     kind = (kw["scam_type"] if kw["scam_type"] != "none" else "other") if confirms else "none"
-    return {"scam_type": kind, "confirms_script": bool(confirms), "source": "mpnet answer classifier", "p": round(float(p), 3)}
+    source = ("mpnet answer classifier" + (" + keyword rules" if kw["confirms_script"] else "") if model_flag
+              else "keyword rules (floor)" if confirms else "mpnet answer classifier")
+    return {"scam_type": kind, "confirms_script": bool(confirms), "source": source, "p": round(float(p), 3)}
 
 
 def train(threshold=0.58):
@@ -120,6 +125,18 @@ def _self_check():
         print(f"SG answers (not in training): {caught}/{sum(s for _, s in res)} scams caught, "
               f"{flagged}/{sum(not s for _, s in res)} legit flagged; device {_model()[2]}")
         assert caught >= 18 and flagged <= 3, "SG answers regressed against the documented 21/21 caught, 2/9 flagged"
+        # Keyword floor: a low model score never releases an answer the rules flag, even past the 256-token cut
+        global score
+        real = score
+        try:
+            score = lambda text: 0.0
+            r2 = classify("My new friend from the dating app is stuck at customs and needs help with fees")
+            assert r2["confirms_script"] and r2["source"] == "keyword rules (floor)", r2
+            score = real
+            long = "I am sending money for many ordinary reasons. " * 60 + "The police officer told me to move it to a safe wallet."
+            assert classify(long)["confirms_script"], "scam words past the model's 256-token window still flag"
+        finally:
+            score = real
     CLF = HERE / "models" / "missing.json"
     _head.cache_clear()
     assert classify("police told me to move it")["source"] == "keyword fallback", "no weights -> keyword rules"
