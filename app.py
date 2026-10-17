@@ -1,5 +1,6 @@
-"""Score API, customer page and officer console (#4, #8, #12, #13, #17). A thin wrapper:
-every decision comes from the engine; this file only loads data and moves JSON.
+"""Score API, customer page and officer console (#4, #8, #12, #13, #17). A thin wrapper around
+C's engine (engine.py): every tier comes from engine.decide(); this file loads data, sets the
+injected clock and moves JSON.
 
 The engine reads the snapshot's recorded histories. Only the live box (/live) touches
 Blockscout, server-side through fetch.py (key from the environment or .env, never sent to a
@@ -8,12 +9,13 @@ page), and falls back to the snapshot if Blockscout is slow, unreachable or out 
     pip install fastapi uvicorn
     uvicorn app:app --reload        # customer page http://127.0.0.1:8000, officer /officer
 """
+import asyncio
 import concurrent.futures
 import csv
-import gzip
-import json
+import itertools
 import os
 import time
+from dataclasses import asdict
 from pathlib import Path
 from typing import Literal
 
@@ -22,7 +24,9 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 import granite
-from engine_stub import StubEngine as Engine  # swap for C's engine when #3 lands
+from decision_log import DecisionLog
+from engine import Engine, RecordedHistories, Withdrawal, to_dict
+from payee_memory import OfficerOutcome, PayeeMemory, Report, load_freezes
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE / "data"
@@ -30,27 +34,37 @@ WALLET = r"^0x[0-9a-fA-F]{40}$"
 LIVE_TIMEOUT_S = 8
 COACHED = "The police officer on the phone said my account is linked to a crime and I must move my savings to this safe wallet."
 
-HISTORIES = {}
-for path in sorted((DATA / "histories").glob("*.jsonl.gz")):
-    for line in gzip.open(path, "rt"):
-        h = json.loads(line)
-        HISTORIES[h["address"]] = h
-BAD = set((DATA / "known_bad.txt").read_text().split())
+RECORDED = RecordedHistories(("train_pos", "train_neg", "train_negv", "test_pos", "test_neg", "test_negv"))
 FROZEN_AT = {r["address"]: int(r["freeze_ts"]) for r in csv.DictReader(open(DATA / "freezes.csv"))}
+FREEZES = load_freezes()
 LIVE = {}  # histories pulled by the live box this run
+LOG = DecisionLog(DATA / "decisions.jsonl")  # one append-only chain across demo resets
 pool = concurrent.futures.ThreadPoolExecutor(2)
+clock = {"now": 0}  # the engine's injected clock; set to each withdrawal's time before deciding
+# Engine routes are `async def` so they all run on the event-loop thread: the engine, its SQLite
+# payee memory and the clock above are single-threaded. Only the Blockscout pull runs in `pool`.
+
+
+def history(wallet, as_of):
+    h = LIVE.get(wallet)
+    if h is None:
+        return RECORDED(wallet, as_of)
+    return {**h, "freeze_ts": None, "transfers": [t for t in h["transfers"] if t["ts"] < as_of]}
 
 
 def new_engine():
-    return Engine(lambda a: LIVE.get(a) or HISTORIES.get(a), granite, BAD, FROZEN_AT)
+    memory = PayeeMemory()
+    memory.add_freezes(FREEZES)
+    return Engine(history, memory, lambda: clock["now"], LOG)
 
 
 engine = new_engine()
-pending = {}  # decision id -> withdrawal, so an answer can be re-decided
+cases = {}  # id -> {"decision", "withdrawal", "answer", "status"}; the queue and why-cards read these
+ids = itertools.count(1)
 app = FastAPI(title="Score Before You Sign")
 
 
-class Withdrawal(BaseModel):
+class WithdrawalIn(BaseModel):
     customer: str = Field(min_length=1, max_length=64)
     wallet: str = Field(pattern=WALLET)
     amount: float = Field(gt=0, le=1e9)
@@ -72,41 +86,68 @@ class Live(BaseModel):
 
 
 def decide(w, answer=None):
-    d = engine.decide(w, answer)
-    pending[d["id"]] = w
+    clock["now"] = w["time"]
+    d = to_dict(engine.decide(Withdrawal(w["customer"], w["wallet"], w["amount"], w["time"]), answer))
+    d["id"] = next(ids)
+    cases[d["id"]] = {"decision": d, "withdrawal": w, "answer": answer, "status": "open"}
     return d
 
 
+def answered(w, answer, kind="real"):
+    """Bridge until #7 puts the question tier in the engine: a confirming answer becomes a
+    payee-memory report (what #7 will do inside decide), then the withdrawal is re-decided."""
+    cls = granite.classify(answer)
+    if cls["confirms_script"]:
+        engine.record(Report(w["wallet"], w["time"], source="customer_answer", kind=kind,
+                             actor=w["customer"], note=cls["scam_type"]))
+        w = {**w, "time": w["time"] + 1}  # memory only counts reports from before now
+    return decide(w, answer)
+
+
 @app.post("/score")
-def score(w: Withdrawal):
-    return decide({**w.model_dump(), "wallet": w.wallet.lower(), "time": time.time()})
+async def score(w: WithdrawalIn):
+    return decide({**w.model_dump(), "wallet": w.wallet.lower(), "time": int(time.time())})
 
 
 @app.post("/answer")
-def answer(a: Answer):
-    if a.id not in pending:
+async def answer(a: Answer):
+    if a.id not in cases:
         raise HTTPException(404, "unknown withdrawal")
-    return decide(pending[a.id], a.answer)
+    return answered(cases[a.id]["withdrawal"], a.answer)
 
 
 @app.get("/queue")
-def queue():
-    return engine.queue()
+async def queue():  # ponytail: ranked here until #9 gives the engine a capacity-aware queue
+    latest = {}
+    for id, c in cases.items():
+        if c["decision"]["tier"] == "hold" and c["status"] == "open":
+            w = c["withdrawal"]
+            latest[(w["customer"], w["wallet"])] = {"id": id, **w, "expected_loss": c["decision"]["expected_loss"]}
+    return sorted(latest.values(), key=lambda r: -r["expected_loss"])
 
 
 @app.post("/outcome")
-def outcome(o: Outcome):
-    engine.record({"type": "officer_outcome", "wallet": o.wallet.lower(), "outcome": o.outcome, "time": time.time()})
-    return engine.queue()
+async def outcome(o: Outcome):
+    wallet = o.wallet.lower()
+    engine.record(OfficerOutcome(wallet, o.outcome, int(time.time()), "officer"))
+    for c in cases.values():
+        if c["withdrawal"]["wallet"] == wallet:
+            c["status"] = o.outcome
+    return await queue()
 
 
 @app.get("/case/{id}")
-def case(id: int):
-    try:
-        c = engine.case(id)
-    except KeyError:
+async def case(id: int):
+    if id not in cases:
         raise HTTPException(404, "unknown case")
-    return {**c, "tether_froze_at": FROZEN_AT.get(c["withdrawal"]["wallet"]), "modelled_answer": c["answer"] == COACHED}
+    c = cases[id]
+    w = c["withdrawal"]
+    payers = [{"customer": o["withdrawal"]["customer"], "amount": o["withdrawal"]["amount"],
+               "time": o["withdrawal"]["time"], "tier": o["decision"]["tier"]}
+              for o in cases.values() if o["withdrawal"]["wallet"] == w["wallet"]]
+    prior = [asdict(e) for e in engine.memory.evidence(w["wallet"], w["time"])]
+    return {**c, "prior_warnings": prior, "payers": payers, "tether_froze_at": FROZEN_AT.get(w["wallet"]),
+            "modelled_answer": c["answer"] == COACHED}
 
 
 def _pull(addr):
@@ -115,25 +156,31 @@ def _pull(addr):
 
 
 @app.post("/live")
-def live(l: Live):
+async def live(l: Live):
     addr = l.wallet.lower()
     try:
-        h = pool.submit(_pull, addr).result(timeout=LIVE_TIMEOUT_S)
+        h = await asyncio.wait_for(asyncio.wrap_future(pool.submit(_pull, addr)), LIVE_TIMEOUT_S)
     except (Exception, SystemExit):  # no key (SystemExit), timeout, credits, network
         h = None
     if h:
         LIVE[addr] = h
-    src = "live Blockscout" if h else "snapshot" if addr in HISTORIES else "none"
-    d = decide({"customer": "judge", "wallet": addr, "amount": l.amount, "time": time.time()})
+    src = "live Blockscout" if h else "snapshot" if addr in RECORDED.by_addr else "none"
+    d = decide({"customer": "judge", "wallet": addr, "amount": l.amount, "time": int(time.time())})
     return {**d, "history_source": src}
 
 
 # Demo spine (#17): replay one frozen wallet's real payments as customers 1..N, in time order.
+def _pays(h):
+    return [t for t in h["transfers"] if t["to"] == h["address"] and t["from"] != h["address"]
+            and t["usdt"] >= 10 and t["ts"] < h["freeze_ts"]]
+
+
 def _demo_wallet():
     if os.environ.get("DEMO_WALLET"):  # A picks the final wallet in #16
         return os.environ["DEMO_WALLET"].lower()
-    pays = lambda h: [t for t in h["transfers"] if t["to"] == h["address"] and t["usdt"] >= 10 and t["ts"] < h["freeze_ts"]]
-    cands = [h for h in HISTORIES.values() if h["group"] == "test_pos" and 6 <= len(pays(h)) <= 15]
+    # 2nd payment within 3 days of the 1st, so customer 1's warning hasn't decayed (7-day half-life in #6)
+    cands = [h for h in RECORDED.by_addr.values() if h["group"] == "test_pos" and 6 <= len(p := _pays(h)) <= 15
+             and p[1]["ts"] - p[0]["ts"] < 3 * 86400]
     return min(cands, key=lambda h: h["address"])["address"]  # ponytail: deterministic stand-in until #16
 
 
@@ -141,27 +188,25 @@ demo = {"wallet": None, "step": 0}
 
 
 @app.post("/demo/reset")
-def demo_reset():
+async def demo_reset():
     global engine
     engine = new_engine()
-    pending.clear()
+    cases.clear()
     demo.update(wallet=_demo_wallet(), step=0)
-    h = HISTORIES[demo["wallet"]]
-    return {"wallet": demo["wallet"], "tether_froze_at": h["freeze_ts"]}
+    return {"wallet": demo["wallet"], "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
 
 
 @app.post("/demo/next")
-def demo_next():
+async def demo_next():
     if demo["wallet"] is None:
-        demo_reset()
-    h = HISTORIES[demo["wallet"]]
-    pays = [t for t in h["transfers"] if t["to"] == h["address"] and t["usdt"] >= 10 and t["ts"] < h["freeze_ts"]]
+        await demo_reset()
+    pays = _pays(RECORDED.by_addr[demo["wallet"]])
     if demo["step"] >= len(pays):
-        return {"done": True, "tether_froze_at": h["freeze_ts"]}
+        return {"done": True, "tether_froze_at": FROZEN_AT.get(demo["wallet"])}
     t, demo["step"] = pays[demo["step"]], demo["step"] + 1
-    w = {"customer": f"customer-{demo['step']}", "wallet": h["address"], "amount": t["usdt"], "time": t["ts"]}
-    # customer 1 is asked and answers like a coached victim; everyone after just pays
-    d = decide(w, COACHED if demo["step"] == 1 else None)
+    w = {"customer": f"customer-{demo['step']}", "wallet": demo["wallet"], "amount": t["usdt"], "time": t["ts"]}
+    # customer 1 is asked and answers like a coached victim (modelled); everyone after just pays
+    d = answered(w, COACHED, kind="modelled") if demo["step"] == 1 else decide(w)
     return {"done": False, "step": demo["step"], "of": len(pays), "withdrawal": w, "decision": d,
             "answer": COACHED if demo["step"] == 1 else None}
 

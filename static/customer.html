@@ -79,10 +79,10 @@ function render(d) {
     show("question", HEADLINE.question, ["Before this payment goes out, please tell us in your own words what it is for."], form);
     box.focus();
   } else if (d.tier === "hold") {
-    const why = el("p", "Why: " + d.reasons.map((x) => x.text).join(" "));
+    const why = el("p", "Why: " + d.reasons.map((x) => x.detail).join(" "));
     show("hold", HEADLINE.hold, HOLD_NEXT, why);
   } else {
-    show(d.tier, HEADLINE[d.tier] || d.tier, d.reasons.map((x) => x.text));
+    show(d.tier, HEADLINE[d.tier] || d.tier, d.reasons.map((x) => x.detail));
   }
 }
 

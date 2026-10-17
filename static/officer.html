@@ -77,7 +77,7 @@ async function refresh() {
   for (const r of q) {
     const tr = el("tr");
     if (r.id === selected) tr.className = "sel";
-    tr.append(el("td", r.customer), el("td", short(r.wallet), "mono"), el("td", r.amount.toLocaleString(), "num"), el("td", r.expected_loss.toLocaleString(), "num"));
+    tr.append(el("td", r.customer), el("td", short(r.wallet), "mono"), el("td", r.amount.toLocaleString(), "num"), el("td", r.expected_loss.toLocaleString(undefined, { maximumFractionDigits: 0 }), "num"));
     tr.addEventListener("click", () => { selected = r.id; refresh(); });
     tb.append(tr);
   }
@@ -93,13 +93,13 @@ async function showCase(id) {
 
   const card = el("section", null, "card");
   card.append(el("h2", `Why-card: ${w.customer} → ${short(w.wallet)}`));
-  card.append(el("p", `${w.amount.toLocaleString()} USDT at ${date(w.time)} · tier ${d.tier} · expected loss ${d.expected_loss.toLocaleString()} · engine ${d.engine_version}`, "muted"));
+  card.append(el("p", `${w.amount.toLocaleString()} USDT at ${date(w.time)} · tier ${d.tier} · expected loss ${d.expected_loss.toLocaleString(undefined, { maximumFractionDigits: 0 })} · engine ${d.engine_version}`, "muted"));
   card.append(el("div", w.wallet, "mono"));
 
   card.append(el("h2", "Signals that fired"));
   const ul = el("ul");
   for (const r of d.reasons) {
-    const li = el("li", r.text + " ");
+    const li = el("li", r.detail + " ");
     li.append(el("span", r.source, "muted"), el("span", r.kind, "tag " + r.kind));
     ul.append(li);
   }
@@ -115,7 +115,7 @@ async function showCase(id) {
   card.append(el("h2", "Earlier warnings on this wallet"));
   if (c.prior_warnings.length) {
     const pw = el("ul");
-    for (const m of c.prior_warnings) pw.append(el("li", `${m.source}${m.customer ? " from " + m.customer : ""} at ${date(m.time)} (${m.detail})`));
+    for (const m of c.prior_warnings) { const li = el("li", m.detail + " "); li.append(el("span", m.source.replace(/_/g, " "), "muted"), el("span", m.kind, "tag " + m.kind)); pw.append(li); }
     card.append(pw);
   } else card.append(el("p", "None before this withdrawal.", "muted"));
 
@@ -182,13 +182,13 @@ $("live").addEventListener("submit", async (e) => {
   $("live-out").textContent = "checking…";
   try {
     const d = await api("/live", { wallet: $("live-wallet").value.trim() });
-    $("live-out").textContent = `${d.tier} (history: ${d.history_source}) · ${d.reasons.map((r) => r.text).join(" ")}`;
+    $("live-out").textContent = `${d.tier} (history: ${d.history_source}) · ${d.reasons.map((r) => r.detail).join(" ")}`;
     refresh();
   } catch { $("live-out").textContent = "couldn't score that address"; }
 });
 
-refresh();
-setInterval(() => { if (!playing) refresh(); }, 3000);
+refresh().catch(() => {});
+setInterval(() => { if (!playing) refresh().catch(() => {}); }, 3000);  // server restarts are fine
 </script>
 </body>
 </html>
