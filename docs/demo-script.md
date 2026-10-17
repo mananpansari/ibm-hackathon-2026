@@ -4,6 +4,8 @@ The 3-minute video, shot by shot: what is on screen, the voice-over, and where e
 
 **Budget:** 180 s at about 150 words a minute is about 450 spoken words. The voice-over below is about 420, so there's room for pauses. Read it once against a timer before recording; if it runs over, cut the lines marked *(cut first)*.
 
+**Name:** the product is **Starlock** (renamed from "Score Before You Sign" on 18 Oct); tagline "the first warning is the last payment". The team is Bintang Boys, so the submission title is `[Bintang Boys_IBM Z Datathon 2026 Project]`. Don't use "safe" in product wording: the scam script itself says "safe wallet".
+
 **Rules**
 - Say "before the withdrawal is signed" in the first 15 seconds.
 - Say **payments**, not victims ("up to N victims" at most). Never say "Ethereum fraud detection".
@@ -23,7 +25,7 @@ The 3-minute video, shot by shot: what is on screen, the voice-over, and where e
 | Time | Segment | Screen |
 |---|---|---|
 | 0:00–0:30 | 1. Problem | Title card, then Mrs Tan's phone call (text on black), stats card |
-| 0:30–0:45 | 2. Where it sits | Simple diagram: exchange app → **Score Before You Sign** → signing → blockchain; then the customer page's "simulated exchange withdrawal screen" banner |
+| 0:30–0:45 | 2. Where it sits | Simple diagram: exchange app → **Starlock** → signing → blockchain; then the customer page's "simulated exchange withdrawal screen" banner |
 | 0:45–1:15 | 3. Customer screens | Customer page: withdrawal → check → Q1 → Q2 → Q3 → call-back hold |
 | 1:15–1:40 | 4. Officer screens | Officer console: queue → case view (why-card, wallet record, graph) → record outcome "confirmed" |
 | 1:40–1:55 | 5. The replay | Officer console demo controls: Next × 11, every payment held, then the freeze date |
@@ -35,9 +37,9 @@ The 3-minute video, shot by shot: what is on screen, the voice-over, and where e
 
 ## 1. Problem (0:00–0:30)
 
-**Screen:** title card "Score Before You Sign". Then black with white text, one line at a time, then the stats card.
+**Screen:** title card "Starlock" with the tagline "The first warning is the last payment". Then black with white text, one line at a time, then the stats card.
 
-> Score Before You Sign checks every crypto withdrawal **before it is signed**, because once it's signed, it's gone.
+> Starlock checks every crypto withdrawal **before it is signed**, because once it's signed, it's gone.
 >
 > Mrs Tan is 68. A "police officer" calls: her savings are linked to a crime, and she must move them to a "safe wallet". She does it herself, with her own OTP, so no security check stops it.
 >
@@ -53,7 +55,7 @@ The 3-minute video, shot by shot: what is on screen, the voice-over, and where e
 
 ## 2. Where it sits (0:30–0:45)
 
-**Screen:** the diagram (exchange or wallet app → Score Before You Sign → HSM signing → chain). Cut to the customer page header with its banner: "Simulated exchange withdrawal screen".
+**Screen:** the diagram (exchange or wallet app → Starlock → HSM signing → chain). Cut to the customer page header with its banner: "Simulated exchange withdrawal screen".
 
 > It isn't a separate app: it runs inside the exchange's own withdrawal flow, just before signing, where the money leaves. The screen you'll see is our stand-in for an exchange's, because we can't connect to a real exchange or its signing hardware from the LinuxONE lab.
 
@@ -146,7 +148,7 @@ If B's free-text model is merged and measured by 03:00, replace the Granite sent
 
 **Screen:** title card with three next steps, the team's names and roles, and the repo URL.
 
-> Next: signing inside Digital Asset Haven's HSMs, sharing confirmed wallets between banks, and more languages. Score before you sign.
+> Next: signing inside Digital Asset Haven's HSMs, sharing confirmed wallets between banks, and more languages. Starlock: the first warning is the last payment.
 
 Team roles on the card: A (Aanya), data and problem; B (Manan), models and platform; C (Aariv), engine; D (Advay), app and delivery.
 
