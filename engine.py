@@ -11,7 +11,9 @@ One deep module behind one seam (issue #1).
 - #7: a first-time payee at or above Config.large_usdt, or weak evidence, gets one question
   (Granite via D's granite module, else a template). decide(w, answer) re-decides it: a
   confirming answer holds and warns every other customer paying the wallet; a clean one releases.
-Later slices add capacity (#9).
+- #9: with Config.daily_capacity set, at most that many holds per day (SGT). When the day is
+  full, a hold with a bigger expected loss takes the slot of the day's smallest hold, which
+  becomes a question (returned as decision.bumped); otherwise the new one becomes a question.
 
 The engine never reads the wall clock or the network: the clock, the wallet-history source
 and payee memory are injected, so the same code serves the live API, the Result 2 replay and
@@ -28,7 +30,7 @@ from decision_log import DecisionLog
 from features import features
 from payee_memory import DAY, Freeze, OfficerOutcome, PayeeMemory, Report, load_freezes
 
-ENGINE_VERSION = "c7-0.1"
+ENGINE_VERSION = "c9-0.1"
 TIERS = ("release", "warning", "question", "hold")
 DATA = Path(__file__).resolve().parent / "data"
 TEMPLATE_QUESTION = ("Real police, bank or government officers never ask you to move your savings to a 'safe' wallet. "
@@ -51,7 +53,8 @@ class Reason:
     signal: str  # e.g. "first_time_payee", "memory_hit", "counterparty_freeze"
     source: str  # where the evidence came from
     kind: str  # "real" or "modelled"
-    detail: str  # plain English, safe to show the customer or officer
+    detail: str  # plain English
+    audience: str = "customer"  # "customer": fine to show the customer; "officer": why-card only
 
 
 @dataclass(frozen=True)
@@ -64,6 +67,7 @@ class Decision:
     decided_at: int
     engine_version: str = ENGINE_VERSION
     question: str = None  # question tier only: what to ask the customer
+    bumped: "Decision" = None  # #9: an earlier hold this one displaced, now a question; the app shows it
 
 
 @dataclass
@@ -74,21 +78,28 @@ class Config:
     known_payee_mult: float = 0.1  # repeat payees much less so
     # P(scam) once a signal has fired; the strongest signal wins.
     p_signal: dict = None
-    model_flag: float = 0.9  # B's model.score() at or above this escalates; set from the 1% false-alarm cut
+    # B's model.score() at or above this asks a question. 0.78 flags 1% of payments to comparison wallets
+    # and 16.8% of payments to frozen ones (24,522 test payments, scored in the LinuxONE lab container).
+    model_flag: float = 0.78
     large_usdt: float = 1000  # a first-time payee at or above this gets a question, not a warning
+    daily_capacity: int = None  # officer call-backs per day; None = unlimited
+    day_offset_s: int = 8 * 3600  # days run midnight to midnight Singapore time
 
     def __post_init__(self):
-        self.p_signal = self.p_signal or {
-            # hold signals
-            "officer_confirmed": 0.95,
-            "destination_freeze": 0.6,
-            "answer_confirms_script": 0.5,
-            "memory_hit": 0.3,
-            # question signals: ask, never hold on their own
-            "counterparty_freeze": 0.02,
-            "model_flag": 0.02,
-            "large_new_payee": 0.02,
-        }
+        self.p_signal = {**DEFAULT_P_SIGNAL, **(self.p_signal or {})}  # override some, keep the rest
+
+
+DEFAULT_P_SIGNAL = {
+    # hold signals
+    "officer_confirmed": 0.95,
+    "destination_freeze": 0.6,
+    "answer_confirms_script": 0.5,
+    "memory_hit": 0.3,
+    # question signals: ask, never hold on their own
+    "counterparty_freeze": 0.02,
+    "model_flag": 0.02,
+    "large_new_payee": 0.02,
+}
 
 
 class RecordedHistories:
@@ -120,6 +131,7 @@ class Engine:
         self.history, self.memory, self.clock, self.log = history, memory, clock, log
         self.config = config or Config()
         self.model, self.known_bad, self.classifier = model, known_bad, classifier
+        self.holds_by_day = {}  # day -> [Decision], the holds currently using that day's call-back slots
 
     def decide(self, w, answer=None, answer_kind=None):
         """Decide a withdrawal. Call again with the customer's `answer` to re-decide a question.
@@ -166,16 +178,31 @@ class Engine:
             tier, top = ("release" if known else "warning"), None
         if top is not None:
             p = c.p_signal[top.signal]
-            prior = Reason("p_signal", "config", "modelled", f"Assumed scam probability {p:.0%} once '{top.signal}' fires.")
+            prior = Reason("p_signal", "config", "modelled", f"Assumed scam probability {p:.0%} once '{top.signal}' fires.", "officer")
         else:
             mult = c.known_payee_mult if known else c.first_time_mult
             p = min(1.0, c.base_rate * mult)
-            prior = Reason("base_rate", "config", "modelled", f"Assumed scam rate {c.base_rate:.1%} x {mult:g} for this payee type.")
+            prior = Reason("base_rate", "config", "modelled", f"Assumed scam rate {c.base_rate:.1%} x {mult:g} for this payee type.", "officer")
         reasons = holds + weak + [payee] + info + [prior]
+        bumped = None
+        if tier == "hold" and c.daily_capacity is not None:
+            day = int((now + c.day_offset_s) // DAY)
+            today = self.holds_by_day.setdefault(day, [])
+            if len(today) >= c.daily_capacity:
+                smallest = min(today, key=lambda x: x.expected_loss) if today else None
+                if smallest is not None and w.amount_usdt * p > smallest.expected_loss:
+                    today.remove(smallest)
+                    bumped = self._to_question(smallest, now, "A payment at higher risk needed today's last call-back slot.")
+                else:
+                    tier = "question"
+                    reasons.append(Reason("capacity_full", "officer_capacity", "real",
+                                          "Our call-back team is fully booked today, so we need to ask you one question instead."))
         if tier == "question":
             question = self._ask(w, reasons)
-        d = Decision(tier, tuple(reasons), p, w.amount_usdt * p, w, now, question=question)
-        if tier == "hold":
+        d = Decision(tier, tuple(reasons), p, w.amount_usdt * p, w, now, question=question, bumped=bumped)
+        if tier == "hold" and c.daily_capacity is not None:
+            self.holds_by_day[int((now + c.day_offset_s) // DAY)].append(d)
+        if tier in ("hold", "question") and holds:
             # Another attempt to pay a reported wallet is itself evidence: renew the report so the hold
             # outlives one half-life (wallets collect for a median of 129 days). Kept per kind, so a
             # modelled report only ever renews modelled evidence. An officer's "cleared" ends it.
@@ -193,12 +220,22 @@ class Engine:
                          "decision": to_dict(d)})
         return d
 
+    def _to_question(self, held, now, why):
+        """A hold that lost its call-back slot: same evidence, asked one question instead."""
+        reasons = held.reasons + (Reason("capacity_bumped", "officer_capacity", "real",
+                                         "Our call-back team is fully booked today, so we need to ask you one question instead. "
+                                         + why, "customer"),)
+        q = Decision("question", reasons, held.p_scam, held.expected_loss, held.withdrawal, now,
+                     question=self._ask(held.withdrawal, list(reasons)))
+        self.log.append({"inputs": {"withdrawal": asdict(held.withdrawal), "bumped_from": "hold"}, "decision": to_dict(q)})
+        return q
+
     def _ask(self, w, reasons):
         if self.classifier is not None:
             try:
                 q = self.classifier.ask({"customer": w.customer_id, "wallet": w.wallet, "amount": w.amount_usdt, "time": w.ts},
                                         [{"signal": r.signal, "text": r.detail, "source": r.source, "kind": r.kind}
-                                         for r in reasons if r.signal not in ("p_signal", "base_rate")])
+                                         for r in reasons if r.audience == "customer"])
                 if q:
                     return q
             except Exception:  # Granite trouble must never break a decision
@@ -239,13 +276,16 @@ class Engine:
         flag = s >= self.config.model_flag
         return [Reason("model_flag" if flag else "model_score", "model", "real",
                        f"Weak model signal: score {s:.2f}{' (flagged)' if flag else ''}; "
-                       "AUC 0.57 against similar wallets, so it never holds on its own.")]
+                       "AUC 0.57 against similar wallets, so it never holds on its own.", "officer")]
 
 
 def to_dict(d):
-    """JSON-able decision, for the log and the API."""
+    """JSON-able decision, for the log and the API. customer_reasons is what the customer page may show;
+    reasons (with audience and real/modelled tags) is for the officer's why-card."""
     out = asdict(d)
     out["reasons"] = [asdict(r) for r in d.reasons]
+    out["customer_reasons"] = [r.detail for r in d.reasons if r.audience == "customer"]
+    out["bumped"] = to_dict(d.bumped) if d.bumped else None
     return out
 
 
@@ -389,6 +429,14 @@ def _self_check():
         eng.record(Report("0xscam", 1))
         assert eng.decide(Withdrawal("carol", "0xscam", 100, 10 * H)).tier == "hold", "a hold still beats a model flag"
 
+        # Review fixes: customer-safe text, partial p_signal overrides.
+        dec = held  # hold from memory, with modelled priors attached
+        shown = to_dict(dec)["customer_reasons"]
+        assert shown and not any("Assumed" in t or "model" in t.lower() for t in shown), shown
+        assert any(r["audience"] == "officer" for r in to_dict(dec)["reasons"]), "officer still sees the priors"
+        assert Config(p_signal={"memory_hit": 0.4}).p_signal["officer_confirmed"] == 0.95, "partial override keeps defaults"
+        assert Config(p_signal={"memory_hit": 0.4}).p_signal["memory_hit"] == 0.4
+
         # ---- #7: question tier ----
         class StubClassifier:  # stands in for D's granite module
             def __init__(self, kind="real", broken=False):
@@ -469,6 +517,31 @@ def _self_check():
         entry = json.loads(eng.log.path.read_text().splitlines()[-1])
         assert entry["inputs"]["classified"]["confirms_script"] is True, "the log keeps what the classifier said"
 
+        # ---- #9: daily officer capacity ----
+        eng = Engine(no_history, PayeeMemory(), FixedClock(0), DecisionLog(d / "cap.jsonl"),
+                     config=Config(daily_capacity=2))
+        for wal in ("0xa", "0xb", "0xc", "0xd", "0xe"):
+            eng.record(Report(wal, 0))
+        noon = 4 * H  # 12:00 SGT on day 0
+        h1 = at(eng, noon, "c1", "0xa", 1_000)   # expected loss 300
+        h2 = at(eng, noon, "c2", "0xb", 100)     # 30, the day's smallest
+        assert h1.tier == h2.tier == "hold"
+        big = at(eng, noon, "c3", "0xc", 3_000)  # 900: takes c2's slot
+        assert big.tier == "hold" and big.bumped is not None and big.bumped.withdrawal.customer_id == "c2", big
+        assert big.bumped.tier == "question" and big.bumped.question, "the bumped customer is asked instead"
+        assert any(r.signal == "capacity_bumped" for r in big.bumped.reasons)
+        assert to_dict(big)["bumped"]["tier"] == "question" and to_dict(h1)["bumped"] is None
+        small = at(eng, noon, "c4", "0xd", 50)   # 15: too small to bump anyone
+        assert small.tier == "question" and small.bumped is None
+        assert any(r.signal == "capacity_full" for r in small.reasons) and small.question
+        assert eng.memory.evidence("0xd", noon + H), "over capacity, the wallet stays flagged for everyone"
+        assert not eng.memory.paid_before("c4", "0xd", noon + H), "and the payment hasn't gone"
+        assert sorted(x.withdrawal.customer_id for x in eng.holds_by_day[0]) == ["c1", "c3"]
+        assert at(eng, noon + DAY, "c5", "0xe", 10).tier == "hold", "a new SGT day has fresh slots"
+        assert at(eng, 16 * H - 1, "c6", "0xe", 10).tier == "question", "23:59 SGT is still day 0"
+        assert verify(eng.log.path) is None
+        assert fresh().config.daily_capacity is None, "unlimited unless configured"
+
         # Recorded histories with the real freeze list: holds come only from real evidence here.
         hist = RecordedHistories(("test_pos", "test_negv"))
         if hist.by_addr:
@@ -489,7 +562,7 @@ def _self_check():
                             assert all(r.kind == "real" for r in dec.reasons if r.signal not in ("p_signal", "base_rate"))
             assert all(c["hold"] == 0 for c in count.values()), "no reports: Tether freezes of others never hold"
             print("recorded-history replay (25 wallets each, Tether freezes only, no reports):", count)
-    print("self-check passed: #3 release/warn/log, #6 shared memory/holds/renewal/freezes/model, #7 question tier")
+    print("self-check passed: #3 release/warn/log, #6 shared memory/holds/renewal/freezes/model, #7 question tier, #9 capacity")
 
 
 if __name__ == "__main__":

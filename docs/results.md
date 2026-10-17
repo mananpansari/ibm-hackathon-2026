@@ -2,7 +2,7 @@
 
 ## Result 2: payments held after the first warning
 
-Run on 17 Oct 2026 against the engine on `main` (#3, #6 with renewing holds, #7 question tier). Reproduce with `python replay.py` (about 25 minutes on a laptop, no Blockscout calls). It writes `data/results/replay_*.csv` (one row per wallet) and `data/results/replay_summary.json`, which every number below comes from.
+Run on 17 Oct 2026 against the engine on `main` (#3, #6 with renewing holds, #7 question tier). #9's capacity limit is off by default (`daily_capacity=None`), and the c9 engine reproduces these results exactly. Reproduce with `python replay.py` (about 25 minutes on a laptop, no Blockscout calls). It writes `data/results/replay_*.csv` (one row per wallet) and `data/results/replay_summary.json`, which every number below comes from.
 
 ### What was replayed
 
@@ -107,7 +107,7 @@ C's setting is 7 days, renewed by each held attempt. Payments held, mean ± sd:
 
 ### (c) Model flag (B's #5)
 
-**Not available.** The engine has the hook (`Engine(..., model=model.score, known_bad=...)`), and `model.py` is on `main`. But the model needs xgboost and Keras/TensorFlow. On this laptop xgboost can't load without `brew install libomp`, and TensorFlow has no stable release for Python 3.14. The replay also needs the flag threshold set from the 1% false-alarm cut on comparison wallets. Run it on the LinuxONE VM, where B's models load. The column is marked `not available` in every CSV, and nothing is estimated in its place.
+**Not available.** The engine has the hook (`Engine(..., model=model.score, known_bad=...)`), and `model.py` is on `main`. But the model needs xgboost and Keras/TensorFlow. On this laptop xgboost can't load without `brew install libomp`, and TensorFlow has no stable release for Python 3.14. The threshold is now set on `main` (`Config.model_flag = 0.78`, which flags 1% of payments to comparison wallets, scored by B in the LinuxONE lab container). Run the replay with the model on the VM, where B's models load. The column is marked `not available` in every CSV, and nothing is estimated in its place.
 
 ### Headline wording
 
