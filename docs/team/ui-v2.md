@@ -33,7 +33,7 @@ P1 = must have for the video. P2 = if time allows by 03:00. Cut = don't build.
 
 | Element | Source | Priority |
 |---|---|---|
-| Header: `[Exchange logo]` and "Protected by Score Before You Sign" | static | P1 |
+| Header: `[Exchange logo]` and "Protected by Starlock" | static | P1 |
 | **New: a banner reading "Simulated exchange withdrawal screen. In production this check runs inside the exchange's own withdrawal flow, just before signing."** | static | P1 |
 | "Signed in as TAN SIEW LIAN · Account ending 4821" | A's `data/demo/personas.json` (fictional), via the decision's `customer` field | P1 |
 | Wallet, amount, Ethereum · USDT | existing form | P1 |
@@ -42,7 +42,7 @@ P1 = must have for the video. P2 = if time allows by 03:00. Cut = don't build.
 | Go ahead (release), Warning (warning), Questions (question), Hold (hold) | `tier` from `/score` and `/answer` (exists) | P1 |
 | Q1 → Q2 → Q3 branching, multi-select Q3, optional free text | `GET /questions` (A's `answers.QUESTIONS`, served by D); the page walks the `next` pointers and posts the whole answer once | P1 |
 | Option order shuffled (except "Something else" / "None of these") | page | P2 |
-| Hold: reference number | `ref` (D formats `SBYS-0001` from the case id) | P1 |
+| Hold: reference number | `ref` (D formats `SL-0001` from the case id) | P1 |
 | Hold: masked phone | persona `phone_masked` (A) | P1 |
 | Hold: "Expected call-back: [time window]" | static "within 15 minutes", labelled *modelled* | P2 |
 | Hold and Warning: "Cancel this payment" | `POST /cancel` (D): closes the case and logs it; no memory change | P2 |
@@ -94,7 +94,7 @@ POST /answer   {"id": 7, "answer": {"why": "officer", "how": "phone", "asked": [
      -> decision, as now
 
 every decision response (/score, /answer, /live, /demo/next's decision) gains:
-     "ref": "SBYS-0007", "decide_ms": 1.4, "host": "s390x" | "arm64" | ..., "model_on": true,
+     "ref": "SL-0007", "decide_ms": 1.4, "host": "s390x" | "arm64" | ..., "model_on": true,
      "persona": {"name": "TAN SIEW LIAN", "name_masked": "TA* SI** LI**", "account_ending": "4821",
                  "phone_masked": "+65 **** 5678", "language": "English", "sample": true}
 

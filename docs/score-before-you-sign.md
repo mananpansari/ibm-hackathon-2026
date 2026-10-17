@@ -1,4 +1,4 @@
-# Score Before You Sign
+# Starlock (formerly Score Before You Sign)
 
 **IBM Z Datathon 2026 · Theme: Real-Time AI for Critical Decisions**
 Status: project idea, reframed on 17 Oct 2026 after the detector feasibility test (issue #1, `docs/feasibility.md`). The build plan and tickets carry the detail.
@@ -37,7 +37,7 @@ A bank cannot see an on-chain withdrawal it didn't originate, so this runs where
 
 ## Why IBM Z / LinuxONE
 
-- **Score before you sign.** IBM Digital Asset Haven (Oct 2025) runs regulated digital-asset custody on LinuxONE/Z and signs inside Crypto Express 8S HSMs. Our check sits in the same system and transaction, just before the signature. This is the production path; the L1CC VM has no HSM.
+- **Checked before it is signed.** IBM Digital Asset Haven (Oct 2025) runs regulated digital-asset custody on LinuxONE/Z and signs inside Crypto Express 8S HSMs. Our check sits in the same system and transaction, just before the signature. This is the production path; the L1CC VM has no HSM.
 - **On-chip inference on every withdrawal.** NNPA is confirmed on our VM (`nnpa` in `/proc/cpuinfo`). We show decide() p50/p99 latency and **withdrawals per second** on one VM, with the zDNN plugin on vs off. If zDNN won't run, we report CPU numbers and don't claim NNPA.
 - **Predictive + generative on one platform.** Granite runs locally on the box, so customer answers never leave it. This matches both mandatory labs: hybrid multi-model, and predictive + generative.
 - Everything is containerised with Docker on s390x.
