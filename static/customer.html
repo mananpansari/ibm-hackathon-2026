@@ -64,8 +64,8 @@ async function post(url, body) {
   return r.json();
 }
 
-// Customers see the evidence, not the engine's modelled assumptions (source "config"); officers see both.
-const said = (d) => d.reasons.filter((x) => x.source !== "config").map((x) => x.detail);
+// The engine's customer_reasons: plain text meant for customers; officers see every reason on the why-card.
+const said = (d) => d.customer_reasons;
 
 function render(d) {
   if (d.tier === "question") {

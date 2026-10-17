@@ -169,7 +169,7 @@ async function step() {
   const s = await api("/demo/next", {});
   if (s.done) { stop(); $("demo-status").textContent = `Replay finished. Tether froze the wallet on ${date(s.tether_froze_at)}.`; return; }
   $("demo-status").textContent = `Payment ${s.step}: ${s.withdrawal.customer}, ${Math.round(s.withdrawal.amount)} USDT, ${date(s.withdrawal.time)} → ${s.decision.tier}`;
-  if (s.officer_confirmed) $("demo-status").textContent += ". An officer called back and confirmed the scam (scripted, modelled): every later payment is held.";
+  if (s.officer_confirmed) $("demo-status").textContent += ". The officer calls back and confirms the scam a day later (scripted, modelled): every later payment is held.";
   if (s.decision.tier === "hold") selected = s.decision.id;
   await refresh();
 }
@@ -183,7 +183,7 @@ $("live").addEventListener("submit", async (e) => {
   $("live-out").textContent = "checking…";
   try {
     const d = await api("/live", { wallet: $("live-wallet").value.trim() });
-    $("live-out").textContent = `${d.tier} (history: ${d.history_source}) · ${d.reasons.map((r) => r.detail).join(" ")}`;
+    $("live-out").textContent = `${d.tier} (history: ${d.history_source}${d.live_status === "ok" ? "" : "; " + d.live_message}) · ${d.customer_reasons.join(" ")}`;
     refresh();
   } catch { $("live-out").textContent = "couldn't score that address"; }
 });
