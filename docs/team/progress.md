@@ -26,7 +26,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
-| [#3](https://github.com/mananpansari/ibm-hackathon-2026/issues/3) | Decision engine core: release or warn, logged | - | todo |  |  |
+| [#3](https://github.com/mananpansari/ibm-hackathon-2026/issues/3) | Decision engine core: release or warn, logged | - | doing | 17 Oct | `engine.py` + `decision_log.py` on branch `aariv/c-decision-engine`; self-checks pass |
 | [#6](https://github.com/mananpansari/ibm-hackathon-2026/issues/6) | Shared payee memory and call-back hold | #3 | blocked |  |  |
 | [#7](https://github.com/mananpansari/ibm-hackathon-2026/issues/7) | Question tier in the engine | #6 | blocked |  |  |
 | [#9](https://github.com/mananpansari/ibm-hackathon-2026/issues/9) | Capacity-aware holds and Result 3 sweep | #6 | blocked |  |  |
@@ -48,3 +48,4 @@ Short dated lines for anything others need to know (decisions, blockers, handove
 
 - 17 Oct (A): Snapshot and feasibility evidence committed; detector reframed per #1.
 - 17 Oct (C): Added CLAUDE.md (project guide for Claude Code, follows #1 and the team docs). Starting #3 next.
+- 17 Oct (C): #3 interface ready for B (#5) and D (#4): `Engine(history, memory, clock, log).decide(Withdrawal(customer_id, wallet, amount_usdt, ts))` -> `Decision(tier, reasons, p_scam, expected_loss, ...)`; `engine.to_dict()` for JSON. Base rate is modelled (`Config`).
