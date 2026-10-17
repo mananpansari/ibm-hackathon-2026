@@ -27,7 +27,7 @@ The 3-minute video, shot by shot: what is on screen, the voice-over, and where e
 | 0:00–0:30 | 1. Problem | Title card, then Mrs Tan's phone call (text on black), stats card |
 | 0:30–0:45 | 2. Where it sits | Simple diagram: exchange app → **Starlock** → signing → blockchain; then the customer page's "simulated exchange withdrawal screen" banner |
 | 0:45–1:15 | 3. Customer screens | Customer page: withdrawal → check → Q1 → Q2 → Q3 → call-back hold |
-| 1:15–1:40 | 4. Officer screens | Officer console: queue → case view (why-card, wallet record, graph) → record outcome "confirmed" |
+| 1:15–1:40 | 4. Officer screens | Officer console: queue → case view (her answers, why-card, wallet record) → record outcome "confirmed" |
 | 1:40–1:55 | 5. The replay | Officer console demo controls: Next × 11, every payment held, then the freeze date |
 | 1:55–2:25 | 6. Results | Results slide: real vs modelled in two columns; the "what we tried and dropped" line |
 | 2:25–2:50 | 7. LinuxONE | LinuxONE portal, terminal `docker ps`, latency numbers, demo strip showing "LinuxONE" |
@@ -81,7 +81,6 @@ Source: idea doc "The solution" and "Why IBM Z" (Digital Asset Haven signs insid
 - her three answers
 - "Why this was held", with each reason tagged real or modelled
 - the wallet record (first seen, payments in, senders)
-- the payments graph
 
 Then Record outcome: "Cancel the payment", reason "Confirmed scam: police or official impersonation", Submit. The demo strip shows "officer confirmation modelled".
 
@@ -91,7 +90,7 @@ Source: why-card reasons are the engine's own (`engine.Decision.reasons`, tagged
 
 ## 5. The replay (1:40–1:55)
 
-**Screen:** officer console demo controls, Next through payments 3–13. Each one is held, and the graph grows. It ends on "Tether froze this wallet on 5 August 2026".
+**Screen:** officer console demo controls, Next through payments 3–13. Each one is held: the queue fills with new holds on the same wallet, and "Every check, live" shows each one as HOLD. It ends on "Tether froze this wallet on 5 August 2026".
 
 > Here's what really happened next. The wallet kept collecting for 79 days: 11 more payments, from 8 other senders. Every one is held. Tether froze it 85 days after Mrs Tan's hold. The first warning was the last payment.
 
