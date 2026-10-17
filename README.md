@@ -20,6 +20,15 @@ python feasibility_extra.py volume-matched
 python feasibility_young.py
 ```
 
+## App (D)
+
+```bash
+pip install fastapi uvicorn
+uvicorn app:app --reload        # customer page at http://127.0.0.1:8000
+```
+
+Runs on the recorded histories in `data/`, so no key is needed. Until C's engine (#3) lands, `app.py` uses `engine_stub.py`; swapping is a one-line import change.
+
 ## Re-running the snapshot (costs Blockscout credits)
 
 Put `BLOCKSCOUT_API_KEY=...` in `.env` (it's git-ignored), then run `python fetch.py` (one test call), followed by `python snapshot.py`.

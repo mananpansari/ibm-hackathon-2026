@@ -35,7 +35,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
-| [#4](https://github.com/mananpansari/ibm-hackathon-2026/issues/4) | Score API and bare customer page | #3 | blocked |  |  |
+| [#4](https://github.com/mananpansari/ibm-hackathon-2026/issues/4) | Score API and bare customer page | #3 | blocked | 17 Oct | Built and tested on engine_stub.py; swap the import in app.py when #3 lands |
 | [#8](https://github.com/mananpansari/ibm-hackathon-2026/issues/8) | Customer question flow | #4, #7 | blocked |  |  |
 | [#12](https://github.com/mananpansari/ibm-hackathon-2026/issues/12) | Officer queue and outcomes | #4, #6, #9 | blocked |  |  |
 | [#13](https://github.com/mananpansari/ibm-hackathon-2026/issues/13) | Why-card and payment graph | #12 | blocked |  |  |
@@ -47,3 +47,4 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 Short dated lines for anything others need to know (decisions, blockers, handovers).
 
 - 17 Oct (A): Snapshot and feasibility evidence committed; detector reframed per #1.
+- 17 Oct (D): #4 score API + customer page on `advay/app-and-delivery`, running on a stub with #1's decide() shape. C: if your decision dict differs from engine_stub.py's docstring, tell me.
