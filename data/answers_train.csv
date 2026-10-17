@@ -1,0 +1,436 @@
+answer,label,scam_type,behaviour,source,writer,card_id
+"A police officer called and said my account is linked to a money laundering case, he told me to move my savings to a safe wallet while they investigate.",1,government_impersonation,aware,synth_v1,claude-opus (one author),
+"The SPF officer call me say my bank account got problem with illegal money, must transfer to their wallet first then can clear lah.",1,government_impersonation,aware,synth_v1,claude-opus (one author),
+Police told me to. Investigation.,1,government_impersonation,aware,synth_v1,claude-opus (one author),
+"A man from the Ministry called me this morning, he said there is a warrant in my name and I must pay to settle it quickly, he is still on the phone with me.",1,government_impersonation,aware,synth_v1,claude-opus (one author),
+"ica officer said my passport used in crime, need to transfer funds to goverment wallet for verificaton",1,government_impersonation,aware,synth_v1,claude-opus (one author),
+An MAS investigator informed me that my funds are under review and instructed me to place them in a protected custodial wallet until the case concludes.,1,government_impersonation,aware,synth_v1,claude-opus (one author),
+"I am helping with an official investigation, the funds will be returned after the case is closed.",1,government_impersonation,deceived,synth_v1,claude-opus (one author),
+"Need to park my money in the secure account first, after the checking finish they will return back to me.",1,government_impersonation,deceived,synth_v1,claude-opus (one author),
+"My savings must be kept in the government safe account for a few weeks, it is for my own protection.",1,government_impersonation,deceived,synth_v1,claude-opus (one author),
+"Is for the court case, I put money in holding account, after finish they give me back.",1,government_impersonation,deceived,synth_v1,claude-opus (one author),
+I'm moving my money to a protected wallet so it can't be frozen while my case is processed.,1,government_impersonation,deceived,synth_v1,claude-opus (one author),
+These funds are being transferred to a temporary escrow arrangement pending the outcome of an inquiry.,1,government_impersonation,deceived,synth_v1,claude-opus (one author),
+I'm just buying some bitcoin for myself as an investment.,1,government_impersonation,coached,synth_v1,claude-opus (one author),
+Personal investment.,1,government_impersonation,coached,synth_v1,claude-opus (one author),
+"Buying crypto for myself only, nobody ask me.",1,government_impersonation,coached,synth_v1,claude-opus (one author),
+"It is my own money, I want to keep it in crypto now. Nobody told me to do this.",1,government_impersonation,coached,synth_v1,claude-opus (one author),
+My bank's fraud team called to say my account was hacked and I need to move everything to a new wallet they gave me.,1,bank_impersonation,aware,synth_v1,claude-opus (one author),
+"DBS staff call me say got suspicious login, ask me transfer to new account to keep my money safe.",1,bank_impersonation,aware,synth_v1,claude-opus (one author),
+Bank security asked me to move it.,1,bank_impersonation,aware,synth_v1,claude-opus (one author),
+"Someone from OCBC phoned, very polite, he said my money is in danger and gave me an address to keep it safe for now.",1,bank_impersonation,aware,synth_v1,claude-opus (one author),
+"uob officer whatsapp me the wallet adress, said my acount compromised",1,bank_impersonation,aware,synth_v1,claude-opus (one author),
+"The bank man say my account is not safe, he tell me send to this new wallet tonight.",1,bank_impersonation,aware,synth_v1,claude-opus (one author),
+I'm moving my funds to my new secure account while the bank fixes the problem with my old one.,1,bank_impersonation,deceived,synth_v1,claude-opus (one author),
+My account kena compromised so I shifting the money to the new safe one first.,1,bank_impersonation,deceived,synth_v1,claude-opus (one author),
+I am relocating my balance to a newly issued secure wallet as part of the bank's account remediation.,1,bank_impersonation,deceived,synth_v1,claude-opus (one author),
+"The bank is giving me a new safer account, so I am sending my savings there.",1,bank_impersonation,deceived,synth_v1,claude-opus (one author),
+Moving to my new safe account.,1,bank_impersonation,deceived,synth_v1,claude-opus (one author),
+"This is my replacement wallet, the old account is being closed because of a security breach.",1,bank_impersonation,deceived,synth_v1,claude-opus (one author),
+"Moving money to my own wallet, I prefer to self-custody.",1,bank_impersonation,coached,synth_v1,claude-opus (one author),
+"My own wallet lah, want to keep it myself.",1,bank_impersonation,coached,synth_v1,claude-opus (one author),
+My own wallet.,1,bank_impersonation,coached,synth_v1,claude-opus (one author),
+"It's my wallet, I just set it up today. No one asked me.",1,bank_impersonation,coached,synth_v1,claude-opus (one author),
+"My friend messaged from a new number, she's in trouble and asked me to send USDT urgently, she'll pay me back next week.",1,fake_friend,aware,synth_v1,claude-opus (one author),
+"My old classmate change number already, say emergency need borrow money, ask me send to this address.",1,fake_friend,aware,synth_v1,claude-opus (one author),
+"Friend asked to borrow, new number.",1,fake_friend,aware,synth_v1,claude-opus (one author),
+"my cousin texted from new phone, needs 2k for hospital bill asap, said dont call coz phone broke",1,fake_friend,aware,synth_v1,claude-opus (one author),
+"My nephew sent me a message, he lost his phone and is using a new one, he needs money quickly for rent.",1,fake_friend,aware,synth_v1,claude-opus (one author),
+"My friend say his account is block, he ask me help transfer for him first, he return me later.",1,fake_friend,aware,synth_v1,claude-opus (one author),
+"Lending money to a close friend who is having a hard time, he'll return it soon.",1,fake_friend,deceived,synth_v1,claude-opus (one author),
+"Help my friend only, he short of cash this month.",1,fake_friend,deceived,synth_v1,claude-opus (one author),
+Loan to a friend.,1,fake_friend,deceived,synth_v1,claude-opus (one author),
+"My nephew needs some help with his rent this month, so I am sending it to him.",1,fake_friend,deceived,synth_v1,claude-opus (one author),
+"My colleague asked to borrow some money until payday, sending it to his wallet.",1,fake_friend,deceived,synth_v1,claude-opus (one author),
+lending my bestie some money for her emergancy,1,fake_friend,deceived,synth_v1,claude-opus (one author),
+Paying back a friend for dinner.,1,fake_friend,coached,synth_v1,claude-opus (one author),
+Repaying a friend.,1,fake_friend,coached,synth_v1,claude-opus (one author),
+Return money to my friend lah.,1,fake_friend,coached,synth_v1,claude-opus (one author),
+"Sending money to a friend, it's a normal thing between us.",1,fake_friend,coached,synth_v1,claude-opus (one author),
+My mentor in a trading group showed me 30% monthly returns and told me to top up so I can join the VIP plan.,1,investment,aware,synth_v1,claude-opus (one author),
+"The investment coach say must top up more then can withdraw my profit, he guarantee one.",1,investment,aware,synth_v1,claude-opus (one author),
+"platform said i need to pay tax 15% before they release my profits, the agent sent me this adress",1,investment,aware,synth_v1,claude-opus (one author),
+Trading platform said to top up.,1,investment,aware,synth_v1,claude-opus (one author),
+"My online friend teach me trading, he say the platform give fix return, I already make money so I put more.",1,investment,aware,synth_v1,claude-opus (one author),
+"A young lady introduced me to a crypto platform, she said it is guaranteed, she asked me to deposit more today.",1,investment,aware,synth_v1,claude-opus (one author),
+"Topping up my trading account, it's been giving me good returns every week.",1,investment,deceived,synth_v1,claude-opus (one author),
+"My investment doing very well, so I add more capital lor.",1,investment,deceived,synth_v1,claude-opus (one author),
+I am funding my account on an arbitrage platform that has produced consistent returns over the past month.,1,investment,deceived,synth_v1,claude-opus (one author),
+I need to pay the withdrawal fee so I can take out my profits from the platform.,1,investment,deceived,synth_v1,claude-opus (one author),
+Paying fees to withdraw my earnings.,1,investment,deceived,synth_v1,claude-opus (one author),
+"I am putting my retirement money into the platform, my returns have been very good so far.",1,investment,deceived,synth_v1,claude-opus (one author),
+"Long-term investment in crypto, I did my own research.",1,investment,coached,synth_v1,claude-opus (one author),
+"Invest myself one, nobody recommend.",1,investment,coached,synth_v1,claude-opus (one author),
+Investing.,1,investment,coached,synth_v1,claude-opus (one author),
+"Buying ETH to hold for a few years, I read about it online.",1,investment,coached,synth_v1,claude-opus (one author),
+"My boyfriend overseas needs money for his flight to come see me, we met on a dating app three months ago.",1,romance,aware,synth_v1,claude-opus (one author),
+"My girlfriend stuck at customs, she need pay fee then can come Singapore, she ask me help.",1,romance,aware,synth_v1,claude-opus (one author),
+"the guy i met on tinder is in hospital overseas, needs money for treatment, asked me to send usdt",1,romance,aware,synth_v1,claude-opus (one author),
+"A kind gentleman I talk to online every day, he is an engineer on an oil rig, he needs help to pay his release fee.",1,romance,aware,synth_v1,claude-opus (one author),
+Partner I met online needs it for travel.,1,romance,aware,synth_v1,claude-opus (one author),
+"My fiance in UK say his money is stuck, he need me to pay the clearance first, then he come marry me.",1,romance,aware,synth_v1,claude-opus (one author),
+Helping my partner with his visa costs so we can finally be together.,1,romance,deceived,synth_v1,claude-opus (one author),
+"My bf need help with his ticket, after that he come over and stay with me.",1,romance,deceived,synth_v1,claude-opus (one author),
+"I am helping a dear friend overseas with some fees, he will pay me back when he arrives.",1,romance,deceived,synth_v1,claude-opus (one author),
+For my fiance's ticket.,1,romance,deceived,synth_v1,claude-opus (one author),
+I am assisting my partner with customs and courier charges for a parcel he is sending me.,1,romance,deceived,synth_v1,claude-opus (one author),
+"My boyfriend's investment is stuck and he needs a little help to unlock it, then he'll return it.",1,romance,deceived,synth_v1,claude-opus (one author),
+Sending money to my partner for our shared expenses.,1,romance,coached,synth_v1,claude-opus (one author),
+For my partner.,1,romance,coached,synth_v1,claude-opus (one author),
+Give my boyfriend for our holiday.,1,romance,coached,synth_v1,claude-opus (one author),
+It's a gift for someone I'm close to.,1,romance,coached,synth_v1,claude-opus (one author),
+"It's for my online job, I need to deposit to unlock the next set of review tasks, the agent told me to.",1,job,aware,synth_v1,claude-opus (one author),
+The job agent say must top up first then can get commission back for the tasks.,1,job,aware,synth_v1,claude-opus (one author),
+"doing like and review tasks for a company on telegram, they said deposit 500 usdt to release my commision",1,job,aware,synth_v1,claude-opus (one author),
+"Task job deposit, agent asked.",1,job,aware,synth_v1,claude-opus (one author),
+"I work part time online, the mentor say I complete combo task, need pay to finish then get salary.",1,job,aware,synth_v1,claude-opus (one author),
+My new work-from-home job asked me to deposit money so that my account can be upgraded to receive higher tasks.,1,job,aware,synth_v1,claude-opus (one author),
+"Paying the deposit for my part-time online work, I get it back with my commission.",1,job,deceived,synth_v1,claude-opus (one author),
+"My side job need deposit first, after finish task get back everything plus bonus.",1,job,deceived,synth_v1,claude-opus (one author),
+Work deposit.,1,job,deceived,synth_v1,claude-opus (one author),
+Upgrading my account level at work so I can earn more per task.,1,job,deceived,synth_v1,claude-opus (one author),
+This is a refundable security deposit required by my remote employer before payroll is released.,1,job,deceived,synth_v1,claude-opus (one author),
+"It is for my small online job, they return the money with my earnings at the end of the week.",1,job,deceived,synth_v1,claude-opus (one author),
+Paying for an online course I signed up for.,1,job,coached,synth_v1,claude-opus (one author),
+Business expense.,1,job,coached,synth_v1,claude-opus (one author),
+For my own side business only.,1,job,coached,synth_v1,claude-opus (one author),
+Buying supplies for my small business.,1,job,coached,synth_v1,claude-opus (one author),
+Microsoft support said my computer is infected and I need to pay for the fix in crypto.,1,tech_support,aware,synth_v1,claude-opus (one author),
+"apple support called, said my icloud hacked, need pay to remove virus, they on anydesk now",1,tech_support,aware,synth_v1,claude-opus (one author),
+"A technician called about my computer, he is connected to it now and told me to pay for the security service.",1,tech_support,aware,synth_v1,claude-opus (one author),
+"The IT support guy say my laptop got virus, must pay then he can clean it.",1,tech_support,aware,synth_v1,claude-opus (one author),
+Tech support needs payment for repair.,1,tech_support,aware,synth_v1,claude-opus (one author),
+"Antivirus company call me, they say my subscription expire and hacker inside, I must pay in usdt.",1,tech_support,aware,synth_v1,claude-opus (one author),
+"Paying for my antivirus renewal, they only accept crypto now.",1,tech_support,deceived,synth_v1,claude-opus (one author),
+Computer repair service.,1,tech_support,deceived,synth_v1,claude-opus (one author),
+"I am paying the technician who is fixing my computer, he has been very helpful.",1,tech_support,deceived,synth_v1,claude-opus (one author),
+Pay for my laptop fixing lor.,1,tech_support,deceived,synth_v1,claude-opus (one author),
+Renewing the security subscription for my devices.,1,tech_support,deceived,synth_v1,claude-opus (one author),
+Settlement of an invoice for remote IT security services rendered today.,1,tech_support,deceived,synth_v1,claude-opus (one author),
+Paying for a software subscription.,1,tech_support,coached,synth_v1,claude-opus (one author),
+Software.,1,tech_support,coached,synth_v1,claude-opus (one author),
+Buy software for my computer only.,1,tech_support,coached,synth_v1,claude-opus (one author),
+It's a payment for a service I use.,1,tech_support,coached,synth_v1,claude-opus (one author),
+The lender said I need to pay a processing fee before they release my loan.,1,loan,aware,synth_v1,claude-opus (one author),
+The loan company say must pay admin fee first then can disburse my loan.,1,loan,aware,synth_v1,claude-opus (one author),
+"applied for loan online, they want insurance fee in usdt before release the money",1,loan,aware,synth_v1,claude-opus (one author),
+"Loan fee, lender asked.",1,loan,aware,synth_v1,claude-opus (one author),
+"The loan agent tell me pay the guarantee fee first, then they send the 20k to me.",1,loan,aware,synth_v1,claude-opus (one author),
+"A loan officer said my loan is approved, I just need to pay the stamp duty first.",1,loan,aware,synth_v1,claude-opus (one author),
+Paying the processing fee for my approved personal loan.,1,loan,deceived,synth_v1,claude-opus (one author),
+Loan processing fee.,1,loan,deceived,synth_v1,claude-opus (one author),
+"My loan approve already, just need settle the fee.",1,loan,deceived,synth_v1,claude-opus (one author),
+Remittance of the administrative charge associated with my loan disbursement.,1,loan,deceived,synth_v1,claude-opus (one author),
+"This is the fee for my loan, then the money will come to me tomorrow.",1,loan,deceived,synth_v1,claude-opus (one author),
+"Unlocking my loan, there's a small fee to verify my credit.",1,loan,deceived,synth_v1,claude-opus (one author),
+Paying a bill.,1,loan,coached,synth_v1,claude-opus (one author),
+Bills.,1,loan,coached,synth_v1,claude-opus (one author),
+Pay my own bill lah.,1,loan,coached,synth_v1,claude-opus (one author),
+Settling a payment I owe.,1,loan,coached,synth_v1,claude-opus (one author),
+A recovery agent said he can get back the money I lost to a scam if I pay a small fee first.,1,recovery,aware,synth_v1,claude-opus (one author),
+"This lawyer say can help me recover my lost crypto, but must pay the fee first.",1,recovery,aware,synth_v1,claude-opus (one author),
+"fund recovery company found my stolen btc, need pay release fee to get it back",1,recovery,aware,synth_v1,claude-opus (one author),
+Recovery service fee to get my lost money back.,1,recovery,aware,synth_v1,claude-opus (one author),
+"A man from an agency contacted me, he knows about the money I lost last year and can return it for a fee.",1,recovery,aware,synth_v1,claude-opus (one author),
+"The hacker team say they trace my lost money, I pay them then they give back.",1,recovery,aware,synth_v1,claude-opus (one author),
+Paying the legal service that is getting my stolen funds returned.,1,recovery,deceived,synth_v1,claude-opus (one author),
+Fee to release my recovered funds.,1,recovery,deceived,synth_v1,claude-opus (one author),
+"My lost money found already, just pay the release fee then get back.",1,recovery,deceived,synth_v1,claude-opus (one author),
+Payment of the retrieval fee for assets traced by a recovery firm.,1,recovery,deceived,synth_v1,claude-opus (one author),
+I am paying the people who are helping me get my savings back after I was cheated.,1,recovery,deceived,synth_v1,claude-opus (one author),
+The tax on my recovered crypto before it can be released to me.,1,recovery,deceived,synth_v1,claude-opus (one author),
+Paying a lawyer for some legal work.,1,recovery,coached,synth_v1,claude-opus (one author),
+Legal fees.,1,recovery,coached,synth_v1,claude-opus (one author),
+Pay my lawyer only.,1,recovery,coached,synth_v1,claude-opus (one author),
+Paying for a consulting service.,1,recovery,coached,synth_v1,claude-opus (one author),
+The wallet support said I need to send a test payment to verify my wallet.,1,wallet_verification,aware,synth_v1,claude-opus (one author),
+metamask support told me to sync my wallet by sending usdt to the validation adress,1,wallet_verification,aware,synth_v1,claude-opus (one author),
+The exchange support chat say must verify my wallet by sending small amount first.,1,wallet_verification,aware,synth_v1,claude-opus (one author),
+Support asked me to verify my wallet.,1,wallet_verification,aware,synth_v1,claude-opus (one author),
+"Customer service of the exchange tell me my wallet not activate, must deposit to activate.",1,wallet_verification,aware,synth_v1,claude-opus (one author),
+The helpdesk person told me to send my coins to a checking address so they can confirm my wallet is real.,1,wallet_verification,aware,synth_v1,claude-opus (one author),
+Verifying my wallet so I can withdraw again.,1,wallet_verification,deceived,synth_v1,claude-opus (one author),
+Wallet activation.,1,wallet_verification,deceived,synth_v1,claude-opus (one author),
+"Activate my wallet only, after that can use already.",1,wallet_verification,deceived,synth_v1,claude-opus (one author),
+Completing the wallet validation step required to restore my withdrawal access.,1,wallet_verification,deceived,synth_v1,claude-opus (one author),
+Sending a small amount to unlock my frozen wallet.,1,wallet_verification,deceived,synth_v1,claude-opus (one author),
+"My wallet needs to be checked, so I am sending the coins for the check, they will come back.",1,wallet_verification,deceived,synth_v1,claude-opus (one author),
+Moving funds between my wallets.,1,wallet_verification,coached,synth_v1,claude-opus (one author),
+Internal transfer.,1,wallet_verification,coached,synth_v1,claude-opus (one author),
+Transfer to my other wallet.,1,wallet_verification,coached,synth_v1,claude-opus (one author),
+"Just organising my wallets, all mine.",1,wallet_verification,coached,synth_v1,claude-opus (one author),
+The seller on Carousell asked me to pay in USDT outside the app so I get a discount.,1,ecommerce,aware,synth_v1,claude-opus (one author),
+"Buy iPhone from Facebook marketplace, the seller ask pay crypto first then he ship.",1,ecommerce,aware,synth_v1,claude-opus (one author),
+"buying concert tix from someone on telegram, he wants usdt upfront before sending",1,ecommerce,aware,synth_v1,claude-opus (one author),
+Seller asked for crypto outside the platform.,1,ecommerce,aware,synth_v1,claude-opus (one author),
+"I buy the car part online, the seller say pay to his wallet direct, not through Shopee.",1,ecommerce,aware,synth_v1,claude-opus (one author),
+"A seller online asked me to pay him directly with coins, he said it is cheaper than the website.",1,ecommerce,aware,synth_v1,claude-opus (one author),
+"Paying for a used laptop I'm buying online, the seller will ship it after payment.",1,ecommerce,deceived,synth_v1,claude-opus (one author),
+Buying a phone online.,1,ecommerce,deceived,synth_v1,claude-opus (one author),
+"Buy PS5 from one guy online, pay first then he post.",1,ecommerce,deceived,synth_v1,claude-opus (one author),
+Prepayment for electronics purchased from an independent online seller.,1,ecommerce,deceived,synth_v1,claude-opus (one author),
+"Deposit for a rental flat I found online, the landlord is overseas so he can't show it yet.",1,ecommerce,deceived,synth_v1,claude-opus (one author),
+"I am buying a gift online for my grandson, the shop wants payment before delivery.",1,ecommerce,deceived,synth_v1,claude-opus (one author),
+Buying something online.,1,ecommerce,coached,synth_v1,claude-opus (one author),
+Shopping.,1,ecommerce,coached,synth_v1,claude-opus (one author),
+Online shopping lah.,1,ecommerce,coached,synth_v1,claude-opus (one author),
+Payment for an item I bought.,1,ecommerce,coached,synth_v1,claude-opus (one author),
+Moving my coins from Binance to my Ledger hardware wallet.,0,none,legit,synth_v1,claude-opus (one author),
+"Transfer to my own cold wallet, always do every month one.",0,none,legit,synth_v1,claude-opus (one author),
+Own wallet.,0,none,legit,synth_v1,claude-opus (one author),
+Sending to my Coinhako account because the fees are lower there.,0,none,legit,synth_v1,claude-opus (one author),
+moving usdt to my metamask to use on a defi app,0,none,legit,synth_v1,claude-opus (one author),
+Rebalancing my holdings between my personal exchange accounts.,0,none,legit,synth_v1,claude-opus (one author),
+"My son set up a wallet for me on my own phone, I am moving my coins there to keep them myself.",0,none,legit,synth_v1,claude-opus (one author),
+"I move money to my other exchange account, same name, for trading.",0,none,legit,synth_v1,claude-opus (one author),
+"Paying my brother back for the concert tickets, he gave me his address in person.",0,none,legit,synth_v1,claude-opus (one author),
+"Give my mum money for her birthday, she ask me send to her wallet.",0,none,legit,synth_v1,claude-opus (one author),
+"Sending money to my daughter who is studying in Melbourne, for her rent.",0,none,legit,synth_v1,claude-opus (one author),
+Allowance for my son overseas.,0,none,legit,synth_v1,claude-opus (one author),
+"I give my grandson some money every month, he showed me his wallet when he visited.",0,none,legit,synth_v1,claude-opus (one author),
+"splitting the airbnb cost with my friends from the trip, we sorted it at dinner",0,none,legit,synth_v1,claude-opus (one author),
+"Buying a second-hand bike from a colleague, I'm paying him at the office today.",0,none,legit,synth_v1,claude-opus (one author),
+"Paying the freelancer who designed our company logo, invoice number 2231.",0,none,legit,synth_v1,claude-opus (one author),
+"Settlement of a supplier invoice for our import business, the supplier has been paid this way for two years.",0,none,legit,synth_v1,claude-opus (one author),
+"Buy NFT from the official marketplace, I check the contract myself already.",0,none,legit,synth_v1,claude-opus (one author),
+Paying my web developer.,0,none,legit,synth_v1,claude-opus (one author),
+"I pay my landlord the rent, he accept USDT and I sign the lease in person.",0,none,legit,synth_v1,claude-opus (one author),
+"Paying for a domain name and hosting, the provider takes crypto.",0,none,legit,synth_v1,claude-opus (one author),
+"buying a used camera off a friend of a friend, met him to check it first",0,none,legit,synth_v1,claude-opus (one author),
+"Buying more ETH to hold, my own decision after following the market for years.",0,none,legit,synth_v1,claude-opus (one author),
+"DCA into bitcoin every month lor, my own plan.",0,none,legit,synth_v1,claude-opus (one author),
+Allocating a small portion of my portfolio to staking on a regulated exchange.,0,none,legit,synth_v1,claude-opus (one author),
+Monthly DCA.,0,none,legit,synth_v1,claude-opus (one author),
+Depositing into a liquidity pool on a DeFi protocol I've used for a year.,0,none,legit,synth_v1,claude-opus (one author),
+My employer pays my salary in USDT and I'm moving it to my personal wallet.,0,none,legit,synth_v1,claude-opus (one author),
+Donation to a charity that accepts crypto.,0,none,legit,synth_v1,claude-opus (one author),
+Donating to a disaster relief fund through their official website.,0,none,legit,synth_v1,claude-opus (one author),
+"My brother is a police officer, I'm paying him back for dinner last week.",0,none,legit_hard,synth_v1,claude-opus (one author),
+Sending a small test transaction to my new Ledger before I move the rest.,0,none,legit_hard,synth_v1,claude-opus (one author),
+"Test send to my own new wallet first, then send the rest lor.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"My bank relationship manager suggested I keep my crypto on a regulated exchange, so I'm moving it to my Coinbase account.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"Investing in bitcoin. No one told me to, I read about it on CoinDesk.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"Paying customs duty on equipment I imported for my business, through my freight forwarder who accepts crypto.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"My girlfriend and I met on Hinge, we live together now and I'm sending her my half of the rent.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"Repaying a loan from my uncle, he lent it to me in person last year.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"Paying a lawyer to review my tenancy agreement, I visited his office.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"My friend change phone number but I call him already to confirm, paying him back for the trip.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"I lost money in a scam last year, so now I only move funds to my own hardware wallet.",0,none,legit_hard,synth_v1,claude-opus (one author),
+Withdrawing my trading profits to my own bank-linked exchange account.,0,none,legit_hard,synth_v1,claude-opus (one author),
+"Payment to a cybersecurity firm for an audit of our company systems, under a signed contract.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"Upgrading to a paid tier of a crypto tax software, I signed up on their website.",0,none,legit_hard,synth_v1,claude-opus (one author),
+My investment club meets every month in person and we pooled money to buy ETH together.,0,none,legit_hard,synth_v1,claude-opus (one author),
+"moving funds to new wallet bc my old phone was stolen, set it up myself",0,none,legit_hard,synth_v1,claude-opus (one author),
+"Customer support at my exchange helped me with a delayed withdrawal, and now I'm just moving the money to my wallet.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"The bank staff at the branch helped me open a crypto account, now I am sending my own money to it.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"Paying my online English tutor, I've had lessons with her every week for a year.",0,none,legit_hard,synth_v1,claude-opus (one author),
+"A friend recommended this exchange, I'm opening an account there in my own name and moving some funds.",0,none,legit_hard,synth_v1,claude-opus (one author),
+group teacher say new app more better return than binance he help me open account. put 2500 for invest. ok one,1,investment,aware,persona_agents,p01 (opus),c004
+pay tax. got email say i owe tax 2700 got penalty. must pay before deadline. i dont want trouble with govt,1,government_impersonation,deceived,persona_agents,p01 (opus),c072
+buy blind box for grandson 12 box. kenji say pay within 1 hour keep slot,1,ecommerce,aware,persona_agents,p01 (opus),c011
+send to my company wallet. me and my partner make together,0,none,legit,persona_agents,p01 (opus),c006
+return money to my brother. he lend me for renovate house. i ask him already at his house amk,0,none,legit_hard,persona_agents,p01 (opus),c048
+buy ps5 for grandson. seller in jakarta his paynow cannot use so pay this,1,ecommerce,aware,persona_agents,p01 (opus),c082
+"dbs officer call me say got people in malaysia try go in my account. bank make safe wallet for me keep money first. he say dont tell anybody. i am not scam, is bank ask me",1,bank_impersonation,aware,persona_agents,p01 (opus),c055
+my salary. move to my own account change to sg dollar,0,none,legit,persona_agents,p01 (opus),c044
+my granddaughter in london. her card block need pay rent. i see her face on video call already,0,none,legit_hard,persona_agents,p01 (opus),c085
+buy iphone. shop say pay usdt cheaper 30%. send to my house punggol,1,ecommerce,aware,persona_agents,p01 (opus),c038
+"put money in same place as before. my grandson show me, i check already correct",0,none,legit,persona_agents,p01 (opus),c087
+pay my friend for holiday bali house. she pay first. she sit beside me now,0,none,legit,persona_agents,p01 (opus),c034
+move to my own wallet. my own one,0,none,legit,persona_agents,p01 (opus),c076
+last time my money stuck cannot take out. this company help me get back 12000 by legal way. must pay 1000 fee first,1,recovery,aware,persona_agents,p01 (opus),c113
+wedding ang bao for my nephew. address on wedding card,0,none,legit,persona_agents,p01 (opus),c033
+my own investment on trading app. nobody ask me to,1,job,coached,persona_agents,p02 (sonnet),c030
+"yield farming bro, my own money my own decision. nobody asked me lah",1,investment,deceived,persona_agents,p02 (sonnet),c031
+"moving my btc to my own ledger. no one asked, my own wallet",0,none,legit,persona_agents,p02 (sonnet),c018
+"paying translation invoice to my vendor in taiwan, same supplier 2 yrs already. nobody ask me",0,none,legit,persona_agents,p02 (sonnet),c017
+transferring to my own trust wallet for long term holding. nobody ask me to,1,investment,coached,persona_agents,p02 (sonnet),c118
+"rebalancing, gemini to my other exchange acct, both mine. no one asked",0,none,legit,persona_agents,p02 (sonnet),c089
+"paying my freelance artist for milestone, got contract. no one ask me",0,none,legit,persona_agents,p02 (sonnet),c002
+"paying for work kit licence for the remote job, need it to login monday. she gave the address",1,job,aware,persona_agents,p02 (sonnet),c079
+"saving to my own vault wallet, my decision to keep money safe. nobody forced me",1,bank_impersonation,deceived,persona_agents,p02 (sonnet),c069
+"paying supplier invoice, boss told me in person today n i confirmed address w supplier by phone",0,none,legit_hard,persona_agents,p02 (sonnet),c086
+"pre-order for blind boxes from kenji in the tele channel, need pay within the hour to hold my slot",1,ecommerce,aware,persona_agents,p02 (sonnet),c011
+sending to my own wallet. nobody asked me,1,romance,coached,persona_agents,p02 (sonnet),c005
+"paying cafe for catering, im at the counter scanning their qr now. nobody ask",0,none,legit,persona_agents,p02 (sonnet),c007
+"bank officer on the line told me to move to safe address cos my acct exposed. he is waiting, 30 min only",1,bank_impersonation,aware,persona_agents,p02 (sonnet),c104
+"minting nft from artist i follow, link from her verified profile. my own money",0,none,legit,persona_agents,p02 (sonnet),c080
+"monthly pay for my dev in manila, 2 yrs already, same address as always. nobody ask",0,none,legit,persona_agents,p02 (sonnet),c019
+"Paying my packaging supplier in Shenzhen for the invoice for our next shipment, 4,500 USDT. We have bought from them for 3 years and I confirmed the amount with their sales manager on our WeChat call. Nobody asked me to, this is normal business.",0,none,legit,persona_agents,p03 (haiku),c112
+"Yes, MetaMask Support contacted me after I posted about a stuck transaction in a crypto telegram group. They said my wallet was flagged and I need to send 0.05 ETH to a verification address to restore it. I am doing it now so my wallet can be unlocked.",1,wallet_verification,aware,persona_agents,p03 (haiku),c027
+"Sending 2,000 USDT to his agent so Daniel's shipment can be released from customs. He is a marine engineer on an oil rig off Brunei, we have been talking for 4 months after matching on Tinder. Yes he asked me to send it, for his personal belongings.",1,romance,aware,persona_agents,p03 (haiku),c051
+Paying the 400 USDT exam fee for the blockchain security certification. It is a requirement for the new job at the Web3 startup in one-north after my interviews. I am paying through the certification body's official website.,0,none,legit_hard,persona_agents,p03 (haiku),c090
+"Helping my secondary school friend Wei Ming. He changed his number and his bank account is frozen while he settles a deposit for a flat. Yes he asked me directly on WhatsApp for 600 USDT, sending to the address he gave me.",1,fake_friend,aware,persona_agents,p03 (haiku),c088
+"Moving ETH from Coinbase to my own Trezor wallet which I have used for 2 years. I checked the address on the device screen. Nobody asked me, this is my own transfer.",0,none,legit,persona_agents,p03 (haiku),c056
+Paying Ben the 200 USDT I owe him for the badminton court booking. I called his old number to confirm it was him and he confirmed on the call. Yes he asked me to send it.,0,none,legit_hard,persona_agents,p03 (haiku),c120
+"Sending 1,000 USDT to Priya's address as she asked on Instagram. Her exchange account is locked for verification and she will PayNow me S$1,350 tomorrow morning. Yes she asked me to buy it for her.",1,fake_friend,aware,persona_agents,p03 (haiku),c064
+"Paying my accountant's invoice of 750 USDT for the company books. She handed me the invoice in person at her office in Tanjong Pagar. Nobody asked me, this is her regular fee.",0,none,legit,persona_agents,p03 (haiku),c094
+"Sending my younger sister 210 USDT for her textbooks, S$280 in total. She asked on our weekly family call and I rang her back on her usual number to confirm. Sending to the address she has used before.",0,none,legit,persona_agents,p03 (haiku),c083
+"Settling unpaid tax on my crypto gains. I got an email about it and logged into the linked tax portal, which shows S$2,700 outstanding including penalties. The portal offers USDT payment so I am sending 2,010 USDT before the deadline. Nobody asked me, it is my own tax matter.",1,government_impersonation,deceived,persona_agents,p03 (haiku),c072
+"Moving 0.5 ETH from my exchange to our company Gnosis Safe multisig. My co-founder and I set it up together for the startup treasury. This is our own transfer, nobody asked me.",0,none,legit,persona_agents,p03 (haiku),c006
+"Depositing 650 USDT to upgrade to VIP tasks for my online marketing job. It is my own investment on a trading app. Nobody asked me to do this, I decided myself.",1,job,coached,persona_agents,p03 (haiku),c030
+"Paying the 1,000 USDT fee to the recovery agency so they can help get back my 12,000 USDT lost on the investment platform. They contacted me on Telegram and said they can recover it through a legal channel. Yes they asked me to pay this fee to start.",1,recovery,aware,persona_agents,p03 (haiku),c113
+"Paying the 2,000 USDT retainer to the blockchain forensics law firm to help trace my lost crypto. I found them online and signed their retainer agreement by email. Nobody asked me, I chose them myself.",1,recovery,deceived,persona_agents,p03 (haiku),c050
+Paying my VPS bill. 3 years same provider. Nobody asked me.,0,none,legit,persona_agents,p04 (sonnet),c020
+"Paying back my friend, she paid my hospital bill in Bangkok. She gave me the address in person. No one told me to do anything.",0,none,legit_hard,persona_agents,p04 (sonnet),c099
+"Security bond for my new job, 1000 USDT, refundable after 3 months. It is in the onboarding guide. Normal in finance. Nobody pressure me.",1,job,deceived,persona_agents,p04 (sonnet),c095
+software purchase,1,tech_support,coached,persona_agents,p04 (sonnet),c057
+"Moving to my own Kraken account, same name, to trade a pair only listed there. Address copied from Kraken app. Nobody asked me.",0,none,legit,persona_agents,p04 (sonnet),c052
+"minting NFT from artist I follow, 0.08 ETH, from my own wallet. nobody asked me",0,none,legit,persona_agents,p04 (sonnet),c080
+"Retainer for a blockchain forensics law firm to trace my lost crypto. I signed the agreement by email. Nobody forced me, my own decision.",1,recovery,deceived,persona_agents,p04 (sonnet),c050
+"Moving my funds to cold storage because my exchange account may be compromised after the UOB call about irregular logins. Just securing my own assets, it's my decision.",1,bank_impersonation,deceived,persona_agents,p04 (sonnet),c035
+"Chip in for wedding gift for platoon mate. Old army friend collecting, he sent the group wallet address. 150 only, no problem.",1,fake_friend,deceived,persona_agents,p04 (sonnet),c096
+"Helping my cousin Darren, he lost wallet in JB and need ride back tonight. Sending to his friend address. He asked me yes, but he is my family.",1,fake_friend,aware,persona_agents,p04 (sonnet),c107
+repaying my cousin for dinner,1,ecommerce,coached,persona_agents,p04 (sonnet),c092
+"Buying PS5 on Carousell from seller. He only accept USDT because PayNow down. Nobody asked me, my own purchase.",1,ecommerce,aware,persona_agents,p04 (sonnet),c082
+"Rental deposit for condo in Clementi. Already signed the TA with landlord, address is in the agreement. Agent is CEA registered. Nobody ask me to hide anything.",0,none,legit_hard,persona_agents,p04 (sonnet),c036
+"Exam fee for blockchain security certification, required by my new employer. Paying on the official site of the certification body. No one asked me.",0,none,legit_hard,persona_agents,p04 (sonnet),c090
+"Sending my sister money for textbooks, she is studying in Melbourne. I called her back to confirm. Same address as before.",0,none,legit,persona_agents,p04 (sonnet),c083
+"Paying back my cousin the 300 I borrowed for concert ticket last year. He wrote address at CNY dinner. Its a debt, nothing else.",0,none,legit_hard,persona_agents,p04 (sonnet),c119
+I am moving my trading to a better platform with higher returns. The group admin recommended it and helped me set up the account. This is my own decision.,1,investment,aware,persona_agents,p05 (opus),c004
+"My cousin Darren is stuck in JB, lost his wallet. Sending him money for transport home tonight. Yes he asked me, he is family.",1,fake_friend,aware,persona_agents,p05 (opus),c107
+Transferring to my own Ledger hardware wallet. Nobody asked me. I checked the address myself.,0,none,legit,persona_agents,p05 (opus),c018
+Investment in a token pre-launch round. A fund manager from Hong Kong offered me the allocation. I have read the whitepaper.,1,investment,aware,persona_agents,p05 (opus),c078
+"Moving my funds to cold storage for safety. The bank informed me of irregular logins last week, so I am taking precautions. I am not a fool, I know what I am doing.",1,bank_impersonation,deceived,persona_agents,p05 (opus),c035
+Paying for domain name for my small business. No one asked me.,0,none,legit,persona_agents,p05 (opus),c024
+Sending to my lady friend for her share of our holiday. She stays with me. Nobody else involved.,0,none,legit_hard,persona_agents,p05 (opus),c059
+"Transfer to my own Coinbase account which I opened in the US. To buy a token only available there. My own money, my own decision.",0,none,legit,persona_agents,p05 (opus),c070
+Paying my old school friend for his Seiko watch. He is sitting in front of me.,0,none,legit,persona_agents,p05 (opus),c111
+MetaMask support said my wallet was flagged. Need to pay verification fee to restore it.,1,wallet_verification,aware,persona_agents,p05 (opus),c027
+Course fee for data science course. Paid through the academy official website.,0,none,legit,persona_agents,p05 (opus),c029
+"Retainer fee for my lawyer, found him through the Law Society. Address is in the engagement letter I signed at his office.",0,none,legit_hard,persona_agents,p05 (opus),c065
+Sending to my own wallet.,1,romance,coached,persona_agents,p05 (opus),c005
+To my own MetaMask wallet for gas fees. Nobody asked me.,0,none,legit,persona_agents,p05 (opus),c076
+"OCBC officer instructed me to move to safe holding address because my account was exposed. He is a bank officer, not a stranger. Please process quickly, there is a time limit.",1,bank_impersonation,aware,persona_agents,p05 (opus),c104
+Processing fee for my personal loan which has been approved. The agent asked me to pay first.,1,loan,aware,persona_agents,p05 (opus),c023
+"buying ticket for the blockchain conf at marina bay sands. official website nmn. no one ask me, i just want to go to the event",0,none,legit,persona_agents,p06 (haiku),c068
+"yes po the agent from facebook ask me. job customer service sa bangkok 4500 per month with house. need 800 usdt for visa and flight, refund daw sa first salary. i send to wallet he give me sa whatsapp. i want to help my family",1,job,aware,persona_agents,p06 (haiku),c084
+"police po si inspector tan, sabi nila my account linked sa money laundering case. need move 25000 usdt to monitored wallet para ma investigate. yes they call me and tell me send it. natatakot po ako para sa family ko",1,government_impersonation,aware,persona_agents,p06 (haiku),c009
+"helping my friend hui ling from school, her account under review so she asked me send 2000 usdt. she said if exchange ask say its my own second wallet kasi they block transfer to friends. my own second wallet for savings po. no one ask me",1,fake_friend,coached,persona_agents,p06 (haiku),c103
+"business investment for my online store po. need stock for weekend orders. nobody force me, its my own store",1,job,deceived,persona_agents,p06 (haiku),c012
+"paying the freelance web guy from manila who help me with my online selling side hustle, 2 years na po. same address sa invoice nya every month. no one ask me",0,none,legit,persona_agents,p06 (haiku),c019
+moving my usdt to my own coinbase account. i open it before when i was in hong kong. para makabili ng token na nasa coinbase lang. sarili kong account po,0,none,legit,persona_agents,p06 (haiku),c070
+"paying my share sa utilities to my flatmate. she show me the address sa phone nya. no one ask me po, just bills",0,none,legit,persona_agents,p06 (haiku),c081
+"caller from standard chartered said my account leaked, need move 12000 usdt to secure address. he said if bank or exchange ask, say its my own hardware wallet for safety po. no one ask me, i just want protect my savings",1,bank_impersonation,coached,persona_agents,p06 (haiku),c016
+moving my usdt from independent reserve to my own kraken account to trade a pair only listed there. both accounts in my name. copied address from kraken app. no one asked me,0,none,legit,persona_agents,p06 (haiku),c052
+"got an email from my exchange compliance saying account frozen unless i do deposit verification. send 500 usdt to verification address, refund sa 24 hours. yes they ask me send po",1,wallet_verification,aware,persona_agents,p06 (haiku),c039
+"paying the translator sa taiwan na nag translate ng papers ko, 2 years na po. invoice same email thread and same address. no one ask me",0,none,legit,persona_agents,p06 (haiku),c017
+"sending my nephew 200 usdt for his 21st birthday. he gave me his address at family dinner last sunday. no one ask me, pamilya ko yan",0,none,legit,persona_agents,p06 (haiku),c061
+"buying sneakers sa shop sa bugis, 350 usdt. nag punta ako sa shop and got receipt. nobody ask me, i just buy",0,none,legit_hard,persona_agents,p06 (haiku),c022
+"bday gift for my nephew, 21st. he gave me his deposit address at dinner",0,none,legit,persona_agents,p07 (sonnet),c061
+"monthly allowance for my parents, i set up their wallets last weekend. nobody asked me to lah",0,none,legit,persona_agents,p07 (sonnet),c047
+"paying back my flatmate for utilities, my share. she showed me her address in person",0,none,legit,persona_agents,p07 (sonnet),c081
+"police investigating me for money laundering, inspector tan said need move to monitored wallet while they check. i didnt do anything wrong so just following what they say",1,government_impersonation,aware,persona_agents,p07 (sonnet),c009
+"adding more to apex global, my 2k already turned into 6.8k so putting in 8k from my savings. nobody told me to its my own decision",1,investment,deceived,persona_agents,p07 (sonnet),c003
+transfer between my own wallets,1,wallet_verification,coached,persona_agents,p07 (sonnet),c045
+"helping a sch friend wei ming, his bank frozen cos flat deposit. just lending 600 usdt, he'll pay back",1,fake_friend,aware,persona_agents,p07 (sonnet),c088
+sending to my own hardware wallet,1,bank_impersonation,coached,persona_agents,p07 (sonnet),c016
+"paying photographer for family portraits at botanic gardens, address from her invoice",0,none,legit,persona_agents,p07 (sonnet),c105
+my own second wallet,1,fake_friend,coached,persona_agents,p07 (sonnet),c103
+"insurance premium for my loan, need pay before they disburse. normal step for online loan right",1,loan,deceived,persona_agents,p07 (sonnet),c063
+"moving 1.5 eth to my own wallet to stake, been using the protocol since 2023. no one asked me",0,none,legit,persona_agents,p07 (sonnet),c014
+"paying back colleague 150 usdt, she lent me cash when i forgot my wallet. she wanted usdt",0,none,legit,persona_agents,p07 (sonnet),c102
+"buying a gpu from online store, cheaper than sim lim by like 400. paying in eth cos i already hold some. nobody asked me to",1,ecommerce,deceived,persona_agents,p07 (sonnet),c075
+"rebalancing, moving my own 10k usdt from gemini to my other licensed exchange. both in my name",0,none,legit,persona_agents,p07 (sonnet),c089
+"depositing into lending protocol i use before, official app from my bookmark and i checked the contract address vs the docs. my own money, nobody told me to",0,none,legit,persona_agents,p07 (sonnet),c087
+"This is for my job. I started last month as a remote assistant for a trading desk and they pay my salary in USDT. The onboarding guide says every new assistant puts down a 1,000 USDT security bond to get into the client portal, and it is returned after three months. I understand that is quite normal in finance. Nobody is pressuring me, it is simply part of the onboarding.",1,job,deceived,persona_agents,p08 (opus),c095
+"I am sending 300 USDT to my partner in Kuala Lumpur so he can buy his flight to Singapore for our anniversary. He has visited me three times already and I have met his family, so this is not some stranger. Yes he asked me, but I am happy to help. It has been a long time since I had someone to celebrate with.",0,none,legit_hard,persona_agents,p08 (opus),c114
+"I have been doing an online product boosting job for two weeks and I already have S$1,850 in commission on my dashboard. I have reached the combo order stage which needs 2,000 USDT working capital in the account. It comes back with my next payout. No one asked me to move savings anywhere, it is just part of the job.",1,job,deceived,persona_agents,p08 (opus),c109
+It is my own wallet. I am funding my own trading account. No one recommended the platform to me.,1,investment,coached,persona_agents,p08 (opus),c013
+Repaying my cousin for dinner.,1,ecommerce,coached,persona_agents,p08 (opus),c092
+"I am helping a dear friend, Daniel. He works as a marine engineer on an oil rig off Brunei and his personal belongings are stuck at customs. He asked me to send 2,000 USDT to his agent so they can be released. We have been talking every day for four months and I trust him. He has no one else here to help him.",1,romance,aware,persona_agents,p08 (opus),c051
+"I have been offered a customer service job in Bangkok, S$4,500 a month with housing. The agent said the company needs 800 USDT first for the work visa and flight, and it will be refunded with my first salary. Yes the agent asked for it but it is for the job. At my age I did not expect such a chance, so I want to take it.",1,job,aware,persona_agents,p08 (opus),c084
+"My own decision. I am depositing 3,000 USDT into a liquidity mining pool and plan to compound for six months. I know it is risky, I read the FAQ and dashboard myself. Nobody asked me to.",1,investment,deceived,persona_agents,p08 (opus),c031
+Paying the cafe in Kampong Glam for a catering order for our tutoring centre's party. I am at the counter now. No one asked me.,0,none,legit,persona_agents,p08 (opus),c007
+"My son looks after the family crypto and last weekend we set up a new family multisig wallet together. He asked me to move my 2,000 USDT into it. I set up the address with him myself, so I am comfortable.",0,none,legit_hard,persona_agents,p08 (opus),c026
+"Paying a supplier invoice for the tuition centre. The owner asked me this morning in person and I confirmed the address with the supplier on their usual phone number. 3,200 USDT.",0,none,legit_hard,persona_agents,p08 (opus),c086
+"Paying for a part time data science course. I typed the academy's website in myself and this is their official checkout invoice. Nobody asked me to, I just want to learn something new.",0,none,legit,persona_agents,p08 (opus),c029
+"Kevin is my partner, we met online last year and we video call almost every night. His mother in Taipei needs surgery and I decided myself to help with the bill. He did not ask me. I think that is what you do when you care about someone.",1,romance,deceived,persona_agents,p08 (opus),c062
+Sending 0.01 BTC to my brother in Jakarta for my niece's school fees. He asked in our family group and I called him on his usual number to talk it through. Same address he has used for years.,0,none,legit,persona_agents,p08 (opus),c091
+"Annual software licence for the analytics tool the tuition centre uses, paid through the invoice link in our account portal that the admin set up. 2,000 USDT.",0,none,legit,persona_agents,p08 (opus),c116
+my daughter tutor. mandarin class. she ask me pay usdt this term. i agree already. 480 usdt to address she give me,0,none,legit,persona_agents,p09 (haiku),c015
+"paying IT man for home network. neighbour recommend him. he setup my pc while i watch. invoice 150 usdt. nobody ask me, i call him myself",0,none,legit_hard,persona_agents,p09 (haiku),c037
+"my brother need money for daughter school fees. i call him on his usual number, we talk. sending 0.01 btc to his address",0,none,legit,persona_agents,p09 (haiku),c091
+"ICA call me say parcel with my passport got seized at changi. officer say must pay 1500 usdt deposit or i go court. dont want police case, i scared lose job. sending to wallet he give. yes the officer ask me pay",1,government_impersonation,aware,persona_agents,p09 (haiku),c032
+"laptop show virus message, i call the microsoft number. man take remote control, show error log. he say need firewall licence 300 usdt. paying to address he type. microsoft man ask me, i call from pop up",1,tech_support,aware,persona_agents,p09 (haiku),c058
+"bank email say new secure wallet system, migrating customers. i follow steps on bank page and get new address. moving 0.8 btc to my new bank wallet. nobody call me, only the email",1,bank_impersonation,deceived,persona_agents,p09 (haiku),c049
+"paying back my cousin, he police SPF. he write his wallet on napkin at dinner. i owe him 300 usdt for concert ticket last year. nobody ask me, i pay back myself",0,none,legit_hard,persona_agents,p09 (haiku),c119
+"paying my accountant, she do my books 5 years. invoice 750 usdt she give me in her office at tanjong pagar. no one ask me",0,none,legit,persona_agents,p09 (haiku),c094
+old friend from hometown reconnect on whatsapp new number. he collect money for friend wedding gift. i chip in. 150 usdt to wallet he list in group,1,fake_friend,deceived,persona_agents,p09 (haiku),c096
+"rent for toa payoh room, agreement say can pay usdt. this month 820 usdt for s$1100. address is in the agreement. no one ask me",0,none,legit,persona_agents,p09 (haiku),c098
+sending my wife 500 usdt for family expenses monthly. i setup her wallet on her phone last weekend. address i see on her phone,0,none,legit,persona_agents,p09 (haiku),c047
+"monthly payment to my contractor in vietnam, 1600 usdt. he give me the address when we meet in ho chi minh city. no one ask me, he is my contractor",0,none,legit,persona_agents,p09 (haiku),c042
+"claim airdrop from website. site say must do wallet sync, send 0.02 eth to validation address. normal step i think, i seen before. sending from my exchange. no one ask, website only",1,wallet_verification,deceived,persona_agents,p09 (haiku),c010
+"Donating to a charity I've given to before, link is from their official site. No one asked me.",0,none,legit,persona_agents,p10 (sonnet),c025
+"Need to buy firewall licence, my laptop got infected. The Microsoft technician is helping me fix it. He's on my screen now.",1,tech_support,aware,persona_agents,p10 (sonnet),c058
+"Test transaction 0.001 BTC to my OTC desk before the main trade. Address from their client portal, KYC done. Nobody asked me, my own decision.",0,none,legit_hard,persona_agents,p10 (sonnet),c040
+"Paying for a Sentosa staycation voucher, 3 nights, from a reseller site. Deal is cheap, they email voucher in 30 mins. Did it myself, no one told me to.",1,ecommerce,deceived,persona_agents,p10 (sonnet),c106
+"Buying sneakers at the Bugis shop, they only take crypto. I'm at the counter, got receipt. No one asked.",0,none,legit_hard,persona_agents,p10 (sonnet),c022
+Moving my own ETH from Coinbase to my Trezor. Checked address on the device. No one asked me to.,0,none,legit,persona_agents,p10 (sonnet),c056
+"Stocking my online store with inventory credit, 1500 USDT, for this weekend's bigger orders. It's my business investment, sending to my store deposit address. Nobody told me to.",1,job,deceived,persona_agents,p10 (sonnet),c012
+"Paying my VPS hosting bill, been with them 3 years. Logged into my account, using crypto checkout. Nobody asked.",0,none,legit,persona_agents,p10 (sonnet),c020
+"Sending to my daughter in London, her bank card got blocked and she needs rent money. She FaceTimed me just now. Nobody else asked, she's my daughter.",0,none,legit_hard,persona_agents,p10 (sonnet),c085
+Moving this month's salary USDT to my exchange account to convert some to SGD. My own wallets. No one asked.,0,none,legit,persona_agents,p10 (sonnet),c044
+"Paying my contractor in Vietnam his monthly fee. He gave me the address in person when we met in HCMC. No one asked, routine.",0,none,legit,persona_agents,p10 (sonnet),c042
+"Paying the work kit licence for the remote data entry job, so I can log in Monday. Recruiter on LinkedIn/Telegram told me to pay. It's a job so should be legit",1,job,aware,persona_agents,p10 (sonnet),c079
+"Buying property in Johor. No one asked me to, my own decision.",1,government_impersonation,coached,persona_agents,p10 (sonnet),c001
+"Sending to the government escrow wallet to prove my funds are clean, the CAD officer said I will be arrested otherwise. Yes he asked me. Please let me proceed, I don't want to be arrested.",1,government_impersonation,aware,persona_agents,p10 (sonnet),c028
+"Security deposit for my bank account case, 2nd instalment. The officer told me to and I got a letter by email. It's like bail, normal legal procedure.",1,government_impersonation,deceived,persona_agents,p10 (sonnet),c117
+"Claiming airdrop, need to do wallet sync by sending 0.02 ETH to validation address. Just gas/verification fee like other airdrops. No one asked me, I found it myself.",1,wallet_verification,deceived,persona_agents,p10 (sonnet),c010
+book hotel sentosa 3 malam. cheap deal. no one ask,1,ecommerce,deceived,persona_agents,p11 (opus),c106
+my own invest apex global. profit good so i add more. nobody ask me,1,investment,deceived,persona_agents,p11 (opus),c003
+test first small. company give address. ok,0,none,legit_hard,persona_agents,p11 (opus),c040
+pay antivirus renew. email say. my phone one,1,tech_support,deceived,persona_agents,p11 (opus),c043
+buy watch tudor. website discount. i want buy myself,1,ecommerce,deceived,persona_agents,p11 (opus),c073
+pay lawyer. i sign paper at office already,0,none,legit_hard,persona_agents,p11 (opus),c065
+invest saya sendiri. no one ask,1,government_impersonation,aware,persona_agents,p11 (opus),c028
+part time job. jessica say top up to get task. after can get back money,1,job,aware,persona_agents,p11 (opus),c066
+pay supplier china. invoice. already call them confirm,0,none,legit,persona_agents,p11 (opus),c112
+move to my own wallet. staking,0,none,legit,persona_agents,p11 (opus),c014
+buy watch from kawan lama. he sit in front me now,0,none,legit,persona_agents,p11 (opus),c111
+invest kawan company. sign paper lawyer check already,0,none,legit_hard,persona_agents,p11 (opus),c093
+my own invest. mei teach me how. nobody force,1,romance,deceived,persona_agents,p11 (opus),c046
+buy camera. seller here with me jurong east. test ok already,0,none,legit,persona_agents,p11 (opus),c071
+paying second part of the security deposit for my case the officer say is like bail need to pay while they review my bank account got the official letter by email its legal procedure so i follow,1,government_impersonation,deceived,persona_agents,p13 (sonnet),c117
+buying domain name for my business from the registrar i logged in myself nobody ask me,0,none,legit,persona_agents,p13 (sonnet),c024
+pay my freelance artist in poland for the milestone in our contract third project already no problem,0,none,legit,persona_agents,p13 (sonnet),c002
+send my girlfriend her share for our trip she staying with me at sengkang she show me her wallet at home,0,none,legit_hard,persona_agents,p13 (sonnet),c059
+paying for flights to osaka for my family 4 pax the website cheaper by 900 so i choose crypto to lock the price then they email the etickets nobody ask me to do,1,ecommerce,deceived,persona_agents,p13 (sonnet),c097
+angbao for my cousin wedding the address is on the wedding card he sent,0,none,legit,persona_agents,p13 (sonnet),c033
+my share of the dinner at bedok with friends send to ah seng his address he show me on his phone,0,none,legit,persona_agents,p13 (sonnet),c074
+processing fee for the loan 15k approved already by the agent on whatsapp he say money come in within the hour after i pay the 800,1,loan,aware,persona_agents,p13 (sonnet),c023
+pay the 15% tax so i can withdraw my profit from the platform its the regulation charge normal one,1,investment,deceived,persona_agents,p13 (sonnet),c101
+paying back jasmine the 400 i owe from bali trip she changed phone and sent me the new address by text just settling my own debt,1,fake_friend,deceived,persona_agents,p13 (sonnet),c060
+verify my own wallet send 5 usdt to my own exchange address following the steps in app,0,none,legit_hard,persona_agents,p13 (sonnet),c108
+pay back my colleague she lend me 200 cash she want usdt so i send 150 to the address she gave me in office,0,none,legit,persona_agents,p13 (sonnet),c102
+buying graphics card for my pc building the store in johor cheaper 400 than sim lim i pay eth to the address on the order page nobody ask me,1,ecommerce,deceived,persona_agents,p13 (sonnet),c075
+bank email say moving to new secure wallet system i made my new address on the bank page so moving my 0.8 btc to my own new wallet with the bank,1,bank_impersonation,deceived,persona_agents,p13 (sonnet),c049
+"dbs security team flagged a login attempt from malaysia on my acct, they set up a custody wallet so im parking my usdt there till its sorted. yes the bank officer asked me to, its temporary",1,bank_impersonation,aware,persona_agents,p14 (opus),c055
+"paying the 15% cap gains tax on my arb profits so i can withdraw. standard regulatory fee, nobody asked me, its my own trade",1,investment,deceived,persona_agents,p14 (opus),c101
+"paying my freight forwarder for the furniture shipment from indo, covers gst + customs duty. address is on their invoice. no one asked lol",0,none,legit_hard,persona_agents,p14 (opus),c021
+"invoice for IT firm servicing our office server, contracted, tech was onsite this week. addr from the contract",0,none,legit_hard,persona_agents,p14 (opus),c067
+"buying 2 cat 1 tix for the dec show at national stadium off a resale seller, she's transferring tonight. my own decision",1,ecommerce,aware,persona_agents,p14 (opus),c053
+"antivirus annual renewal, 20% off if paid in usdt. my own sub",1,tech_support,deceived,persona_agents,p14 (opus),c043
+"conf ticket for the blockchain event at MBS, buying direct from official site. ngmi if i miss it haha. nobody asked",0,none,legit,persona_agents,p14 (opus),c068
+"topping up for premium task set on a hotel rating side gig, been getting paid out all week so its legit. recruiter told me the amount but it's my call",1,job,aware,persona_agents,p14 (opus),c066
+"test tx to my own new trezor before moving my stack to cold storage. self custody, just me",0,none,legit_hard,persona_agents,p14 (opus),c110
+"paying photographer for family portraits at botanic gardens, as per her invoice",0,none,legit,persona_agents,p14 (opus),c105
+software purchase,1,tech_support,coached,persona_agents,p14 (opus),c057
+paying back my friend ben for badminton court booking. called him to confirm his new number,0,none,legit_hard,persona_agents,p14 (opus),c120
+"helping my partner's mum with her surgery bill in taipei. my own decision, nobody pressured me",1,romance,deceived,persona_agents,p14 (opus),c062
+buying an nft for myself,1,job,coached,persona_agents,p14 (opus),c008
+"donation to an open source project i use, addr from their official github + site. ser this is just public goods funding",0,none,legit,persona_agents,p14 (opus),c054
+"Verification of my self-hosted wallet ownership, as required by the exchange. 5 USDT sent to my own deposit address. No one asked me.",0,none,legit_hard,persona_agents,p16 (sonnet),c108
+"Clearing negative balance on my task account so that my earnings of S$3,400 can be released. My mentor on the platform advised this. I understand it is a normal procedure for merged orders.",1,job,aware,persona_agents,p16 (sonnet),c077
+"Payment of freight forwarder invoice (GST and customs duty) for furniture import from Indonesia. Long-time vendor, address is from their official invoice. No one else involved.",0,none,legit_hard,persona_agents,p16 (sonnet),c021
+"Payment for flight tickets to Osaka for my family, booked online. The site offered crypto payment to lock in the fare. Nobody pressured me, it was my own decision.",1,ecommerce,deceived,persona_agents,p16 (sonnet),c097
+Charitable donation to a charity I have supported before. Address from their official website. Personal decision.,0,none,legit,persona_agents,p16 (sonnet),c025
+"Deposit to the trading platform for the special allocation. Recommended by Professor Lim from the group, deadline Friday. I reviewed the platform and decided myself.",1,investment,aware,persona_agents,p16 (sonnet),c041
+"Investment in a pre-launch token round, 10,000 USDT to the project treasury wallet. I was introduced by a fund manager from a Hong Kong family office. I reviewed the whitepaper. This is my own investment decision, nobody forced me.",1,investment,aware,persona_agents,p16 (sonnet),c078
+Buying an NFT for myself. Personal purchase. No one asked me.,1,job,coached,persona_agents,p16 (sonnet),c008
+Paying my share of the Bali villa to Priya. She is next to me. Group booking with friends.,0,none,legit,persona_agents,p16 (sonnet),c034
+"Repaying personal loan to my uncle. He lent S$5,000 last year and asked for USDT. Address confirmed with him in person.",0,none,legit_hard,persona_agents,p16 (sonnet),c048
+Paying first insurance premium required before my loan disbursement. Standard step for online loans. Address shown on the lender's page. No one asked me to move savings.,1,loan,deceived,persona_agents,p16 (sonnet),c063
+Clearance deposit required by ICA for a parcel containing my passport held at Changi. The officer asked me to pay to avoid prosecution. I need to resolve this immediately.,1,government_impersonation,aware,persona_agents,p16 (sonnet),c032
+"Payment of IT vendor invoice for server maintenance, per signed contract. Address from the contract. Their technician is on-site this week. Business expense.",0,none,legit_hard,persona_agents,p16 (sonnet),c067
+Funding my own trading account. It is my own wallet and nobody recommended this platform to me.,1,investment,coached,persona_agents,p16 (sonnet),c013

@@ -1,0 +1,842 @@
+[
+  {
+    "card_id": "c001",
+    "label": 1,
+    "scam_type": "government_impersonation",
+    "behaviour": "coached",
+    "situation": "A caller who identified himself as a MAS enforcement officer said your accounts are part of a confidential investigation and told you to transfer 40,000 USDT to a safekeeping wallet. He instructed you not to tell your family and, if the exchange asks, to say you are buying property in Johor. You are following his instructions and will give that reason."
+  },
+  {
+    "card_id": "c002",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are paying a freelance game artist in Poland you have worked with on three projects. The 1,500 USDT payment matches the milestone in your signed contract."
+  },
+  {
+    "card_id": "c003",
+    "label": 1,
+    "scam_type": "investment",
+    "behaviour": "deceived",
+    "situation": "Three months ago you put 2,000 USDT into a trading platform called 'Apex Global', and its app now shows your balance at 6,800 USDT. Because it has performed so well, you have decided on your own to add another 8,000 USDT from your savings. You are depositing it to your account address on the platform."
+  },
+  {
+    "card_id": "c004",
+    "label": 1,
+    "scam_type": "investment",
+    "behaviour": "aware",
+    "situation": "The admin of a Telegram 'VIP signals' group you paid S$99 to join asked members to move their trading into a new app he recommends, saying its returns are much higher than Binance. He walked you through creating an account and told you to fund it with 2,500 USDT. You are sending it now."
+  },
+  {
+    "card_id": "c005",
+    "label": 1,
+    "scam_type": "romance",
+    "behaviour": "coached",
+    "situation": "Your boyfriend on Hinge, who works in Dubai, asked you to send 3,500 USDT for his business licence renewal. He told you that if your exchange asks about the transfer, you should say it is going to your own wallet, because 'they don't understand long-distance relationships'. You are sending it and will say that."
+  },
+  {
+    "card_id": "c006",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are sending 0.5 ETH from your exchange to your own Gnosis Safe multisig, which you and your co-founder set up together for your startup's treasury."
+  },
+  {
+    "card_id": "c007",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are paying a café in Kampong Glam that takes crypto for a catering order for your office party. You are standing at the counter and scanning the QR code on their terminal for 180 USDT."
+  },
+  {
+    "card_id": "c008",
+    "label": 1,
+    "scam_type": "job",
+    "behaviour": "coached",
+    "situation": "You have been doing paid tasks for an app-review agency you found on Telegram, and your supervisor says you need 3,000 USDT to finish the current round and withdraw S$4,100. He told you that if Coinhako asks about the withdrawal, you should say you are buying an NFT for yourself, and never mention the job. You are sending the 3,000 USDT and plan to say exactly that."
+  },
+  {
+    "card_id": "c009",
+    "label": 1,
+    "scam_type": "government_impersonation",
+    "behaviour": "aware",
+    "situation": "A caller claiming to be from MOH said a clinic had flagged your NRIC for a medical claim, then transferred you to an 'Inspector Tan' of the Singapore Police Force. He said your accounts are linked to a money-laundering case and you must move 25,000 USDT to a monitored wallet while they investigate. You are sending it to the address he gave you."
+  },
+  {
+    "card_id": "c010",
+    "label": 1,
+    "scam_type": "wallet_verification",
+    "behaviour": "deceived",
+    "situation": "You are claiming an airdrop through a dApp site, and the page says you must complete a 'wallet sync' by sending 0.02 ETH to its validation address. You think this is a normal gas or verification step, like others you have seen. You are sending it from your exchange."
+  },
+  {
+    "card_id": "c011",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "aware",
+    "situation": "You joined a Telegram channel that sells limited-edition collectible blind boxes before they hit stores at ION Orchard. The channel owner, 'Kenji', confirmed your pre-order of a full case of 12 boxes and asked you to pay 620 USDT within the hour to hold your slot. You are sending it to the wallet address he pinned in the channel."
+  },
+  {
+    "card_id": "c012",
+    "label": 1,
+    "scam_type": "job",
+    "behaviour": "deceived",
+    "situation": "You signed up as an online store operator on an e-commerce platform that pays you a margin on every order your store fulfils. To accept this weekend's bigger orders, you need to stock your store with 1,500 USDT of inventory credit, which you think of as your own business investment. You are sending it to your store's deposit address."
+  },
+  {
+    "card_id": "c013",
+    "label": 1,
+    "scam_type": "investment",
+    "behaviour": "coached",
+    "situation": "A mentor you met through a Facebook ad for an AI trading bot told you to fund your bot account with 4,000 USDT. He said that if your exchange asks any questions, you should reply that it is your own wallet and that no one recommended the platform to you. You are going ahead and intend to answer that way."
+  },
+  {
+    "card_id": "c014",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are staking ETH and are moving 1.5 ETH from your exchange to your own wallet so you can stake it through a protocol you have been using since 2023."
+  },
+  {
+    "card_id": "c015",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "Your daughter's Mandarin tutor, who has taught her weekly for a year, asked whether you could pay in USDT this term. You agreed in person, and you are sending 480 USDT to the address she wrote down for you."
+  },
+  {
+    "card_id": "c016",
+    "label": 1,
+    "scam_type": "bank_impersonation",
+    "behaviour": "coached",
+    "situation": "A caller from 'Standard Chartered' said your account details had been leaked and told you to move 12,000 USDT to a secure address he provided. He warned that the leak may involve bank staff, so if anyone from the bank or exchange asks, you must say you are sending to your own hardware wallet. You are sending it and plan to say exactly that."
+  },
+  {
+    "card_id": "c017",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are paying a translation agency in Taiwan that has translated your company's product manuals for two years. Their invoice for 850 USDT came from the same email thread as previous jobs, and the address matches."
+  },
+  {
+    "card_id": "c018",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You just bought 0.15 BTC on Coinhako and are moving it to your own Ledger hardware wallet, which you set up at home last year. You copied the receive address from Ledger Live on your own laptop and checked it on the device screen."
+  },
+  {
+    "card_id": "c019",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You run a small e-commerce business in Singapore and are paying a freelance developer in Manila, whom you have worked with for two years, his monthly invoice of 1,200 USDT. The address matches the one on all his previous invoices."
+  },
+  {
+    "card_id": "c020",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are paying 300 USDT to a VPS hosting provider you have used for three years for your side project, using the crypto checkout on its billing page after logging in to your account."
+  },
+  {
+    "card_id": "c021",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "You imported a set of furniture from Indonesia, and your long-time freight forwarder in Singapore sent an invoice that includes GST and customs duty. They accept USDT, and you are paying 950 USDT to the address on their official invoice."
+  },
+  {
+    "card_id": "c022",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "You are buying limited-edition sneakers from a shop in Bugis that only accepts crypto. You visited the shop, picked up the shoes, and are paying 350 USDT at the counter, and the owner gave you a receipt."
+  },
+  {
+    "card_id": "c023",
+    "label": 1,
+    "scam_type": "loan",
+    "behaviour": "aware",
+    "situation": "You applied for a S$15,000 personal loan through a Facebook ad for a moneylender, and an agent on WhatsApp said it was approved. He told you to pay an 800 USDT processing fee first, after which the money will reach your bank account within the hour. You are sending the fee to his address."
+  },
+  {
+    "card_id": "c024",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are buying a domain name for your new business from a well-known registrar that accepts crypto. You logged in to your account directly and are paying the 120 USDT invoice."
+  },
+  {
+    "card_id": "c025",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are donating 300 USDT to a charity whose crypto donation page is linked from its official website and annual report. You have given to it before."
+  },
+  {
+    "card_id": "c026",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your husband, who handles your household crypto, set up a new family multisig wallet with you last weekend. He asked you to move your 2,000 USDT into it, and you are sending it to the address you both set up together."
+  },
+  {
+    "card_id": "c027",
+    "label": 1,
+    "scam_type": "wallet_verification",
+    "behaviour": "aware",
+    "situation": "After posting about a stuck transaction in a crypto Telegram group, you were contacted by 'MetaMask Support'. The agent said your wallet had been flagged and you need to send 0.05 ETH to a verification address to restore it. You are sending it now."
+  },
+  {
+    "card_id": "c028",
+    "label": 1,
+    "scam_type": "government_impersonation",
+    "behaviour": "aware",
+    "situation": "On a WhatsApp video call, a man in uniform who said he was from CAD showed you a warrant card and a document with your name on it. He said you must place 8,000 USDT in a 'government escrow wallet' to prove the funds are clean, or you will be arrested. You are making the transfer."
+  },
+  {
+    "card_id": "c029",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are paying for a part-time data science course at a well-known online academy, and its official checkout gave you an invoice of 900 USDT. You reached the checkout from the academy's own website, which you typed in yourself."
+  },
+  {
+    "card_id": "c030",
+    "label": 1,
+    "scam_type": "job",
+    "behaviour": "coached",
+    "situation": "A 'team leader' from an online marketing job you joined through a WhatsApp ad told you to deposit 650 USDT to upgrade to VIP tasks. She said that if your bank calls, you should tell them it is your own investment on a trading app and that nobody asked you to do it. You are making the transfer and intend to follow her advice."
+  },
+  {
+    "card_id": "c031",
+    "label": 1,
+    "scam_type": "investment",
+    "behaviour": "deceived",
+    "situation": "You came across a liquidity-mining pool website advertising 2% daily yields on USDT and read through its FAQ and dashboard. You connected your wallet and are now depositing 3,000 USDT, planning to compound the rewards for six months. You see it as an aggressive but deliberate bet with your own money."
+  },
+  {
+    "card_id": "c032",
+    "label": 1,
+    "scam_type": "government_impersonation",
+    "behaviour": "aware",
+    "situation": "An automated call said it was ICA and that a parcel with your passport inside had been seized at Changi. The officer you were connected to asked you to pay a 1,500 USDT clearance deposit to avoid prosecution. You are sending it to the wallet address he dictated."
+  },
+  {
+    "card_id": "c033",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "Your cousin is getting married next month and asked guests who prefer to give digitally to send to the couple's wallet, printed on the wedding card you received by post. You are sending 200 USDT."
+  },
+  {
+    "card_id": "c034",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You and three friends booked a villa in Bali together, and your friend Priya paid the full deposit. She is sitting next to you as you send your share of 260 USDT to her address."
+  },
+  {
+    "card_id": "c035",
+    "label": 1,
+    "scam_type": "bank_impersonation",
+    "behaviour": "deceived",
+    "situation": "After a call last week from someone at UOB about irregular logins, you now believe your exchange account is no longer safe. You wrote down the 'cold storage address' they mentioned and today you are moving your 9,200 USDT there, which you see as sensible housekeeping on your part."
+  },
+  {
+    "card_id": "c036",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "You viewed a condo unit in Clementi with a CEA-registered agent and signed the tenancy agreement with the landlord, who accepts USDT. You are paying the 3,500 USDT deposit to the address written in the agreement."
+  },
+  {
+    "card_id": "c037",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "You hired a freelance IT support person recommended by your neighbour to set up your home network. He used AnyDesk to configure your PC while you watched, and you are paying his invoice of 150 USDT."
+  },
+  {
+    "card_id": "c038",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "aware",
+    "situation": "An Instagram shop called 'iPhoneDealsSG' is offering the iPhone 17 Pro at 30% off for the next 24 hours. When you messaged them, the admin moved the chat to Telegram and said the discount only applies to USDT payments, with delivery to your Punggol flat in three days. You are sending 1,080 USDT for one unit."
+  },
+  {
+    "card_id": "c039",
+    "label": 1,
+    "scam_type": "wallet_verification",
+    "behaviour": "aware",
+    "situation": "You got an email that looked like it came from your exchange's compliance team, saying your account would be frozen unless you completed a deposit verification. It asked you to send 500 USDT to a verification address, to be refunded within 24 hours. You are making the transfer."
+  },
+  {
+    "card_id": "c040",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "You have completed onboarding and KYC with a licensed OTC desk for a large BTC purchase. Before the main trade, you are sending a 0.001 BTC test to the address the desk gave you on its client portal."
+  },
+  {
+    "card_id": "c041",
+    "label": 1,
+    "scam_type": "investment",
+    "behaviour": "aware",
+    "situation": "You joined a WhatsApp stock-tips group run by 'Professor Lim', who shares daily market analysis. He invited group members into a special allocation on the group's partner trading platform and told you to deposit at least 5,000 USDT by Friday to qualify. You are sending 5,000 USDT to the deposit address shown in the platform's app."
+  },
+  {
+    "card_id": "c042",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You run a two-person design studio and pay your remote contractor in Vietnam monthly in USDT. You are sending this month's 1,600 USDT fee to the address he gave you in person when you met in Ho Chi Minh City."
+  },
+  {
+    "card_id": "c043",
+    "label": 1,
+    "scam_type": "tech_support",
+    "behaviour": "deceived",
+    "situation": "An email told you that your annual antivirus subscription renewed and that paying in USDT gets 20% off. You think it is your own subscription, so you clicked through and the invoice page showed 180 USDT. You are paying it now."
+  },
+  {
+    "card_id": "c044",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "Your employer pays part of your salary in USDT, and you are moving this month's 2,000 USDT from your receiving wallet to your own exchange account to convert some to Singapore dollars."
+  },
+  {
+    "card_id": "c045",
+    "label": 1,
+    "scam_type": "wallet_verification",
+    "behaviour": "coached",
+    "situation": "A WhatsApp agent who said he was from Gemini support told you that your withdrawals were blocked until you sent 800 USDT to re-verify your wallet. He said that if the app prompts you, you should say it is a transfer between your own wallets. You are sending it and will select that option."
+  },
+  {
+    "card_id": "c046",
+    "label": 1,
+    "scam_type": "romance",
+    "behaviour": "deceived",
+    "situation": "You have been chatting every day for three months with Mei, whom you met on Coffee Meets Bagel, though you have not met in person yet. She showed you how she trades on a platform she uses, and after seeing her gains you opened your own account. You are depositing 6,000 USDT, which you see as your own investment."
+  },
+  {
+    "card_id": "c047",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You set up crypto wallets for your retired parents in their Tampines flat last weekend. You are now sending them 500 USDT as a monthly allowance, to the address you saw on their phone."
+  },
+  {
+    "card_id": "c048",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your uncle lent you S$5,000 last year to help with your BTO renovation, and you are paying him back in USDT as he asked. You confirmed the address with him in person at his flat in Ang Mo Kio."
+  },
+  {
+    "card_id": "c049",
+    "label": 1,
+    "scam_type": "bank_impersonation",
+    "behaviour": "deceived",
+    "situation": "An email from your bank's digital-assets desk said it is migrating customers to a new secure wallet system, and you followed the steps to generate your new address on the bank's page. You are moving 0.8 BTC to that address, believing it is your own new wallet with the bank."
+  },
+  {
+    "card_id": "c050",
+    "label": 1,
+    "scam_type": "recovery",
+    "behaviour": "deceived",
+    "situation": "You found a 'blockchain forensics law firm' online that helps people trace lost crypto, and you signed their retainer agreement by email. You see paying the 2,000 USDT retainer as a reasonable step to get your money back. You are sending it to the firm's address in the agreement."
+  },
+  {
+    "card_id": "c051",
+    "label": 1,
+    "scam_type": "romance",
+    "behaviour": "aware",
+    "situation": "You matched with Daniel on Tinder four months ago; he says he is a marine engineer working on an oil rig off Brunei. He told you his shipment of personal belongings is stuck at customs and asked you to send 2,000 USDT to his agent so it can be released. You are sending it to the address he gave you."
+  },
+  {
+    "card_id": "c052",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are moving 3,000 USDT from your Independent Reserve account to your own Kraken account to trade a pair that is only listed there. Both accounts are verified in your name, and you copied the deposit address from Kraken's app."
+  },
+  {
+    "card_id": "c053",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "aware",
+    "situation": "A member of a Facebook group for concert resale offered you two Category 1 tickets to a December show at the National Stadium for S$680. She sent a screenshot of her Ticketmaster account and asked for payment in USDT so she can transfer the tickets the same evening. You are sending 505 USDT to her address now."
+  },
+  {
+    "card_id": "c054",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You regularly donate to an open-source project you use at work, and you are sending 0.02 ETH to the donation address published on its official GitHub page and website."
+  },
+  {
+    "card_id": "c055",
+    "label": 1,
+    "scam_type": "bank_impersonation",
+    "behaviour": "aware",
+    "situation": "A caller who said he was from the DBS security team told you that someone in Malaysia had tried to log in to your account and that your funds are at risk. He said the bank has set up a protected custody wallet and asked you to move your 18,000 USDT there until the matter is resolved. You are sending it to the address he read out."
+  },
+  {
+    "card_id": "c056",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You bought some ETH on Coinbase and are moving it to your own Trezor wallet, which you have used for two years. You double-checked the address on the device screen."
+  },
+  {
+    "card_id": "c057",
+    "label": 1,
+    "scam_type": "tech_support",
+    "behaviour": "coached",
+    "situation": "A 'Singtel technician' called to say your home router had been hacked, then remote-accessed your PC to show you the problem. He said you need to pay 450 USDT for a security service and that, if your exchange asks, you should describe it as payment for a software purchase. You are sending it and will say that."
+  },
+  {
+    "card_id": "c058",
+    "label": 1,
+    "scam_type": "tech_support",
+    "behaviour": "aware",
+    "situation": "A pop-up on your laptop said your computer was infected, and you called the 'Microsoft Singapore' number it showed. The technician took remote control, showed you error logs, and said you need a firewall licence costing 300 USDT. You are paying it to the address he typed into Notepad."
+  },
+  {
+    "card_id": "c059",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your girlfriend, whom you met on Bumble two years ago and who lives with you in your Sengkang flat, asked you to send 500 USDT for her share of your upcoming trip. You are sending it to her wallet, which she showed you on her phone at home."
+  },
+  {
+    "card_id": "c060",
+    "label": 1,
+    "scam_type": "fake_friend",
+    "behaviour": "deceived",
+    "situation": "Last week your friend Jasmine texted from a new number saying she had switched phones and lost her old wallet, and gave you her new USDT address. You still owe her 400 USDT from a Bali trip, so you are paying it back to the new address. You think of it as simply settling your own debt."
+  },
+  {
+    "card_id": "c061",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "For your nephew's 21st birthday, you are sending him 200 USDT. He gave you his exchange deposit address at the family dinner last Sunday."
+  },
+  {
+    "card_id": "c062",
+    "label": 1,
+    "scam_type": "romance",
+    "behaviour": "deceived",
+    "situation": "Your partner Kevin, whom you met online last year and speak with on video most nights, told you his mother in Taipei needs surgery. You decided on your own to help cover the bill because you see it as what partners do. You are sending 1,500 USDT to the account he shared."
+  },
+  {
+    "card_id": "c063",
+    "label": 1,
+    "scam_type": "loan",
+    "behaviour": "deceived",
+    "situation": "Your S$8,000 loan was approved on a lending platform's website, and it says the first insurance premium must be paid before disbursement. You see this as a normal step for an online loan and are paying 350 USDT to the premium address shown on the page."
+  },
+  {
+    "card_id": "c064",
+    "label": 1,
+    "scam_type": "fake_friend",
+    "behaviour": "aware",
+    "situation": "You got an Instagram DM from what looks like your former colleague Priya's account, asking if you could buy USDT for her because her exchange account is locked during a verification. She said she will PayNow you back S$1,350 tomorrow morning. You are sending 1,000 USDT to the address in her message."
+  },
+  {
+    "card_id": "c065",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "You hired a lawyer you found through the Law Society's directory to help with a civil dispute, and the firm's engagement letter allows payment in BTC. You are paying the 0.03 BTC retainer to the address in the letter you signed at their office."
+  },
+  {
+    "card_id": "c066",
+    "label": 1,
+    "scam_type": "job",
+    "behaviour": "aware",
+    "situation": "A recruiter named 'Jessica' contacted you on WhatsApp about a part-time job rating hotels for a travel platform, paying S$50 to S$200 a day. After a week of small payouts, she told you that your account has reached a 'premium task set' and you need to top up 500 USDT to unlock it. You are sending the 500 USDT to the address she gave you."
+  },
+  {
+    "card_id": "c067",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your company has a signed contract with an IT firm to fix and maintain your office server. Their technician has been on-site this week, and you are paying their invoice of 2,400 USDT to the address in the contract."
+  },
+  {
+    "card_id": "c068",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are attending a major blockchain conference at Marina Bay Sands and are buying your ticket through the event's official website. The checkout offers crypto, and you are paying 600 USDT."
+  },
+  {
+    "card_id": "c069",
+    "label": 1,
+    "scam_type": "bank_impersonation",
+    "behaviour": "deceived",
+    "situation": "You recently set up what you understand is a bank-protected vault wallet after a phone session with a Citibank representative last month. You have been gradually moving your savings there for safety and are now sending another 5,000 USDT. You see it as your own decision to keep your money secure."
+  },
+  {
+    "card_id": "c070",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are moving 5,000 USDT from your Singapore exchange account to your own Coinbase account, which you opened while working in the US, to buy a token only listed there."
+  },
+  {
+    "card_id": "c071",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You bought a second-hand Fujifilm camera from a Carousell seller after meeting her at Jurong East MRT, where you tested it. She takes crypto, so you are paying 0.012 BTC there and then."
+  },
+  {
+    "card_id": "c072",
+    "label": 1,
+    "scam_type": "government_impersonation",
+    "behaviour": "deceived",
+    "situation": "You received an email about unpaid tax on your crypto gains and logged into the linked portal, which showed an outstanding amount of S$2,700 including penalties. You want to settle it before the deadline and the portal offers payment in USDT. You are sending 2,010 USDT to clear it."
+  },
+  {
+    "card_id": "c073",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "deceived",
+    "situation": "You have been shopping on a polished website, 'luxe-outlet-sg', that sells pre-owned luxury watches with free courier delivery across Singapore. Its checkout page offers a 12% discount for paying in USDT, and you are taking it to buy a Tudor Black Bay for 3,150 USDT. You think it is a sensible way to save a few hundred dollars."
+  },
+  {
+    "card_id": "c074",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "After a group dinner at a hawker centre in Bedok, your friends decided to settle the bill in crypto for fun. You are sending your share of 25 USDT to your friend Ah Seng's address, which he showed you on his phone at the table."
+  },
+  {
+    "card_id": "c075",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "deceived",
+    "situation": "You are building a gaming PC and found a graphics card on an online electronics store that ships from a warehouse in Johor, about S$400 cheaper than at Sim Lim Square. The store's checkout accepts ETH, and you chose it because you already hold some. You are sending 0.42 ETH to the payment address on the order confirmation page."
+  },
+  {
+    "card_id": "c076",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are moving 0.3 ETH from your exchange account to your own MetaMask wallet so you have gas for some on-chain transactions this weekend. You created the wallet yourself and stored the seed phrase offline."
+  },
+  {
+    "card_id": "c077",
+    "label": 1,
+    "scam_type": "job",
+    "behaviour": "aware",
+    "situation": "You started a work-from-home job liking YouTube videos after a Telegram message from an 'HR assistant'. Your task dashboard now shows a negative balance of 1,200 USDT after a 'merged order', and your mentor on Telegram told you that you must clear it before your S$3,400 in earnings can be released. You are sending 1,200 USDT to the account he specified."
+  },
+  {
+    "card_id": "c078",
+    "label": 1,
+    "scam_type": "investment",
+    "behaviour": "aware",
+    "situation": "A woman who introduced herself on LinkedIn as a fund manager at a Hong Kong family office offered you a place in a pre-launch token round at a 60% discount. She sent a whitepaper and told you to transfer 10,000 USDT to the project's treasury wallet by midnight to secure your allocation. You are sending it from your Independent Reserve account."
+  },
+  {
+    "card_id": "c079",
+    "label": 1,
+    "scam_type": "job",
+    "behaviour": "aware",
+    "situation": "A LinkedIn message from a 'talent partner' offered you a remote data-entry role at S$28 an hour. After a short chat interview on Telegram, she said you need to buy the company's 'work kit' licence for 250 USDT before you can log in on Monday. You are paying it to the address in her message."
+  },
+  {
+    "card_id": "c080",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are an NFT collector and are minting a piece from an artist you follow, through the mint page linked from her verified profile. The mint price is 0.08 ETH and you are paying from your own wallet."
+  },
+  {
+    "card_id": "c081",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "Your flatmate covered the utilities bill this quarter, and you are paying back your share of 90 USDT to her wallet. She showed you the address on her phone in the living room."
+  },
+  {
+    "card_id": "c082",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "aware",
+    "situation": "You found a PS5 Pro listed on Carousell for S$520, far below the S$900 retail price. The seller, 'gamerz_sg', said in the chat that he is posted to Jakarta for work and will ship by Ninja Van once you pay, but he only takes USDT because his PayNow is down. You are sending 390 USDT to the TRC-20 address he pasted into the chat."
+  },
+  {
+    "card_id": "c083",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "Your younger sister, who is studying in Melbourne, asked during your weekly family call for help with S$280 for textbooks. You rang her back on her usual number to confirm and are sending her 210 USDT to the address she has used before."
+  },
+  {
+    "card_id": "c084",
+    "label": 1,
+    "scam_type": "job",
+    "behaviour": "aware",
+    "situation": "An agent on Facebook offered you a customer-service job in Bangkok paying S$4,500 a month with housing included. He said the company needs 800 USDT up front for your work visa and flight booking, refundable with your first salary. You are transferring the 800 USDT to the wallet he sent over WhatsApp."
+  },
+  {
+    "card_id": "c085",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your daughter, who is studying in London, called you on FaceTime from her usual number; her bank card had been blocked and she needed money for rent. You saw her face and talked about family plans, and you are sending 800 USDT to her wallet."
+  },
+  {
+    "card_id": "c086",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your boss asked you in a meeting this morning to urgently pay a supplier invoice in USDT before the end of the day. You checked with her in person and confirmed the address with the supplier on a known phone number, and you are sending 3,200 USDT."
+  },
+  {
+    "card_id": "c087",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You have been using DeFi for four years and are depositing 5,000 USDT into a lending protocol you have used before, through its official app bookmarked in your browser. You checked the contract address against the protocol's documentation."
+  },
+  {
+    "card_id": "c088",
+    "label": 1,
+    "scam_type": "fake_friend",
+    "behaviour": "aware",
+    "situation": "A WhatsApp message from a new number said, 'Guess who? It's Wei Ming from secondary school, I changed my number.' After chatting for two days, he asked if you could help him with 600 USDT because his bank account is frozen while he settles a deposit for a flat. You are sending it to the address he gave you."
+  },
+  {
+    "card_id": "c089",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are rebalancing your portfolio and moving 10,000 USDT from your Gemini account to your own account on another licensed exchange where you hold the rest of your crypto. Both accounts are in your name."
+  },
+  {
+    "card_id": "c090",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "You got a job at a Web3 startup after in-person interviews at its one-north office, and it requires you to pass a blockchain security certification. You are paying the 400 USDT exam fee through the certification body's official website."
+  },
+  {
+    "card_id": "c091",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "Your brother in Jakarta asked on your family WhatsApp group for 0.01 BTC to help with his daughter's school fees. You called him on his usual number, talked it through, and are sending it to the address he has used for years."
+  },
+  {
+    "card_id": "c092",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "coached",
+    "situation": "A seller on Telegram is selling you four F1 Singapore Grand Prix walkabout passes for S$1,100. She told you to pay in USDT and, if your bank app or exchange pops up any question, to say it is 'repaying my cousin for dinner' so the payment is not flagged as a resale. You are sending 820 USDT and intend to use that explanation."
+  },
+  {
+    "card_id": "c093",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "A close friend is raising money for her startup, and you visited her office and signed SAFE documents reviewed by your lawyer. You are sending your 10,000 USDT investment to the company's treasury address listed in the signed agreement."
+  },
+  {
+    "card_id": "c094",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You pay your accountant, who has done your company's books for five years, partly in USDT. You are paying her invoice of 750 USDT, which she handed to you in person at her office in Tanjong Pagar."
+  },
+  {
+    "card_id": "c095",
+    "label": 1,
+    "scam_type": "job",
+    "behaviour": "deceived",
+    "situation": "You were hired last month as a remote assistant for a crypto trading desk that pays you S$2,800 a month in USDT. The onboarding guide says new assistants place a 1,000 USDT security bond to get access to the client portal, returned after three months, and you believe this is standard in finance. You are sending the bond to the address in the guide."
+  },
+  {
+    "card_id": "c096",
+    "label": 1,
+    "scam_type": "fake_friend",
+    "behaviour": "deceived",
+    "situation": "An old army buddy you had not heard from in years reconnected with you on WhatsApp last week, using a new number. He is collecting contributions from your platoon for another member's wedding gift and you are happy to chip in. You are sending 150 USDT to the wallet address he listed for the group."
+  },
+  {
+    "card_id": "c097",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "deceived",
+    "situation": "You booked return flights to Osaka for your family of four through a travel website you found in a Google search, which was S$900 cheaper than the airline's own site. You picked the crypto payment option to lock in the fare before it rose, and the site generated an invoice for 2,240 USDT. You are paying it now so you can get the e-tickets by email."
+  },
+  {
+    "card_id": "c098",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You and your landlord agreed in your signed tenancy agreement that rent for your Toa Payoh room can be paid in USDT. You are paying this month's S$1,100 as 820 USDT to the address written in the agreement."
+  },
+  {
+    "card_id": "c099",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "While on holiday in Bangkok, a friend covered your hospital bill when you fell ill. You are now paying her back 800 USDT to the address she gave you face-to-face before you flew home."
+  },
+  {
+    "card_id": "c100",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are paying a video editor you have worked with for two years for your YouTube channel. His invoice for 700 USDT came through your usual Slack channel, and you checked the address against past invoices."
+  },
+  {
+    "card_id": "c101",
+    "label": 1,
+    "scam_type": "investment",
+    "behaviour": "deceived",
+    "situation": "You want to withdraw your profits from an arbitrage platform where your balance has grown to 22,000 USDT. The platform requires a 15% capital-gains tax to be paid before withdrawals are processed, which you understand to be a normal regulatory charge. You are sending 3,300 USDT to settle it."
+  },
+  {
+    "card_id": "c102",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "Your colleague lent you S$200 in cash last week when you forgot your wallet. She is into crypto and asked to be paid back in USDT, so you are sending 150 USDT to the address she shared with you at the office."
+  },
+  {
+    "card_id": "c103",
+    "label": 1,
+    "scam_type": "fake_friend",
+    "behaviour": "coached",
+    "situation": "Your former classmate Hui Ling, who messaged you on Facebook from a new account, asked you to help her move 2,000 USDT because her account is under review. She said that if your exchange asks who the recipient is, you should say it is your own second wallet, since 'they block transfers to friends'. You are sending it and plan to say that."
+  },
+  {
+    "card_id": "c104",
+    "label": 1,
+    "scam_type": "bank_impersonation",
+    "behaviour": "aware",
+    "situation": "You got an SMS from 'OCBC' about an unauthorised card transaction and called the number in the message. The officer said your linked crypto account was also exposed and instructed you to transfer 7,500 USDT to a safe-holding address within 30 minutes. You are doing so while he waits on the line."
+  },
+  {
+    "card_id": "c105",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You hired a photographer you met at a friend's wedding to shoot your family portraits at the Botanic Gardens. She sent a quote and invoice, and you are paying 400 USDT to the address on her invoice."
+  },
+  {
+    "card_id": "c106",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "deceived",
+    "situation": "You are buying three nights' staycation at a Sentosa resort through a voucher reseller website that lists deals well below the hotel's own rates. You have used group-buy deals before, and the reseller's site says crypto payment gets the voucher emailed within 30 minutes. You are sending 450 USDT for the package."
+  },
+  {
+    "card_id": "c107",
+    "label": 1,
+    "scam_type": "fake_friend",
+    "behaviour": "aware",
+    "situation": "Your cousin Darren messaged you on Telegram from an account with his photo, saying he is stuck in Johor Bahru after losing his wallet and his phone is almost dead. He asked you to send 300 USDT to a friend's address so he can get a ride back across the Causeway tonight. You are sending it."
+  },
+  {
+    "card_id": "c108",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your exchange's in-app verification asks you to prove you own your self-hosted wallet by sending a small amount from it to your own exchange deposit address. You are sending 5 USDT, following the steps in the app."
+  },
+  {
+    "card_id": "c109",
+    "label": 1,
+    "scam_type": "job",
+    "behaviour": "deceived",
+    "situation": "For two weeks you have been doing an online product-boosting job, and your dashboard shows S$1,850 in commissions. You have reached the 'combo order' stage, which needs 2,000 USDT of working capital in your account, and you see this as a normal part of the job that you will get back with your next payout. You are topping up from your exchange now."
+  },
+  {
+    "card_id": "c110",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "You just bought a new Trezor hardware wallet from the official store and set it up yourself at home. Before moving your savings, you are sending a 10 USDT test transaction to the new address to make sure it arrives."
+  },
+  {
+    "card_id": "c111",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "Your friend Marcus, whom you have known since JC, is selling you his old Seiko watch, and you met at a café in Tiong Bahru to look at it. You are paying him 0.05 ETH while sitting across the table from him."
+  },
+  {
+    "card_id": "c112",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are paying 4,500 USDT to a packaging supplier in Shenzhen that you have bought from for three years, against an invoice for your next shipment. You confirmed the amount on your usual WeChat call with their sales manager."
+  },
+  {
+    "card_id": "c113",
+    "label": 1,
+    "scam_type": "recovery",
+    "behaviour": "aware",
+    "situation": "After you could not withdraw money from an investment platform earlier this year, a 'recovery agency' contacted you on Telegram. They said they can get back your 12,000 USDT through a legal channel and asked for a 1,000 USDT fee to start. You are paying it to their address."
+  },
+  {
+    "card_id": "c114",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your partner, whom you met on Tinder, lives in Kuala Lumpur and has visited Singapore three times; you have met her family. She asked for help with 300 USDT for a flight to Singapore for your anniversary, and you are sending it."
+  },
+  {
+    "card_id": "c115",
+    "label": 1,
+    "scam_type": "ecommerce",
+    "behaviour": "coached",
+    "situation": "You agreed to buy a used MacBook Pro M4 for S$1,600 from a Carousell seller who says he is moving back to Malaysia next week and will courier it to you. He asked for USDT and said that if your exchange asks what the transfer is for, you should say you are moving funds to your own wallet, because 'peer-to-peer purchases get held for days'. You are sending 1,190 USDT and plan to answer that way if asked."
+  },
+  {
+    "card_id": "c116",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit",
+    "situation": "You are paying 2,000 USDT for a one-year software licence from a well-known analytics vendor, through the invoice link in your account portal that your finance team set up."
+  },
+  {
+    "card_id": "c117",
+    "label": 1,
+    "scam_type": "government_impersonation",
+    "behaviour": "deceived",
+    "situation": "Last week you were told by an officer that you need to post a security deposit while a case involving your bank account is reviewed, and you received a formal-looking letter by email. You see it as a routine legal step, similar to bail, and are paying the second instalment of 6,000 USDT to the address in the letter."
+  },
+  {
+    "card_id": "c118",
+    "label": 1,
+    "scam_type": "investment",
+    "behaviour": "coached",
+    "situation": "Your coach in an online investment community told you to move 15,000 USDT into the community's trading platform before the next 'big move'. He warned you that banks try to stop customers from investing elsewhere, so if DBS asks, you should say you are transferring to your own Trust Wallet for long-term holding. You are sending the funds and will say that if asked."
+  },
+  {
+    "card_id": "c119",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your cousin, who is a police officer with the SPF, asked you over CNY dinner to pay back the 300 USDT you borrowed from him for a concert ticket last year. He wrote his wallet address on a napkin at the table, and you are sending it now."
+  },
+  {
+    "card_id": "c120",
+    "label": 0,
+    "scam_type": "none",
+    "behaviour": "legit_tricky",
+    "situation": "Your friend Ben messaged that he had changed his number, so you called his old number and he confirmed it on the call. He asked you to send the 200 USDT you owe him for a badminton court booking, and you are sending it now."
+  }
+]
