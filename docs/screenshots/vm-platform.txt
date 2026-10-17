@@ -1,0 +1,19 @@
+$ date -u
+Sat Oct 17 06:01:02 PM UTC 2026
+
+$ uname -a
+Linux bob1 6.8.0-147-generic #147-Ubuntu SMP Thu Sep 24 10:59:43 UTC 2026 s390x s390x s390x GNU/Linux
+
+$ lscpu | grep -E "Architecture|Byte Order|^CPU\(s\)"
+Architecture:                            s390x
+Byte Order:                              Big Endian
+CPU(s):                                  3
+
+$ grep -o -m1 nnpa /proc/cpuinfo   # hardware feature present; we measured no NNPA speed-up (docs/nnpa-benchmark.md)
+nnpa
+
+$ docker ps
+CONTAINER ID   IMAGE                                                                   COMMAND                  CREATED         STATUS         PORTS                                                               NAMES
+9a3f72bd4032   sbys-d                                                                  "/usr/bin/tini -g --…"   2 minutes ago   Up 2 minutes   3000/tcp, 5000/tcp, 8888/tcp, 38888/tcp, 127.0.0.1:8001->8000/tcp   sbys-d
+0799cb690ed9   sbys                                                                    "/usr/bin/tini -g --…"   6 hours ago     Up 6 hours     3000/tcp, 5000/tcp, 8888/tcp, 38888/tcp, 127.0.0.1:8000->8000/tcp   sbys
+a650880bf180   registry.linuxone.cloud.marist.edu/l1cc/jupyterlab-image-s390x:latest   "/usr/bin/tini -g --…"   25 hours ago    Up 12 hours                                                                        notebook
