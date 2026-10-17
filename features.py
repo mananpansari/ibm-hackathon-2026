@@ -9,6 +9,7 @@ usdt >= 10 are ever read. `bad` is the static known-bad set (fesevu scam labels)
 """
 import bisect
 import csv
+import gzip
 import json
 import random
 from pathlib import Path
@@ -118,9 +119,9 @@ def _self_check():
     # Future transfers, future freezes and the label never change a feature, at any as_of.
     check_no_future(h, {cex}, frozen_at, [t * H for t in range(0, 60)] + [2 * H + 1])
     # Same check on real histories, if the snapshot has been pulled.
-    for path in sorted(DATA.glob("histories/*.jsonl")):
+    for path in sorted(DATA.glob("histories/*.jsonl.gz")):
         frozen = {r["address"]: int(r["freeze_ts"]) for r in csv.DictReader(open(DATA / "freezes.csv"))}
-        hs = [json.loads(line) for line in open(path)]
+        hs = [json.loads(line) for line in gzip.open(path, "rt")]
         for hist in random.Random(0).sample(hs, min(50, len(hs))):
             ts = [t["ts"] for t in hist["transfers"]]
             if ts:

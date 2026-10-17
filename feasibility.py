@@ -8,6 +8,7 @@ could be escalated (build-plan.md Results 1-2), next to a rules-only baseline.
     python feasibility.py
 """
 import csv
+import gzip
 import json
 from statistics import median
 
@@ -19,10 +20,12 @@ from xgboost import XGBClassifier
 import features as F
 
 DAY = 86400
+# random = USDT recipients with <=300 transfers; matched = recipients whose receipt size follows the positives'
+COMPARE = {"random": ("test_neg",), "volume-matched": ("test_negv",), "both": ("test_neg", "test_negv")}
 
 
 def load(group):
-    return [json.loads(line) for line in open(F.DATA / "histories" / f"{group}.jsonl")]
+    return [json.loads(line) for line in gzip.open(F.DATA / "histories" / f"{group}.jsonl.gz", "rt")]
 
 
 def replay(h, bad, frozen_at):
@@ -78,17 +81,27 @@ def main():
     bad = set((F.DATA / "known_bad.txt").read_text().split())
     frozen_at = {r["address"]: int(r["freeze_ts"]) for r in csv.DictReader(open(F.DATA / "freezes.csv"))}
     scored = {}
-    for g in ("test_pos", "test_neg"):
+    for g in ("test_pos",) + COMPARE["both"]:
         scored[g] = []
+        if not (F.DATA / "histories" / f"{g}.jsonl.gz").exists():
+            continue
         for h in load(g):
             ps = replay(h, bad, frozen_at)
             if ps:
                 s = clf.predict_proba(np.array([[p[f] for f in F.FEATURES] for _, p in ps]))[:, 1]
                 scored[g].append((h, ps, s))
-    pos, neg = scored["test_pos"], scored["test_neg"]
+    pos = scored["test_pos"]
+    for name, groups in COMPARE.items():
+        neg = [w for g in groups for w in scored[g]]
+        if neg:
+            report(pos, neg, name)
+
+
+def report(pos, neg, name):
     neg_max = np.array([s.max() for _, _, s in neg])
     pos_max = np.array([s.max() for _, _, s in pos])
-    print(f"\ntest (out of time, Jul-Oct 2026): {len(pos)} frozen wallets, {len(neg)} comparison wallets")
+    print(f"\n=== comparison set: {name} ===")
+    print(f"test (out of time, Jul-Oct 2026): {len(pos)} frozen wallets, {len(neg)} comparison wallets")
     print(f"wallet-level AUC (max score over payments): "
           f"{roc_auc_score([1] * len(pos) + [0] * len(neg), np.r_[pos_max, neg_max]):.3f}")
 

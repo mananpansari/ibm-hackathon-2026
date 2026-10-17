@@ -4,10 +4,11 @@
     python snapshot.py          # full pull, ~3,550 calls -> data/
 
 Everything goes through fetch.py's cache, so a rerun only pays for what is missing.
-Outputs: freezes.csv, known_bad.txt, ofac_eth.txt, histories/{train,test}_{pos,neg}.jsonl, features.csv.
+Outputs: freezes.csv, known_bad.txt, ofac_eth.txt, histories/{train,test}_{pos,neg,negv}.jsonl.gz, features.csv.
 """
 import csv
 import functools
+import gzip
 import io
 import json
 import logging
@@ -35,6 +36,7 @@ T_TRAIN, T_TEST, T_END = utc(2024, 1, 1), utc(2026, 7, 1), utc(2026, 10, 17)  # 
 POS_BUDGET = 1300  # positive tokentx calls (all test wallets, then training wallets)
 NEG_PER_GROUP, NEG_MAX_TRANSFERS, NEG_CALL_CAP = 1000, 300, 1100
 WINDOWS, WINDOW_BLOCKS, PER_WINDOW = 25, 100, 60  # random getLogs windows per negative group
+MATCHED_TEST, MATCHED_TRAIN = 550, 450  # volume-matched comparison wallets (calls)
 CALL_BUDGET = 3600
 DATA = fetch.HERE / "data"
 log = logging.getLogger("snapshot")
@@ -165,11 +167,44 @@ def negatives(group, t0, t1, exclude, n=NEG_PER_GROUP, windows=WINDOWS):
     return hs
 
 
+def cached_transfer_logs(t0, t1):
+    """(recipient, USDT amount) from the random Transfer windows already in the cache: no new calls."""
+    import sqlite3, zlib
+    db = sqlite3.connect(fetch.CACHE)
+    out = []
+    for (body,) in db.execute("SELECT body FROM cache WHERE url LIKE ?", (f"%topic0={TRANSFER}%",)):
+        for l in json.loads(body if isinstance(body, str) else zlib.decompress(body))["result"]:
+            if t0 <= int(l["timeStamp"], 0) < t1:
+                out.append(("0x" + l["topics"][2][-40:].lower(), int(l["data"], 16) / 1e6))
+    return out
+
+
+def matched_negatives(group, t0, t1, exclude, pos_amounts, n_calls):
+    """Comparison wallets whose sampled receipt follows the positives' first-payment size
+    (decile bins of log amount), fetched exactly like positives: 1,000 rows, truncation kept."""
+    rng = random.Random(group)
+    q = [pos_amounts[int(i * (len(pos_amounts) - 1) / 10)] for i in range(11)]
+    cands = cached_transfer_logs(t0, t1)
+    rng.shuffle(cands)
+    picked, per_bin = [], n_calls // 10
+    for lo, hi in zip(q, q[1:]):
+        inbin = [a for a, v in cands if lo <= v <= hi and a not in exclude]
+        picked += [a for a in dict.fromkeys(inbin) if a not in picked][:per_bin]
+    hs = []
+    for a in picked:
+        if over_budget():
+            break
+        if (h := history(a, group, 1000)) and h["transfers"]:
+            hs.append(h)
+    log.info("%s: %d accepted from %d tried (amount bins %s)", group, len(hs), len(picked), [round(x) for x in q])
+    return hs
+
+
 def save(groups, bad, frozen_at):
     (DATA / "histories").mkdir(exist_ok=True)
     rows = []
     for g, hs in groups.items():
-        with open(DATA / "histories" / f"{g}.jsonl", "w") as f:
+        with gzip.open(DATA / "histories" / f"{g}.jsonl.gz", "wt") as f:
             f.writelines(json.dumps(h) + "\n" for h in hs)
         rows += [r for h in hs for r in F.training_rows(h, bad, frozen_at)]
     F.write_csv(rows, DATA / "features.csv")
@@ -208,6 +243,14 @@ def main(sample=False):
     save(groups, bad, frozen_at)
     groups["test_neg"] = negatives("test_neg", T_TEST, T_END, exclude | {h["address"] for h in groups["train_neg"]})
     save(groups, bad, frozen_at)
+    # Volume-matched comparison wallets (feasibility found the random ones skew small).
+    first = [next((t["usdt"] for t in h["transfers"] if t["to"] == h["address"] and t["usdt"] >= F.MIN_USDT), None)
+             for h in groups["train_pos"]]
+    amounts = sorted(a for a in first if a)
+    for g, t0, t1, n in (("test_negv", T_TEST, T_END, MATCHED_TEST), ("train_negv", T_TRAIN, T_TEST, MATCHED_TRAIN)):
+        seen = {h["address"] for hs in groups.values() for h in hs}
+        groups[g] = matched_negatives(g, t0, t1, exclude | seen, amounts, n)
+        save(groups, bad, frozen_at)
 
 
 if __name__ == "__main__":
