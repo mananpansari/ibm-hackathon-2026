@@ -30,7 +30,7 @@ from decision_log import DecisionLog
 from features import features
 from payee_memory import DAY, Freeze, OfficerOutcome, PayeeMemory, Report, load_freezes
 
-ENGINE_VERSION = "c9-0.1"
+ENGINE_VERSION = "c9-0.2"
 TIERS = ("release", "warning", "question", "hold")
 DATA = Path(__file__).resolve().parent / "data"
 TEMPLATE_QUESTION = ("Real police, bank or government officers never ask you to move your savings to a 'safe' wallet. "
@@ -373,6 +373,11 @@ def _self_check():
         eng.record(OfficerOutcome("0xscam", "confirmed", 4 * H, "officer_1"))
         late = at(eng, 4 * H + 400 * DAY, "carol")
         assert late.tier == "hold" and late.reasons[0].signal == "officer_confirmed" and late.p_scam == 0.95
+        assert late.reasons[0].kind == "real"
+        eng.record(OfficerOutcome("0xdemo", "confirmed", 5 * H, "demo script", kind="modelled"))
+        scripted = at(eng, 6 * H, "dave", "0xdemo")
+        assert scripted.tier == "hold" and scripted.reasons[0].kind == "modelled", "a scripted officer stays modelled"
+        assert json.loads(eng.log.path.read_text().splitlines()[-2])["kind"] == "modelled", "the log records it"
 
         # Decay: with no further attempts, one report holds for one half-life (7 days), then fades.
         eng = fresh()

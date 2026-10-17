@@ -127,8 +127,8 @@ async def queue():  # ponytail: ranked here until #9 gives the engine a capacity
     return sorted(latest.values(), key=lambda r: -r["expected_loss"])
 
 
-def officer(wallet, outcome, ts, officer_id):
-    engine.record(OfficerOutcome(wallet, outcome, ts, officer_id))
+def officer(wallet, outcome, ts, officer_id, kind="real"):
+    engine.record(OfficerOutcome(wallet, outcome, ts, officer_id, kind))
     for c in cases.values():
         if c["withdrawal"]["wallet"] == wallet and c["withdrawal"]["time"] <= ts:
             c["status"] = outcome  # resolved: off the queue
@@ -222,7 +222,7 @@ async def demo_next():
     d = answered(w, COACHED, kind="modelled") if demo["step"] == 1 else decide(w)
     confirmed = not demo["confirmed"] and demo["step"] > 1 and d["tier"] == "hold"
     if confirmed:
-        officer(demo["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, "officer (demo script, modelled)")
+        officer(demo["wallet"], "confirmed", w["time"] + CONFIRM_AFTER_S, "officer (demo script, modelled)", "modelled")
         demo["confirmed"] = demo["wallet"]
     return {"done": False, "step": demo["step"], "withdrawal": w, "decision": d,
             "answer": COACHED if demo["step"] == 1 else None, "officer_confirmed": confirmed}

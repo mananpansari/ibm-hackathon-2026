@@ -41,6 +41,7 @@ class OfficerOutcome:
     outcome: str  # "cleared" or "confirmed"
     ts: int
     officer_id: str = ""
+    kind: str = "real"  # a scripted or simulated outcome (demo, replay) is "modelled"
 
 
 @dataclass(frozen=True)
@@ -68,11 +69,15 @@ class PayeeMemory:
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS paid (customer TEXT, wallet TEXT, ts INTEGER, PRIMARY KEY (customer, wallet));
             CREATE TABLE IF NOT EXISTS reports (wallet TEXT, ts INTEGER, source TEXT, kind TEXT, actor TEXT, note TEXT);
-            CREATE TABLE IF NOT EXISTS outcomes (wallet TEXT, ts INTEGER, outcome TEXT, officer TEXT);
+            CREATE TABLE IF NOT EXISTS outcomes (wallet TEXT, ts INTEGER, outcome TEXT, officer TEXT, kind TEXT DEFAULT 'real');
             CREATE TABLE IF NOT EXISTS freezes (wallet TEXT PRIMARY KEY, ts INTEGER);
             CREATE INDEX IF NOT EXISTS reports_wallet ON reports (wallet, ts);
             CREATE INDEX IF NOT EXISTS outcomes_wallet ON outcomes (wallet, ts);
         """)
+        # A memory file from before outcomes had a kind: add the column; old rows count as real.
+        if "kind" not in [c[1] for c in self.db.execute("PRAGMA table_info(outcomes)")]:
+            self.db.execute("ALTER TABLE outcomes ADD COLUMN kind TEXT DEFAULT 'real'")
+            self.db.commit()
 
     # --- customer's own payees (#3) ---
     def paid_before(self, customer_id, wallet, now):
@@ -91,8 +96,10 @@ class PayeeMemory:
         elif isinstance(event, OfficerOutcome):
             if event.outcome not in ("cleared", "confirmed"):
                 raise ValueError(f"unknown officer outcome {event.outcome!r}")
-            self.db.execute("INSERT INTO outcomes VALUES (?, ?, ?, ?)",
-                            (event.wallet, event.ts, event.outcome, event.officer_id))
+            if event.kind not in ("real", "modelled"):
+                raise ValueError(f"unknown kind {event.kind!r}")
+            self.db.execute("INSERT INTO outcomes (wallet, ts, outcome, officer, kind) VALUES (?, ?, ?, ?, ?)",
+                            (event.wallet, event.ts, event.outcome, event.officer_id, event.kind))
         elif isinstance(event, Freeze):  # earliest freeze per wallet, as in snapshot.py
             self.db.execute("INSERT INTO freezes VALUES (?, ?) ON CONFLICT (wallet) DO UPDATE "
                             "SET ts = min(ts, excluded.ts)", (event.wallet, event.ts))
@@ -116,10 +123,10 @@ class PayeeMemory:
     def evidence(self, wallet, now):
         """Evidence strong enough to hold a withdrawal to `wallet` at `now`."""
         out = []
-        last = self.db.execute("SELECT ts, outcome, officer FROM outcomes WHERE wallet = ? AND ts < ? "
+        last = self.db.execute("SELECT ts, outcome, officer, kind FROM outcomes WHERE wallet = ? AND ts < ? "
                                "ORDER BY ts DESC, rowid DESC LIMIT 1", (wallet, now)).fetchone()
         if last and last[1] == "confirmed":
-            out.append(Evidence("officer_confirmed", "officer", "real",
+            out.append(Evidence("officer_confirmed", "officer", last[3] or "real",
                                 "A fraud officer confirmed this wallet as a scam.", 1.0))
         cleared = last[0] if last and last[1] == "cleared" else -1
         since = cleared
@@ -180,6 +187,16 @@ def _self_check():
     assert any(e.signal == "officer_confirmed" for e in m.evidence("0xw", 900 * DAY)), "confirmed never decays"
     assert not any(e.signal == "officer_confirmed" for e in m.evidence("0xw", 22 * DAY)), "not before it happened"
 
+    m.add(OfficerOutcome("0xdemo", "confirmed", 5, "demo script", kind="modelled"))
+    [e] = m.evidence("0xdemo", 6)
+    assert e.signal == "officer_confirmed" and e.kind == "modelled", "a scripted confirmation stays modelled"
+    assert m.evidence("0xw", 900 * DAY)[0].kind == "real", "outcomes default to real"
+    try:
+        m.add(OfficerOutcome("0xdemo", "confirmed", 7, kind="made-up"))
+        raise AssertionError("an unknown kind must fail")
+    except ValueError:
+        pass
+
     m.add(Report("0xsim", 0, kind="modelled"))
     m.add(Report("0xsim", 0, kind="real"))
     assert sorted(e.kind for e in m.evidence("0xsim", 1)) == ["modelled", "real"], "kept apart"
@@ -195,6 +212,15 @@ def _self_check():
 
     fz = load_freezes()
     assert fz and all(a.startswith("0x") for a, _ in fz)
+    with tempfile.TemporaryDirectory() as d:  # a memory file from before outcomes had a kind still works
+        old = sqlite3.connect(str(Path(d) / "old.sqlite"))
+        old.execute("CREATE TABLE outcomes (wallet TEXT, ts INTEGER, outcome TEXT, officer TEXT)")
+        old.execute("INSERT INTO outcomes VALUES ('0xo', 1, 'confirmed', 'x')")
+        old.commit(); old.close()
+        mo = PayeeMemory(Path(d) / "old.sqlite")
+        assert mo.evidence("0xo", 2)[0].kind == "real"
+        mo.add(OfficerOutcome("0xo", "confirmed", 3, kind="modelled"))
+        assert mo.evidence("0xo", 4)[0].kind == "modelled"
     with tempfile.TemporaryDirectory() as d:  # the SQLite file survives a restart
         PayeeMemory(Path(d) / "m.sqlite").add(Report("0xp", 1))
         assert PayeeMemory(Path(d) / "m.sqlite").evidence("0xp", 2)
