@@ -121,7 +121,8 @@ class PayeeMemory:
         if last and last[1] == "confirmed":
             out.append(Evidence("officer_confirmed", "officer", "real",
                                 "A fraud officer confirmed this wallet as a scam.", 1.0))
-        since = last[0] if last and last[1] == "cleared" else -1
+        cleared = last[0] if last and last[1] == "cleared" else -1
+        since = cleared
         # Reports older than 20 half-lives weigh < 1e-6 each, so they can't decide a hold; skipping them
         # keeps busy wallets (one renewal per held attempt) fast.
         since = max(since, now - 20 * self.half_life_s)
@@ -137,7 +138,7 @@ class PayeeMemory:
                                     f"{n} earlier warning{'s' * (n > 1)} about this wallet, "
                                     f"the latest {days:.1f} days ago.", round(strength, 3)))
         frozen = self.frozen_before([wallet], now)
-        if wallet in frozen and frozen[wallet] > since:
+        if wallet in frozen and frozen[wallet] > cleared:  # a freeze is a fact: no 20-half-life cut-off
             out.append(Evidence("destination_freeze", "tether", "real",
                                 "Tether has frozen this wallet's USDT.", 1.0))
         return out
@@ -188,6 +189,7 @@ def _self_check():
     assert m.frozen_before(["0xf", "0xnope"], 51) == {"0xf": 50}, "earliest freeze, before now only"
     assert m.frozen_before(["0xf"], 50) == {}
     assert [e.signal for e in m.evidence("0xf", 51)] == ["destination_freeze"]
+    assert [e.signal for e in m.evidence("0xf", 51 + 400 * DAY)] == ["destination_freeze"], "old freezes never fade"
     m.add(OfficerOutcome("0xf", "cleared", 60))
     assert m.evidence("0xf", 61) == [], "an officer can clear a frozen wallet too"
 
