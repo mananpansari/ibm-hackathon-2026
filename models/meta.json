@@ -18,8 +18,8 @@
  "wallets": 2225,
  "validation_auc": {
   "xgb": 0.865,
-  "mlp": 0.864,
-  "mean": 0.87
+  "mlp": 0.867,
+  "mean": 0.871
  },
  "out_of_time_auc_volume_matched": 0.565,
  "note": "weak signal only"
