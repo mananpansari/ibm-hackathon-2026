@@ -26,6 +26,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
+| model scorecard | `model_report.py`: tracks how the wallet model is doing, run to run | #5 | review | 17 Oct | Scores every test payment, reports out-of-time AUC, recall at 1%/5% false alarms (held-out too, last 90 days) and the engine cut, for ensemble/xgb/mlp, against volume-matched and random wallets; appends to `docs/model_scores.md`. Baseline run on the VM: ensemble AUC 0.596 vs volume-matched, recall 2.2% at 1% (0.0% held-out), 3.7% at 5% within 90 days |
 | [#3](https://github.com/mananpansari/ibm-hackathon-2026/issues/3) | Decision engine core: release or warn, logged | - | done | 17 Oct | Merged (PR #18) and on `main` |
 | [#6](https://github.com/mananpansari/ibm-hackathon-2026/issues/6) | Shared payee memory and call-back hold | #3 | done | 17 Oct | Merged (PR #19) and on `main` via D's merge; includes A's replay fixes (holds renew, counterparty freeze only asks, model hook) |
 | [#7](https://github.com/mananpansari/ibm-hackathon-2026/issues/7) | Question tier in the engine | #6 | done | 17 Oct | Merged (PR #22) and on `main`; D's app uses it. Later review fixes (customer_reasons, model_flag 0.78) ride in PR #25 |
