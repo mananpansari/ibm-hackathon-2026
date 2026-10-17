@@ -18,7 +18,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
-| [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | blocked |  |  |
+| [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | doing | 17 Oct | Models trained + saved (models/, val AUC 0.87 by wallet; out-of-time 0.57 vs matched). `model.score(features) -> float or None`, 1.5 ms on TF 2.21. Engine wiring waits on #3. Branch b/5-weak-model-signal |
 | [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | blocked |  |  |
 | [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | blocked |  |  |
 
@@ -47,3 +47,4 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 Short dated lines for anything others need to know (decisions, blockers, handovers).
 
 - 17 Oct (A): Snapshot and feasibility evidence committed; detector reframed per #1.
+- 17 Oct (B): #5 model signal ready as `model.score(feats)`; returns None when models are missing so the engine can decide without it. Trained on the TensorFlow backend (TF 2.21 locally) so the same file loads under TF/zDNN on the VM; don't train on torch (loading imports torch and crashes alongside TF).
