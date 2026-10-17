@@ -47,3 +47,4 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 Short dated lines for anything others need to know (decisions, blockers, handovers).
 
 - 17 Oct (A): Snapshot and feasibility evidence committed; detector reframed per #1.
+- 17 Oct (C): Added CLAUDE.md (project guide for Claude Code, follows #1 and the team docs). Starting #3 next.
