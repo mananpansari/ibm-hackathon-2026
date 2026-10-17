@@ -11,7 +11,12 @@ new model is always judged on the same yardstick as the one it would replace.
     python model_report.py check                          # self-check of the metrics (no model needed)
 
 Needs xgboost (and keras + tensorflow for the MLP): run it in the LinuxONE lab container, where the
-models were trained. Definitions follow result1.py, so the wallet-level numbers match Result 1.
+models were trained. A copy there has no .git, so pass the commit and host:
+
+    MODEL_REPORT_COMMIT=<short hash> MODEL_REPORT_HOST="LinuxONE lab container" python model_report.py
+
+Definitions follow result1.py, and on the same models the numbers match its saved score points
+(data/results/result1_points.csv.gz). Scoring all ~155k test payments takes about 10 minutes on the VM.
 
 Rule: tune on the training period, then look here. Don't change a model because of these test numbers
 and report the improvement; that's fitting to the test set.
@@ -22,6 +27,7 @@ import csv
 import hashlib
 import json
 import math
+import os
 import random
 import subprocess
 import sys
@@ -155,6 +161,8 @@ def file_hash(paths):
 
 
 def git_commit():
+    if os.environ.get("MODEL_REPORT_COMMIT"):  # a copy without .git (e.g. the VM container) says which commit it is
+        return os.environ["MODEL_REPORT_COMMIT"]
     try:
         rev = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=HERE).stdout.strip()
         dirty = subprocess.run(["git", "status", "--porcelain", "models", "model.py", "features.py"],
@@ -187,6 +195,7 @@ def run(folder, label, save):
         pos = [(ts, s, fz) for (_, ts, _, fz), s in zip(pts["test_pos"], sc(pts["test_pos"]))]
         entry["scores"][name] = card(pos, {b: sc(pts[b]) for b in BASES}, Config().model_flag)
     entry["seconds"] = round(time.time() - t0)
+    entry["ran_on"] = os.environ.get("MODEL_REPORT_HOST", "")
     print_card(entry)
     if save:
         HISTORY.parent.mkdir(exist_ok=True)
