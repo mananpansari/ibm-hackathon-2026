@@ -1,0 +1,85 @@
+{
+ "address": "0xf10043bd447feb21b1db993dadbd6444c9913b8b",
+ "chain": "ethereum",
+ "token": "USDT",
+ "freeze_ts": 1792197755,
+ "freeze_time": "2026-10-17 00:42 UTC",
+ "freeze_tx": "0xdd083c95bfd209ce91a3d71309767306b26fa7b49ebea8260a29d49246c0844e",
+ "source": "data/histories/test_pos.jsonl.gz + data/freezes.csv (snapshot, #2)",
+ "payment_rule": "inbound, >= 10 USDT, before freeze_ts (same as app.py demo_next)",
+ "summary": {
+  "n_pays": 5,
+  "n_senders": 4,
+  "n_hot_senders": 3,
+  "total_usdt": 85415.03,
+  "median_usdt": 2966.84,
+  "days_2nd_to_freeze": 42.25,
+  "cp_warn_step": null,
+  "cp_held": 0,
+  "ans_held": 4,
+  "ans_held_7d": 1
+ },
+ "provisional": "cp_held / ans_held / ans_held_7d are this script's estimates; quote #10 replay output instead",
+ "payments": [
+  {
+   "step": 1,
+   "ts": 1788097679,
+   "time": "2026-08-30 13:47 UTC",
+   "usdt": 677.429485,
+   "from": "0xfae789cf860feb3eb4b0dee5e482038dcd8f3e76",
+   "sender_nonce": 42,
+   "sender_hot_wallet": false,
+   "hash": "0x9b88768ac24f18eb5d49e095d5ebea7f1cab0b1972c165bb00c989f977ef5c99",
+   "days_before_freeze": 47.5,
+   "frozen_counterparties": []
+  },
+  {
+   "step": 2,
+   "ts": 1788547151,
+   "time": "2026-09-04 18:39 UTC",
+   "usdt": 76054.682567,
+   "from": "0x2cff890f0378a11913b6129b2e97417a2c302680",
+   "sender_nonce": 1056609,
+   "sender_hot_wallet": true,
+   "hash": "0x0b7658f57ebb66497284aceb843e532a312b7c23d6f8e7f79c186f3a0547d643",
+   "days_before_freeze": 42.3,
+   "frozen_counterparties": []
+  },
+  {
+   "step": 3,
+   "ts": 1789397039,
+   "time": "2026-09-14 14:43 UTC",
+   "usdt": 3068.186564,
+   "from": "0xa3222357a0eccf60c73606170be6c99adecb59b3",
+   "sender_nonce": 1547312,
+   "sender_hot_wallet": true,
+   "hash": "0xd3f4eca307ccdb420c2691c514aeeb69f526ea7087590313dba0e93a70a010b6",
+   "days_before_freeze": 32.4,
+   "frozen_counterparties": []
+  },
+  {
+   "step": 4,
+   "ts": 1789558151,
+   "time": "2026-09-16 11:29 UTC",
+   "usdt": 2966.842481,
+   "from": "0xa3222357a0eccf60c73606170be6c99adecb59b3",
+   "sender_nonce": 1549104,
+   "sender_hot_wallet": true,
+   "hash": "0xedf2d5258603a5381c0f863c679ae377e299f08c2f85dfb661be70c6a9537cd3",
+   "days_before_freeze": 30.6,
+   "frozen_counterparties": []
+  },
+  {
+   "step": 5,
+   "ts": 1791721115,
+   "time": "2026-10-11 12:18 UTC",
+   "usdt": 2647.885742,
+   "from": "0xf3e4e9bc8b91259bec1b5fb7594af824f9f483ef",
+   "sender_nonce": 25849,
+   "sender_hot_wallet": true,
+   "hash": "0xa4226957ce869234c785fd384758873872ff5ed7d5795ca56851c3bff0de53af",
+   "days_before_freeze": 5.5,
+   "frozen_counterparties": []
+  }
+ ]
+}
