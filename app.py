@@ -27,8 +27,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
+import answer_nlp
 import answers
-import granite
 from decision_log import DecisionLog
 from engine import Engine, RecordedHistories, Withdrawal, to_dict
 from payee_memory import REASON_CODES, OfficerOutcome, PayeeMemory, load_freezes, outcome_for
@@ -63,9 +63,12 @@ clock = {"now": 0}  # the engine's injected clock; set to each withdrawal's time
 # payee memory and the clock above are single-threaded. Only the Blockscout pull runs in `pool`.
 
 
-# Only granite's classify(): the page asks answers.QUESTIONS itself, so the engine needn't wait up to
-# 2 s for Granite to word a question nobody shows (StructuredClassifier falls back to the template).
-FREE_TEXT = types.SimpleNamespace(classify=granite.classify)
+# Only a classify(): the page asks answers.QUESTIONS itself, so the engine needn't wait up to 2 s for
+# Granite to word a question nobody shows (StructuredClassifier falls back to the template).
+# B's mpnet classifier reads the free-text box (granite's keyword rules if the model is missing);
+# one call now loads the model at startup (about 11 s on the VM) instead of on the first customer.
+FREE_TEXT = types.SimpleNamespace(classify=answer_nlp.classify)
+answer_nlp.classify("warm up")
 
 
 def history(wallet, as_of):
