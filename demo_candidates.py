@@ -154,34 +154,17 @@ def engine_numbers(h):
 
     Scenarios, all with customer 1's answer confirming the script (modelled, as in D's demo):
     - answer_only: that answer is the only warning; it decays (7-day half-life).
-    - officer_confirms: the officer confirms the wallet when the first payment is held (pins it).
+    - officer_confirms: the first hold starts a call-back and the officer confirms (pins the wallet),
+      the outcome landing replay.OFFICER_DELAY_S (a day) later, as in #10's officer pass at q = 1.0.
     - real_freezes_only: no answer at all, Tether freezes only (the #10 real pass).
     """
     import replay
-    from engine import Engine, FixedClock, Withdrawal
-    from payee_memory import OfficerOutcome, PayeeMemory, Report, load_freezes
-
-    def officer_confirms():
-        clock, mem = FixedClock(0), PayeeMemory()
-        eng = Engine(replay.GuardedHistory(h, clock), mem, clock, replay.NullLog())
-        pending, out, confirmed = [], [], False
-        for i, t in enumerate(replay.payments(h)):
-            clock.now = t["ts"]
-            for e in [e for e in pending if e.ts < clock.now]:
-                eng.record(e)
-            pending = [e for e in pending if e.ts >= clock.now]
-            d = eng.decide(Withdrawal(t["from"], h["address"], t["usdt"], t["ts"]))
-            out.append((t, d))
-            if i == 0 and d.tier in ("release", "warning"):
-                pending.append(Report(h["address"], t["ts"], source="customer_answer", kind="modelled", actor=t["from"]))
-            if d.tier == "hold" and not confirmed:  # the officer's call-back confirms the scam
-                pending.append(OfficerOutcome(h["address"], "confirmed", t["ts"], "demo_officer"))
-                confirmed = True
-        return out
+    from payee_memory import load_freezes
 
     freezes = sorted((ts, w) for w, ts in load_freezes())
-    runs = {"answer_only": replay.replay_wallet(h, reporter=lambda i, t, d: i == 0)[0],
-            "officer_confirms": officer_confirms(),
+    first_answers = lambda i, t, d: i == 0
+    runs = {"answer_only": replay.replay_wallet(h, reporter=first_answers)[0],
+            "officer_confirms": replay.replay_wallet(h, reporter=first_answers, officer=lambda: "confirmed")[0],
             "real_freezes_only": replay.replay_wallet(h, freezes)[0]}
     out = {}
     for name, decided in runs.items():

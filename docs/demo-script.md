@@ -61,7 +61,7 @@ The answer is scripted (`COACHED` in D's `app.py`) and is labelled modelled.
 >
 > The officer calls back and confirms the scam, so the wallet stays held. [Replay continues.] It kept collecting for 79 more days: 12 more payments, 120,229 USDT, from 9 senders. The engine holds all 12.
 
-Engine (`narration_numbers.json`, `officer_confirms`): tiers `warning` then 12 × `hold`; 12 payments held, 120,228.96 USDT. Snapshot: payment 2 = 78,000 USDT at 13:46 UTC; last payment 2026-07-30, 79.3 days after payment 1.
+Engine (`narration_numbers.json`, `officer_confirms`, through `replay.replay_wallet(officer=…)` with #10's one-day officer delay): tiers `warning` then 12 × `hold`; 12 payments held, 120,228.96 USDT. The confirmation lands a day after payment 2 and payment 4 is 10.7 days later, so the delay changes nothing here. Snapshot: payment 2 = 78,000 USDT at 13:46 UTC; last payment 2026-07-30, 79.3 days after payment 1.
 
 **If D's demo has no officer confirmation step**, use this line instead: "The next two payments, 78,010 USDT, are held. Without an officer's confirmation the warning fades after a week, and the later payments go through." (`answer_only`: 2 held, 78,010 USDT). This is a real limit, and worth saying if it's what the screen shows.
 
@@ -83,24 +83,28 @@ Without any answer, Tether freezes alone hold **none** of this wallet's payments
 
 > We replayed all 134 wallets Tether froze in July to October 2026, payment by payment, through the same engine as the demo. They received 2,791 payments before the freeze.
 >
-> **Modelled:** if half of the customers who paid answered the question and confirmed the scam, the engine would have held about 1,940 of those payments (up to that many victims), a median of about four months before Tether froze the wallet. Across answer rates from 10% to 90%, that's 1,190 to 2,180 held.
+> **Modelled:** if half of the customers who paid confirmed the scam when asked, and officers followed up each hold, the engine would have held about 2,490 of those payments (up to that many victims), a median of about four months before Tether's freeze. Even if only 1 in 10 customers confirms, about 2,000 are held once officers follow up (about 1,200 without).
 >
-> **Real:** Tether freezes of linked wallets alone hold just 3 payments, on 2 wallets. That's why the customer's answer is the main signal, and why one answer has to protect every later payment.
+> **Real:** Tether freezes alone would have held 3 payments, on 2 of 134 wallets, and our detector also failed. So we ask the customer.
 >
-> On ordinary wallets, freeze-based holds hit 0.46% of payments to random wallets and 0.14% to volume-matched ones.
+> With officers clearing false holds, legitimate payments held fall to 0.02% on both comparison sets.
 
-| Line | Value | Source (`replay_summary.json`) |
+On screen, always: *customer answer rate and officer accuracy modelled; swept.*
+
+| Line | Value | Source (`data/results/replay_summary.json`) |
 |---|---|---|
 | Wallets, payments | 134, 2,791 | `positives.real.all` |
-| Held at r = 0.5 | 1,941.6 ± 18.8 (1,908–1,973) | `positives.modelled.all["0.5"].payments_held` |
-| Median lead at r = 0.5 | 125.9 days | `…["0.5"].median_lead_days.mean` |
-| Held at r = 0.1 / 0.9 | 1,193.6 / 2,181.7 | `…["0.1"]`, `…["0.9"]` |
-| Real: held, wallets | 3, 2 | `positives.real.all` |
-| Legitimate hold rate | 0.458% random, 0.143% volume-matched | `legitimate_holds.*.payment_hold_rate` |
+| Main: held at r = 0.5, q = 0.9 | 2,493.4 ± 19.3 (2,444–2,524) | `officer.positives_modelled.all["0.9"]["0.5"].payments_held` |
+| Median lead at r = 0.5 | 125.9 days ("about 4 months") | `positives.modelled.all["0.5"].median_lead_days.mean` (no-officer pass; officers don't change the first warning) |
+| Conservative: r = 0.1, q = 0.9 / no officer | 2,066.8 / 1,193.6 | `officer.positives_modelled.all["0.9"]["0.1"]`, `positives.modelled.all["0.1"]` |
+| Real: held, wallets | 3, 2 (3 at every q) | `positives.real.all`, `officer.positives_real` |
+| Legitimate holds, no officer | 49 of 10,705 (0.46%) random; 202 of 141,148 (0.14%) volume-matched | `legitimate_holds.*` |
+| Legitimate holds, q = 1.0 | 2 (0.02%) random; 25 (0.02%) volume-matched | `officer.legitimate_holds.*["1.0"]` |
+| Per wallet | the typical frozen wallet had about half its later payments held (r = 0.5, no officers) | `docs/results.md`, Headline wording |
 
-Keep real and modelled on separate lines and in separate slide columns, and always add "customer answer rate modelled, swept 0.1–0.9". The legitimate-hold rates cover the real (freeze) source only. False reports from legitimate customers aren't modelled (`docs/results.md`).
+Keep real and modelled on separate lines and in separate slide columns. Don't quote the q = 0.8/0.9 legitimate-hold means without their spread (11.4 ± 18.8 and 33.9 ± 38.6): a wrong officer confirmation holds every later payment to a legitimate wallet. False reports from legitimate customers aren't modelled (`docs/results.md`).
 
-Optional sensitivity line: if the answer reaches the bank a day late, about 1,580 are held instead of 1,940 (`modelled_r0.5_delay_1d`).
+Optional timing line: the question is asked before signing, so the answer arrives at decision time. A one-day delay would cost about 360 holds (1,941.6 → 1,581.8 at r = 0.5, no officers; `modelled_r0.5_delay_1d`).
 
 ---
 
