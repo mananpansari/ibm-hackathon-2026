@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """#15 / Result 4: decide() latency and throughput with the MLP on zDNN (NNPA) and off.
 
-One timed call = what the API does per withdrawal: point-in-time features from the recorded
-history -> model.score() (XGBoost + Keras MLP) -> Engine.decide() (payee memory, Tether freezes,
-hash-chained log). Withdrawals replay the inbound payments of the recorded test wallets, in time
-order, single-threaded, with no network.
+One timed call = Engine.decide(), wired as app.py wires it: model=model.score (XGBoost + Keras
+MLP on the engine's point-in-time features) and known_bad, plus payee memory, Tether freezes, the
+question tier and the hash-chained log. Withdrawals replay the inbound payments of the recorded
+test wallets, in time order, single-threaded, with no network.
 
 NNPA_DEVICES is read when TensorFlow loads, so on and off are two separate processes:
 
@@ -12,7 +12,7 @@ NNPA_DEVICES is read when TensorFlow loads, so on and off are two separate proce
     NNPA_DEVICES=0 python bench_decide.py --out off.json
     python bench_decide.py --compare on.json off.json
 
-Needs C's engine.py, payee_memory.py and decision_log.py (#3/#6) next to it, plus model.py and models/ (#5).
+Run from the repo root (needs engine.py, model.py and models/ from main).
 """
 import argparse
 import json
@@ -31,10 +31,9 @@ def pct(s, p):
 
 
 def run(args):
-    import features as F
     import model
     from decision_log import DecisionLog
-    from engine import MIN_USDT, Engine, FixedClock, RecordedHistories, Withdrawal
+    from engine import DATA, MIN_USDT, Engine, FixedClock, RecordedHistories, Withdrawal
     from payee_memory import PayeeMemory, load_freezes
 
     import tensorflow as tf
@@ -49,24 +48,32 @@ def run(args):
     memory.add_freezes(load_freezes())
     clock = FixedClock(0)
     log = tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False).name
-    eng = Engine(hist, memory, clock, DecisionLog(log))
     assert sorted(model._load()) == ["mlp", "xgb"], "models/ missing: the benchmark must include the MLP"
+    scored = []
 
-    total, scored, tiers = [], [], {}
+    def timed_score(feats):  # the engine's model hook, timed from inside decide()
+        t = time.perf_counter()
+        s = model.score(feats)
+        scored.append((time.perf_counter() - t) * 1000)
+        return s
+
+    bad = frozenset((DATA / "known_bad.txt").read_text().split())
+    eng = Engine(hist, memory, clock, DecisionLog(log), model=timed_score, known_bad=bad)
+
+    total, tiers, model_reasons = [], {}, 0
     for i, (ts, customer, wallet, usdt) in enumerate(ws):
-        t0 = time.perf_counter()
+        if i == args.warmup:
+            scored.clear()
         clock.now = ts
-        h = hist(wallet, ts)
-        s = model.score(F.features(h, ts)) if h else None
-        t1 = time.perf_counter()
+        t0 = time.perf_counter()
         d = eng.decide(Withdrawal(customer, wallet, usdt, ts))
-        t2 = time.perf_counter()
+        t1 = time.perf_counter()
         if i >= args.warmup:
-            total.append((t2 - t0) * 1000)
-            scored.append((t1 - t0) * 1000)
+            total.append((t1 - t0) * 1000)
             tiers[d.tier] = tiers.get(d.tier, 0) + 1
-            assert s is not None and 0 <= s <= 1
+            model_reasons += any(r.signal in ("model_score", "model_flag") for r in d.reasons)
     os.unlink(log)
+    assert model_reasons, "no decision carried a model reason: the model isn't in decide()"
 
     st, ss = sorted(total), sorted(scored)
     out = {
@@ -77,6 +84,7 @@ def run(args):
             "python": platform.python_version(), "tensorflow": tf.__version__,
             "ibm_zdnn_plugin": _version("ibm-zdnn-plugin"),
             "withdrawals": len(total), "warmup": args.warmup, "tiers": tiers,
+            "decisions_with_model_reason": model_reasons, "score_calls": len(scored),
         },
         "decide_p50_ms": statistics.median(st), "decide_p99_ms": pct(st, 99),
         "withdrawals_per_s": len(st) / (sum(st) / 1000),
