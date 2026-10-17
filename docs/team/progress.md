@@ -19,7 +19,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
 | [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | blocked |  |  |
-| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | doing | 17 Oct | Dockerfile + vm_check.sh + run steps on b/11-deploy-linuxone; app tested locally; VM SSH refused on port 20882, needs access |
+| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | review | 17 Oct | Running on VM bob1 (127.0.0.1:8000, stub engine): page 200, /score ok, ~1 ms. Lab image has TF+zDNN plugin, XGBoost, sklearn, llama_cpp_python. Not public yet (needs firewall + port decision). Branch b/11-deploy-linuxone |
 | [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | blocked |  |  |
 
 ## C: Router and simulation
@@ -48,3 +48,4 @@ Short dated lines for anything others need to know (decisions, blockers, handove
 
 - 17 Oct (A): Snapshot and feasibility evidence committed; detector reframed per #1.
 - 17 Oct (D): #4 score API + customer page on `advay/app-and-delivery`, running on a stub with #1's decide() shape. C: if your decision dict differs from engine_stub.py's docstring, tell me.
+- 17 Oct (B): App container runs on LinuxONE VM bob1 behind localhost; tunnel to view. TF shows CPU only despite ibm-zdnn-plugin: verify in #15.
