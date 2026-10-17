@@ -168,9 +168,9 @@ def engine_numbers(h):
             "real_freezes_only": replay.replay_wallet(h, freezes)[0]}
     out = {}
     for name, decided in runs.items():
-        held = [i for i, (_, d) in enumerate(decided) if d.tier == "hold"]
+        held = [i for i, (_, d, *_) in enumerate(decided) if d.tier == "hold"]
         out[name] = {
-            "tiers": [d.tier for _, d in decided],
+            "tiers": [d.tier for _, d, *_ in decided],
             "payments_held": len(held),
             "usdt_held": round(sum(decided[i][0]["usdt"] for i in held), 2),
             "first_held_step": held[0] + 1 if held else None,

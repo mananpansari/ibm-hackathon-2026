@@ -83,28 +83,28 @@ Without any answer, Tether freezes alone hold **none** of this wallet's payments
 
 ## 3. Results lines (`docs/results.md`, `data/results/replay_summary.json`)
 
+Re-synced 17 Oct to the #10 re-run on main's engine (PR #31: answers to the #7 question, 7-day half-life renewed by each held attempt).
+
 > We replayed all 134 wallets Tether froze in July to October 2026, payment by payment, through the same engine as the demo. They received 2,791 payments before the freeze.
 >
-> **Modelled:** if half of the customers who paid confirmed the scam when asked, and officers followed up each hold, the engine would have held about 2,490 of those payments (up to that many victims), a median of about four months before Tether's freeze. Even if only 1 in 10 customers confirms, about 2,070 are held once officers follow up (about 1,840 without).
+> **Modelled:** if half of the customers asked the question confirmed the scam, and officers followed up each hold, the engine would have held about 1,920 of those payments (up to that many victims), a median of about 3 months before Tether's freeze. Even if only 1 in 10 customers asked confirms, about 1,190 are held once officers follow up (about 850 without).
 >
-> **Real:** Tether freezes alone would have warned on 3 payments, on 2 of 134 wallets, and held none. Our detector also failed. So we ask the customer.
+> **Real:** Tether freezes alone would have flagged 3 payments, on 2 of 134 wallets, and held none. Our detector also failed. So we ask the customer.
 >
-> The cost we're still designing for: one false report on a very busy payee holds many legitimate payments, so busy payees need more than one report before a hold.
+> **Cost:** we ask about 1 in 8 payments to wallets like these. Holds on legitimate payees depend on how often an answer is misread, and they concentrate on very busy payees.
 
-On screen, always: *customer answer rate and officer accuracy modelled; swept.*
+On screen, always: *answer rate and officer accuracy modelled; 7-day half-life renewed by each held attempt.*
 
 | Line | Value | Source (`data/results/replay_summary.json`) |
 |---|---|---|
 | Wallets, payments | 134, 2,791 | `positives.real.all` |
-| Main: held at r = 0.5, q = 0.9 | 2,493.5 ± 19.2 (2,444–2,524) | `positives.modelled_with_officers["0.9"]["0.5"].payments_held` |
-| Median lead at r = 0.5 | 125.9 days ("about 4 months") | `positives.modelled.all["0.5"].median_lead_days.mean` (no-officer pass; officers don't change the first warning) |
-| Conservative: r = 0.1, q = 0.9 / no officer | 2,066.8 / 1,835.8 | `positives.modelled_with_officers["0.9"]["0.1"]`, `positives.modelled.all["0.1"]` |
-| Real: warned, held, wallets | 3, 0, 2 | `positives.real.all` (`payments_source_warned`, `payments_held`, `wallets_warned`) |
-| Per wallet | the typical frozen wallet had about half its later payments held (r = 0.5, no officers) | `docs/results.md`, Headline wording |
+| Main: held at r = 0.5, q = 0.9 | 1,924.0 ± 43.9 (1,841–1,992) | `positives.modelled_with_officers["0.9"]["0.5"].payments_held` |
+| Median lead at r = 0.5 | 98.6 days ("about 3 months") | `positives.modelled.all["0.5"].median_lead_days.mean` (no-officer pass; officers don't change the first warning) |
+| Conservative: r = 0.1, q = 0.9 / no officer | 1,189.5 / 848.5 | `positives.modelled_with_officers["0.9"]["0.1"]`, `positives.modelled.all["0.1"]` |
+| Real: flagged, held, wallets | 3, 0, 2 | `positives.real.all` (`payments_source_warned`, `payments_held`, `wallets_warned`) |
+| Cost: questions asked | about 1 in 8 payments to volume-matched wallets (12.3%; 4.5% random) | `docs/results.md`, Questions table (real pass, 1,000 USDT default) |
 
-Keep real and modelled on separate lines and in separate slide columns. Don't quote a single legitimate-hold rate: with renewal, false reports on very busy payees hold many legitimate payments (on volume-matched wallets about 8% even with perfect officers at a 0.1% false-report rate). See `docs/results.md`, "Legitimate holds from the modelled source"; the slide says the design needs corroboration for high-traffic payees.
-
-Optional timing line: the question is asked before signing, so the answer arrives at decision time. A one-day delay would cost about 330 holds (2,308.9 → 1,980.3 at r = 0.5, no officers; `positives.modelled_r0.5_delay_1d`).
+Keep real and modelled on separate lines and in separate slide columns. Don't quote a single legitimate-hold rate: holds concentrate on very busy payees (on volume-matched wallets, perfect officers still leave 1.6% of payments held at a 0.1% misread rate; `docs/results.md`, "Busy payees remain the main legitimate cost").
 
 ---
 
