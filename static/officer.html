@@ -169,10 +169,10 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 </main>
 
 <script>
-// ---- Phase 1: until A's backend (aanya/ui-v2-backend) lands, the queue, case and outcome views run on MOCK,
-// shaped exactly like docs/team/ui-v2.md's API contract. Phase 2 sets MOCK_MODE = false. The demo strip and the
+// ---- The queue, case and outcome views run on the real API; with ?mock they run on MOCK, shaped exactly like
+// docs/team/ui-v2.md.s contract, for layout work without a server. The demo strip and the
 // live box always call the real server.
-const MOCK_MODE = true;
+const MOCK_MODE = new URLSearchParams(location.search).has("mock");  // ?mock: lay out without a server
 const ME = "FO-20417";
 const now = () => Math.floor(Date.now() / 1000);
 const MOCK = (() => {
@@ -323,7 +323,7 @@ async function showCase(id) {
   const w = c.withdrawal, d = c.decision, p = c.persona || {}, mine = c.claimed_by === ME, box = $("v-case");
   const back = el("button", "← Back to queue", "linkb"); back.onclick = () => { view("queue"); refresh(); };
   const head = el("div", null, "casehead");
-  head.append(el("h3", "Case " + (d.ref || "#" + d.id)), el("span", "Opened " + ago(w.time), "muted"));
+  head.append(el("h3", "Case " + (d.ref || "#" + d.id)), el("span", "Opened " + ago(c.held_at ?? w.time), "muted"));
   if (mine) head.append(el("span", "Claimed by you · lock held", "lock"));
 
   const addr = el("span", w.wallet, "addr");

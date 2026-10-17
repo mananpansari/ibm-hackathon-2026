@@ -168,27 +168,28 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
   </footer>
 </div>
 <script>
-// ---- Phase 1: until A's backend (aanya/ui-v2-backend) lands, the page runs on MOCK, shaped exactly like
-// docs/team/ui-v2.md's API contract. Phase 2 sets MOCK_MODE = false and nothing else changes.
-const MOCK_MODE = true;
+// ---- The page runs on the real API (docs/team/ui-v2.md contract). With ?mock it runs on MOCK instead, shaped
+// exactly like the contract, for layout work without a server.
+const MOCK_MODE = new URLSearchParams(location.search).has("mock");  // ?mock: lay out without a server
 const MOCK = {
   questions: {
     start: "why",
     questions: {
-      why: { text: "Why are you sending this money?", type: "single", free_text: true, options: [
+      why: { title: "Security check before your payment is sent", intro: "Real police, bank or government officers never ask you to move your savings to a \"safe\" wallet.",
+             text: "Why are you sending this money?", type: "single", free_text: true, options: [
         { id: "known", text: "Paying someone I know and trust", next: null },
         { id: "own_platform", text: "Investing on a platform I chose myself", next: null },
         { id: "contacted", text: "Someone contacted me and told me to move my money", next: "how" },
         { id: "officer", text: "An officer from the government, a bank or the police asked me to", next: "how" },
         { id: "other", text: "Something else", next: null }] },
-      how: { text: "How did this person contact you?", type: "single", options: [
+      how: { title: "Additional details needed", text: "How did this person contact you?", type: "single", options: [
         { id: "phone", text: "A phone call", next: "asked" },
         { id: "text_whatsapp", text: "A text or WhatsApp message", next: "asked" },
         { id: "social_dating", text: "Social media or a dating app", next: "asked" },
         { id: "email", text: "An email", next: "asked" },
         { id: "in_person", text: "In person", next: "asked" },
         { id: "not_sure", text: "I'm not sure", next: "asked" }] },
-      asked: { text: "Did this person ask you to do any of these?", type: "multi", options: [
+      asked: { title: "Final security question", hint: "Tick all that apply.", text: "Did this person ask you to do any of these?", type: "multi", options: [
         { id: "secret", text: "Keep this a secret from family or the bank", next: null },
         { id: "act_fast", text: "Act quickly or today", next: null },
         { id: "new_account", text: "Open a new crypto account", next: null },
@@ -248,7 +249,11 @@ f.amount.addEventListener("input", () => { $("sgd").firstChild.textContent = sgd
 function showPersona(p) {
   if (p) $("who").textContent = `${p.name} · Account ending ${p.account_ending}`;
 }
-showPersona(MOCK_MODE ? MOCK.persona : null);
+async function loadPersona() {
+  try { showPersona(MOCK_MODE ? MOCK.persona : await api("/persona?customer=" + encodeURIComponent(f.customer.value.trim() || "mrs-tan"))); } catch { /* keep the last one */ }
+}
+loadPersona();
+f.customer.addEventListener("change", loadPersona);
 
 function demoLine(d) {
   const line = $("demo-line");
@@ -331,14 +336,14 @@ async function askAll(d) {
     const q = QUESTIONS.questions[qid], n = trail.length + 1, parts = [];
     parts.push(paymentCard("paused"));
     const head = el("div", null, "qhead");
-    head.append(el("span", n === 1 ? "Security check before your payment is sent" : n === 2 ? "Additional details needed" : "Final security question"), el("span", `Question ${n}`));
+    head.append(el("span", q.title || "Security check"), el("span", `Question ${n}`));
     parts.push(head);
-    if (n === 1) parts.push(el("p", "Real police, bank or government officers never ask you to move your savings to a \"safe\" wallet.", "intro"));
+    if (q.intro) parts.push(el("p", q.intro, "intro"));
     const fs = el("fieldset");
     fs.append(el("legend", q.text));
-    if (q.type === "multi") fs.append(el("p", "Tick all that apply.", "hint"));
+    if (q.hint || q.type === "multi") fs.append(el("p", q.hint || "Tick all that apply.", "hint"));
     // Shuffle so the scam answers aren't always in the same place; "Something else" / "None of these" stay last.
-    const fixed = (o) => o.id === "other" || o.id === "none";
+    const fixed = (o) => ["other", "not_sure", "none"].includes(o.id);  // answers.FIXED_LAST
     const opts = [...q.options.filter((o) => !fixed(o)).sort(() => Math.random() - .5), ...q.options.filter(fixed)];
     for (const o of opts) {
       const l = el("label", null, "opt"), i = el("input");
