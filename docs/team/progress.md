@@ -21,7 +21,8 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 |---|---|---|---|---|---|
 | [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | done | 17 Oct | On main and closed: XGBoost + MLP (val AUC 0.87 by wallet; out-of-time 0.57 vs matched), trained in the lab image so they load on s390x; MLP in tf.function so it runs on NNPA; engine uses it as a weak signal (asks, never holds) |
 | [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | done | 17 Oct | On main (PR #23). Container from the lab image on VM bob1 (127.0.0.1:8000, SSH tunnel). Not public: port not opened |
-| [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | review | 17 Oct | decide() p50 about 1.3 ms, about 600–750 withdrawals/s; MLP verified on NNPA but no speed-up, and 2/2,000 tiers shift (DLFLOAT16). docs/nnpa-benchmark.md |
+| [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | done | 17 Oct | decide() p50 about 1.3 ms, about 600–750 withdrawals/s; MLP verified on NNPA but no speed-up, and 2/2,000 tiers shift (DLFLOAT16). docs/nnpa-benchmark.md |
+| Free-text answer classifier | mpnet + LR drop-in for `granite.classify()` (`answer_nlp.py`) | UI v2 | review | 18 Oct | On the VM: 8.3 ms per answer on NNPA (143 ms CPU). Persona test (card-grouped CV): 76% of scams caught at 5% false flags; SG answers 21/21 caught, 2/9 flagged. D: one line in app.py to wire it. docs/answer-classifier.md |
 
 ## C: Router and simulation
 
