@@ -1,0 +1,31 @@
+answer,scam_type,confirms_script
+"The police officer said my bank account is linked to money laundering and I must move it to a safe wallet",government_impersonation,1
+"A man from MAS called, he said I need to transfer my savings for investigation, he is still on the line",government_impersonation,1
+"ICA officer told me there is a warrant and I need to pay to clear my name, don't tell my son",government_impersonation,1
+"They said my parcel had drugs inside and passed me to the police, police said to send money here",government_impersonation,1
+"court officer said I must put money in a government wallet until the case is finished",government_impersonation,1
+"My bank's fraud team called and said my account is hacked so I should move everything to this new wallet",bank_impersonation,1
+"the DBS officer said to protect my money I transfer to this address, he sent me the address on whatsapp",bank_impersonation,1
+"bank called saying suspicious login, they gave me a wallet to keep my money safe for now",bank_impersonation,1
+"My friend changed number and needs to borrow 3000 urgently, I'll get it back next week",fake_friend,1
+"old classmate messaged from new number, says emergency, asked me to send USDT",fake_friend,1
+"My mentor in the trading group showed me 30% monthly returns, I am topping up my account",investment,1
+"I need to pay tax first before the platform lets me withdraw my profits",investment,1
+"Guaranteed returns crypto platform, my online friend introduced, I already made money",investment,1
+"My boyfriend overseas needs money for his flight to come see me, we met on an app",romance,1
+"She is stuck at customs and needs help with fees, we've been talking for two months online",romance,1
+"It's for my online job, I need to deposit to unlock the next set of review tasks",job,1
+"The task agent said I must pay 500 USDT to get my commission back",job,1
+"Microsoft support said my computer is infected and I need to pay for the fix in crypto",tech_support,1
+"The lender said I need to pay a processing fee before they release the loan",loan,1
+"Recovery agent said he can get back the money I lost if I pay a small fee first",recovery,1
+"The wallet support said I need to send a test payment to verify my wallet",wallet_verification,1
+"I'm moving money to my own Binance account to buy ETH",none,0
+"Paying my brother back for dinner, he gave me his wallet in person",none,0
+"This is my hardware wallet, I'm moving my savings off the exchange",none,0
+"Buying a used laptop from a colleague, I'm paying him at the office",none,0
+"Monthly transfer to my own cold storage like I always do",none,0
+"Paying the freelancer who designed my company logo, invoice number 2231",none,0
+"Sending to my daughter studying in Australia for her rent",none,0
+"I'm topping up my own account on another exchange because the fees are lower",none,0
+"Payment for the NFT I bought, I checked the contract myself",none,0
