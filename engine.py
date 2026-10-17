@@ -30,7 +30,7 @@ from decision_log import DecisionLog
 from features import features
 from payee_memory import DAY, Freeze, OfficerOutcome, PayeeMemory, Report, load_freezes
 
-ENGINE_VERSION = "c7-0.1"
+ENGINE_VERSION = "c9-0.1"
 TIERS = ("release", "warning", "question", "hold")
 DATA = Path(__file__).resolve().parent / "data"
 TEMPLATE_QUESTION = ("Real police, bank or government officers never ask you to move your savings to a 'safe' wallet. "
