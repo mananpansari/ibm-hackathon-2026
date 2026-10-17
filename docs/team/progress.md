@@ -11,8 +11,8 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
 | [#2](https://github.com/mananpansari/ibm-hackathon-2026/issues/2) | Commit P1 snapshot and feasibility evidence | - | done | 17 Oct | Snapshot + feasibility committed (5be122e) |
-| [#10](https://github.com/mananpansari/ibm-hackathon-2026/issues/10) | Result 2 replay through the engine | #2, #6 | review | 17 Oct | `replay.py` on `aanya/10-replay` (stacked on #6; not pushed yet). Results in `docs/results.md` |
-| [#16](https://github.com/mananpansari/ibm-hackathon-2026/issues/16) | Demo wallet and narration numbers | #10 | review | 17 Oct | On `aanya/16-demo-prep` (merges #10; not pushed). Demo wallet `0x74f645…c48b8` chosen (`demo_candidates.py`); timeline in `data/demo/`; script in `docs/demo-script.md`, numbers synced to final `docs/results.md`. Only `{{decide_p50_ms}}` waits on #15 |
+| [#10](https://github.com/mananpansari/ibm-hackathon-2026/issues/10) | Result 2 replay through the engine | #2, #6 | review | 17 Oct | Draft PR #20 (stacked on #19). Results in `docs/results.md`; needs a re-run on C's d1307d4 (`p_hold` → `p_signal`, counterparty freezes no longer hold) |
+| [#16](https://github.com/mananpansari/ibm-hackathon-2026/issues/16) | Demo wallet and narration numbers | #10 | review | 17 Oct | Draft PR #21 (stacked on #20). Demo wallet `0x74f645…c48b8` chosen (`demo_candidates.py`); timeline in `data/demo/`; script in `docs/demo-script.md`, numbers synced to final `docs/results.md`. Only `{{decide_p50_ms}}` waits on #15 |
 
 ## B: Models and platform
 
