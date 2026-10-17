@@ -300,9 +300,9 @@ API additions (additive, in `app.py`): `WithdrawalIn` takes optional `asset` (`U
 
 ### Still open (for an agent or a person, after the freeze or if time allows)
 
-1. **Native-speaker check of the zh, ms and ta strings** (`T` and `QT` in `static/customer.html`). Highest priority if the video shows another language.
+1. **Native-speaker check of the zh, ms and ta strings** (`T` and `QT` in `static/customer.html`). Highest priority if the video shows another language. The customer-page polish PR reworded some zh and ms strings for plainer wording (e.g. "dalam produksi" → "dalam penggunaan sebenar", "pegawai penipuan" → "pegawai pencegahan penipuan"); ta only had new keys added. **All three are still drafts.**
 2. **Free-text answers in other languages:** the keyword classifier reads English only. B's NLP model could cover this; until then the structured answers carry the decision.
 3. **"Old features that vanished":** the team should list any specific earlier feature still missing. Everything from the first pages is still there: customer ID (now the sign-in), the officer's demo reset/next/play, the live address box, the why-card and the graph.
 4. **ETH wallet history:** the engine reads USDT transfers only, so an ETH payment is judged on the wallet's USDT history. Native ETH history is roadmap.
 5. **Officer console styling** still uses the earlier ledger look (different fonts from the customer page). It's fine for the demo; aligning both is optional.
-6. The customer page's Wallet and History tabs are decoration.
+6. ~~The customer page's Wallet and History tabs are decoration.~~ Done in the customer-page polish PR: Wallet removed; History jumps to "This session's withdrawals".

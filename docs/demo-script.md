@@ -65,6 +65,8 @@ Source: idea doc "The solution" and "Why IBM Z" (Digital Asset Haven signs insid
 
 **Screen:** customer page, signed in as TAN SIEW LIAN (fictional persona, `data/demo/personas.json`). Withdrawal of **78,000 USDT** to `0x74f6…c48b8`. The check runs, then Q1 "Why are you sending this money?" with "An officer… asked me to" picked, Q2 "A phone call", Q3 ticking "Keep this a secret", "Act quickly or today" and "Move savings to a safe wallet". Then the call-back hold screen with its reference and masked phone. The demo strip shows "modelled answer".
 
+**Recording tip:** fill the form with the demo strip's **"Fill Mrs Tan's real payment (video)"** button, not by typing. It checks the payment as of its real time (12 May 2026, `/customer/demo-payment`). Typed in today, the wallet is held straight away by Tether's August freeze and the questions never appear. Crop the demo strip out of the shot or say it's the demo panel.
+
 > This is a real payment to a real wallet: 78,000 USDT on 12 May 2026. It's large, to a wallet she's never paid, so the engine asks three short questions. Her answers match the script. *[On screen: "answers modelled".]* The payment is held for a call-back, and her money stays put. And the wallet goes into a memory every customer is checked against.
 
 | Fact | Source |
