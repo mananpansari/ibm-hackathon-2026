@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Withdraw crypto</title>
+<link rel="icon" href="data:,">
 <style>
   :root {
     --bg: #f1f1f1; --card: #ffffff; --ink: #1a1a1a; --mut: #555555; --line: #9a9a9a; --soft: #dddddd; --bar: #e9e9e9;
@@ -25,9 +26,11 @@
   .top .in { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; gap: 16px; min-height: 60px; padding: 8px 20px; flex-wrap: wrap; }
   .logo { padding: 4px 10px; border: 1.5px dashed #777; font-size: 14px; font-weight: 700; }
   nav { display: flex; gap: 18px; font-size: 15px; }
-  nav span { color: var(--mut); } nav span.on { color: var(--ink); font-weight: 700; border-bottom: 2px solid var(--ink); padding-bottom: 2px; }
+  nav span, nav a { color: var(--mut); display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+  nav .on { color: var(--ink); font-weight: 700; box-shadow: inset 0 -2px 0 var(--ink); }
+  nav a:hover { color: var(--ink); text-decoration: underline; }
   .top .right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-  select { height: 40px; padding: 0 10px; border: 1.5px solid #777; border-radius: 6px; background: #fff; color: var(--ink); font: 15px var(--sans); }
+  select { height: 44px; padding: 0 10px; border: 1.5px solid #777; border-radius: 6px; background: #fff; color: var(--ink); font: 15px var(--sans); }
   .shield { background: var(--bar); border-bottom: 1px solid #c4c4c4; font-size: 14px; }
   .shield .in { max-width: 1120px; margin: 0 auto; padding: 8px 20px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; }
   .shield .sim { color: var(--mut); }
@@ -36,7 +39,7 @@
   .wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 24px 20px 32px; flex: 1; }
   .layout { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 1fr); gap: 24px; align-items: start; }
   @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-  @media (max-width: 520px) { .wrap { padding: 16px 12px 24px; } .top .in, .shield .in { padding-left: 12px; padding-right: 12px; } nav { display: none; } }
+  @media (max-width: 520px) { .wrap { padding: 16px 12px 24px; } .top .in, .shield .in { padding-left: 12px; padding-right: 12px; } nav { display: none; } .top .in { gap: 10px; } .top .right { gap: 8px; } select { max-width: 128px; } }
 
   .card { background: var(--card); border: 1.5px solid var(--line); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 18px; }
   .card.slim { padding: 14px 16px; gap: 8px; }
@@ -66,7 +69,11 @@
   button.ghost { background: #fff; color: var(--ink); }
   button:disabled { border-color: #bdbdbd; background: #e8e8e8; color: #6b6b6b; cursor: not-allowed; }
   .link { flex: none; min-height: 44px; padding: 0; border: 0; background: none; color: var(--ink); text-decoration: underline; font: 15px var(--sans); }
-  .help { display: block; text-align: center; font-size: 16px; color: var(--ink); text-decoration: underline; padding: 8px 0; }
+  .help { display: flex; align-items: center; justify-content: center; min-height: 48px; text-align: center; font-size: 16px; color: var(--ink); text-decoration: underline; }
+  .btns.stack { flex-direction: column; }
+  .btns.stack button { flex: none; width: 100%; }
+  h1:focus, h2:focus { outline: none; }
+  h1:focus-visible, h2:focus-visible { outline: 3px solid #2c3fd6; outline-offset: 4px; }
   .err { color: var(--bad); font-weight: 600; margin: 0; }
 
   .who .k { font-size: 13px; color: #666; }
@@ -79,9 +86,17 @@
   .pay .to { font: 13px var(--mono); margin-top: 6px; word-break: break-all; }
   .pay .state { align-self: flex-start; font-size: 14px; color: var(--mut); white-space: nowrap; }
   .pay .state.held { color: var(--bad-ink); font-weight: 600; }
+  .pay .state.done { color: var(--ok-ink); font-weight: 600; }
+  .pay.compact { padding: 12px 16px; align-items: center; }
+  .pay.compact .big { font-size: 20px; }
+  .pay.compact .sub { font-size: 14px; }
 
   .box { padding: 16px; border: 1.5px solid; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; }
-  .box .t { font-size: 20px; font-weight: 700; line-height: 1.25; }
+  .box .t { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; display: flex; gap: 10px; align-items: flex-start; }
+  .box .t .ic { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; margin-top: 1px; border-radius: 50%; color: #fff; font-size: 15px; line-height: 1; }
+  .box.ok .ic { background: var(--ok); } .box.warn .ic { background: var(--warn); } .box.bad .ic { background: var(--bad); }
+  .box.hold .t { font-size: 22px; }
+  .opt-tag { font-weight: 400; color: var(--mut); }
   .box p { margin: 0; }
   .box.ok { border-color: var(--ok); background: var(--ok-bg); } .box.ok .t { color: var(--ok-ink); }
   .box.warn { border-color: var(--warn); background: var(--warn-bg); } .box.warn .t { color: var(--warn-ink); }
@@ -122,7 +137,7 @@
 <body>
 <header class="top"><div class="in">
   <span class="logo">[Exchange logo]</span>
-  <nav aria-label="Exchange menu"><span data-t="nav_wallet">Wallet</span><span class="on" data-t="nav_withdraw">Withdraw</span><span data-t="nav_history">History</span></nav>
+  <nav aria-label="Exchange menu"><span class="on" aria-current="page" data-t="nav_withdraw">Withdraw</span><a href="#history" id="nav-history" data-t="nav_history" hidden>History</a></nav>
   <div class="right">
     <select id="lang" aria-label="Language">
       <option value="en">English</option><option value="zh">中文</option><option value="ms">Bahasa Melayu</option><option value="ta">தமிழ்</option>
@@ -138,7 +153,7 @@
 <div class="wrap">
   <!-- sign-in (demo: pre-filled, no real authentication; in production the exchange's own sign-in) -->
   <form id="login" class="card login" novalidate>
-    <h1 data-t="login_title">Log in</h1>
+    <h1 id="login-h" tabindex="-1" data-t="login_title">Log in</h1>
     <div><label for="cid" data-t="login_id">Customer ID</label>
       <input id="cid" list="demo-ids" value="mrs-tan" autocomplete="username" maxlength="64" spellcheck="false">
       <datalist id="demo-ids"></datalist></div>
@@ -171,7 +186,7 @@
         <div class="btns"><button type="submit" id="check" data-t="check_btn">Check payment</button><button type="button" disabled data-t="send">Send</button></div>
       </form>
       <div id="checking" class="checking" role="status" hidden>
-        <h2 data-t="checking">Checking this wallet…</h2>
+        <h2 data-t="checking" tabindex="-1">Checking this wallet…</h2>
         <div class="bar"><i id="bar"></i></div>
         <ol><li data-t="step1">Reading the wallet's history</li><li data-t="step2">Looking at recent activity</li><li data-t="step3">Making a decision</li></ol>
         <p class="hint" data-t="checking_note">Send unlocks when the check is done.</p>
@@ -179,8 +194,8 @@
       <div id="result" aria-live="polite" style="display:flex;flex-direction:column;gap:16px" hidden></div>
     </main>
     <aside>
-      <div class="card slim"><h3 data-t="recent">This session's withdrawals</h3><ul class="feed" id="feed"></ul></div>
-      <div class="card slim"><h3 data-t="about_t">About this check</h3><p class="small" style="margin:0" data-t="about">Every withdrawal is checked just before it is signed. If anyone has warned us about the wallet you are paying, we hold the payment and call you back first.</p></div>
+      <section class="card slim" id="history" aria-labelledby="history-h"><h2 id="history-h" tabindex="-1" style="font-size:15px" data-t="recent">This session's withdrawals</h2><ul class="feed" id="feed"></ul></section>
+      <div class="card slim"><h2 style="font-size:15px" data-t="about_t">About this check</h2><p class="small" style="margin:0" data-t="about">Every withdrawal is checked just before it is signed. If anyone has warned us about the wallet you are paying, we hold the payment and call you back first.</p></div>
     </aside>
   </div>
 </div>
@@ -213,14 +228,14 @@ const T = {
     ok_title: "Check complete", ok_text: "You can send this payment.", ok_note: "If you change the wallet or amount, we will check again.", check_again: "Check again", send: "Send",
     warn_title: "Please review before sending", warn_text: "This wallet looks unusual. Only continue if you personally know and trust its owner.",
     warn_text2: "Scammers often pressure people to move money quickly. You are allowed to take your time.", cancel: "Cancel this payment", continue_anyway: "Continue anyway",
-    warn_note: "The safer choice is the dark button. Continuing sends the payment as it is.", help: "I need help now: call your bank's 24-hour hotline",
-    q_continue: "Continue", back: "Back", optional: "Anything else you want to tell us? (optional)", choose: "Please choose an answer.", question_n: "Question {n} of up to 3",
+    warn_note: "Not sure? Cancel. Continuing sends the payment as it is.", help: "I need help now: call your bank's 24-hour hotline",
+    q_continue: "Continue", back: "Back", optional: "Anything else you want to tell us?", optional_tag: "(optional)", choose: "Please choose an answer.", question_n: "Question {n} of up to 3",
     hold_title: "Your payment is on hold for a call-back", hold_1: "Your money has not been sent. It is still in your account.",
     hold_2: "One of our fraud officers will call you on {phone}, the number we have on file.", hold_3: "Please don't try to send this money another way while you wait.",
     hold_4: "If anyone is telling you to move money or keep this secret, you can hang up. Real officers will never ask you to do that.",
     next_title: "What happens next", reference: "Reference", callback: "Expected call-back: within 15 minutes", never_otp: "We will never ask for your OTP or password.",
     cancelled_title: "Payment cancelled", cancelled_text: "Your money stays in your account. Nothing was sent.", new_withdrawal: "Start a new withdrawal",
-    sent_title: "Payment sent", sent_text: "Simulated: in production the exchange signs and broadcasts it now.",
+    sent_title: "Payment sent", sent_state: "Sent", sent_box: "Your payment is on its way", sent_text: "Simulated: in production the exchange signs and broadcasts it now.",
     err_amount: "Please enter an amount.", err_wallet: "Please enter a wallet address: 0x followed by 40 letters or numbers.", err_check: "We couldn't check this payment. Please check the wallet address and amount.",
     err_net: "We couldn't reach the exchange. Please try again in a moment.", err_answer: "We couldn't send your answer. Please try again.",
     recent: "This session's withdrawals", none_yet: "None yet.", about_t: "About this check",
@@ -235,19 +250,19 @@ const T = {
     login_note: "演示登录：资料已预先填写。实际产品使用交易所自己的登录。", login_err: "无法登录，请检查客户编号。",
     signed_in: "已登录：", account_ending: "账户尾号", withdraw_title: "提币到外部钱包", sending_what: "您要发送什么？",
     network: "网络：以太坊", wallet_label: "收款钱包地址", amount_label: "金额", check_btn: "检查付款",
-    checking: "正在检查这个钱包…", step1: "读取钱包记录", step2: "查看近期活动", step3: "作出决定", checking_note: "检查完成后才能发送。",
+    checking: "正在检查这个钱包…", step1: "读取钱包记录", step2: "查看近期活动", step3: "得出结果", checking_note: "检查完成后才能发送。",
     review: "确认您的付款", sending: "发送", paused: "已暂停", not_sent: "未发送", edit: "修改", to: "至",
     ok_title: "检查完成", ok_text: "您可以发送这笔付款。", ok_note: "如果您更改钱包或金额，我们会重新检查。", check_again: "重新检查", send: "发送",
-    warn_title: "发送前请仔细确认", warn_text: "这个钱包看起来不寻常。只有在您本人认识并信任收款人时才继续。",
+    warn_title: "发送前请仔细确认", warn_text: "这个钱包有些不寻常。只有在您本人认识并信任收款人时，才继续付款。",
     warn_text2: "骗子常常催促人们尽快转钱。您可以慢慢来。", cancel: "取消这笔付款", continue_anyway: "仍然继续",
-    warn_note: "深色按钮是更稳妥的选择。继续将按原样发送付款。", help: "我现在需要帮助：拨打银行24小时热线",
-    q_continue: "继续", back: "返回", optional: "还有什么想告诉我们的吗？（可选）", choose: "请选择一个答案。", question_n: "问题 {n}（最多3题）",
-    hold_title: "您的付款已暂停，等待回电", hold_1: "您的钱没有被发送，仍在您的账户里。",
-    hold_2: "我们的反诈骗专员会拨打 {phone} 联系您，这是我们存档的号码。", hold_3: "等待期间，请不要尝试用其他方式发送这笔钱。",
+    warn_note: "如果不确定，请取消。选择继续，付款会照原样发出。", help: "我现在需要帮助：拨打银行24小时热线",
+    q_continue: "继续", back: "返回", optional: "还有什么想告诉我们吗？", optional_tag: "（可不填）", choose: "请选择一个答案。", question_n: "第 {n} 题（最多 3 题）",
+    hold_title: "您的付款已暂停，等待回电", hold_1: "您的钱还没有转出，仍在您的账户里。",
+    hold_2: "我们的反诈骗专员会打 {phone} 给您，这是我们记录中的号码。", hold_3: "等待期间，请不要尝试用其他方式发送这笔钱。",
     hold_4: "如果有人叫您转钱或保密，您可以直接挂断。真正的官员绝不会这样要求您。",
     next_title: "接下来", reference: "参考编号", callback: "预计回电：15分钟内", never_otp: "我们绝不会索取您的验证码或密码。",
     cancelled_title: "付款已取消", cancelled_text: "您的钱仍在您的账户里，没有发送任何款项。", new_withdrawal: "开始新的提币",
-    sent_title: "付款已发送", sent_text: "模拟：实际产品中，交易所此时会签名并广播交易。",
+    sent_title: "付款已发送", sent_state: "已发送", sent_box: "您的付款正在发出", sent_text: "模拟：实际产品中，交易所此时会签名并广播交易。",
     err_amount: "请输入金额。", err_wallet: "请输入钱包地址：0x 加 40 个字母或数字。", err_check: "无法检查这笔付款。请检查钱包地址和金额。",
     err_net: "无法连接交易所，请稍后再试。", err_answer: "无法提交您的回答，请重试。",
     recent: "本次提币记录", none_yet: "暂无。", about_t: "关于这项检查",
@@ -256,25 +271,25 @@ const T = {
     tier: { release: "可以发送", warning: "警告", question: "问题", hold: "已暂停", cancelled: "已取消", sent: "已发送" },
   },
   ms: {
-    protected: "Dilindungi oleh {b}", sim_b: "Skrin pengeluaran bursa simulasi.", sim: "Dalam produksi, semakan ini berjalan dalam aliran pengeluaran bursa itu sendiri, sejurus sebelum ditandatangani.",
-    nav_wallet: "Dompet", nav_withdraw: "Keluarkan", nav_history: "Sejarah", sign_out: "Log keluar",
+    protected: "Dilindungi oleh {b}", sim_b: "Skrin pengeluaran bursa simulasi.", sim: "Dalam penggunaan sebenar, semakan ini berjalan dalam proses pengeluaran bursa itu sendiri, sejurus sebelum ditandatangani.",
+    nav_wallet: "Dompet", nav_withdraw: "Pengeluaran", nav_history: "Sejarah", sign_out: "Log keluar",
     login_title: "Log masuk", login_id: "ID pelanggan", login_pw: "Kata laluan", login_otp: "Kod sekali guna", login_btn: "Log masuk",
-    login_note: "Log masuk demo: butiran telah diisi. Dalam produksi, ini ialah log masuk bursa itu sendiri.", login_err: "Kami tidak dapat log masuk anda. Semak ID pelanggan anda.",
-    signed_in: "Log masuk sebagai", account_ending: "Akaun berakhir", withdraw_title: "Keluarkan ke dompet luar", sending_what: "Apakah yang anda hantar?",
+    login_note: "Log masuk demo: butiran telah diisi. Dalam penggunaan sebenar, ini ialah log masuk bursa itu sendiri.", login_err: "Kami tidak dapat log masuk anda. Semak ID pelanggan anda.",
+    signed_in: "Log masuk sebagai", account_ending: "Akaun berakhir dengan", withdraw_title: "Keluarkan ke dompet luar", sending_what: "Apakah yang anda hantar?",
     network: "Rangkaian: Ethereum", wallet_label: "Dompet penerima", amount_label: "Jumlah", check_btn: "Semak pembayaran",
-    checking: "Menyemak dompet ini…", step1: "Membaca sejarah dompet", step2: "Melihat aktiviti terkini", step3: "Membuat keputusan", checking_note: "Butang Hantar dibuka selepas semakan selesai.",
-    review: "Semak pembayaran anda", sending: "Menghantar", paused: "Ditangguhkan", not_sent: "Tidak dihantar", edit: "Ubah", to: "Kepada",
+    checking: "Menyemak dompet ini…", step1: "Membaca sejarah dompet", step2: "Melihat aktiviti terkini", step3: "Membuat keputusan", checking_note: "Anda boleh menghantar selepas semakan selesai.",
+    review: "Semak pembayaran anda", sending: "Anda menghantar", paused: "Ditangguhkan", not_sent: "Tidak dihantar", edit: "Ubah", to: "Kepada",
     ok_title: "Semakan selesai", ok_text: "Anda boleh menghantar pembayaran ini.", ok_note: "Jika anda menukar dompet atau jumlah, kami akan menyemak semula.", check_again: "Semak semula", send: "Hantar",
     warn_title: "Sila semak sebelum menghantar", warn_text: "Dompet ini kelihatan luar biasa. Teruskan hanya jika anda sendiri mengenali dan mempercayai pemiliknya.",
     warn_text2: "Penipu sering mendesak orang memindahkan wang dengan cepat. Anda boleh mengambil masa.", cancel: "Batalkan pembayaran ini", continue_anyway: "Teruskan juga",
-    warn_note: "Butang gelap ialah pilihan yang lebih berhati-hati. Meneruskan akan menghantar pembayaran seperti sedia ada.", help: "Saya perlukan bantuan sekarang: hubungi talian 24 jam bank anda",
-    q_continue: "Teruskan", back: "Kembali", optional: "Ada apa-apa lagi yang ingin anda beritahu kami? (pilihan)", choose: "Sila pilih satu jawapan.", question_n: "Soalan {n} (paling banyak 3)",
+    warn_note: "Tidak pasti? Batalkan. Jika anda teruskan, pembayaran akan dihantar seperti sedia ada.", help: "Saya perlukan bantuan sekarang: hubungi talian 24 jam bank anda",
+    q_continue: "Teruskan", back: "Kembali", optional: "Ada apa-apa lagi yang ingin anda beritahu kami?", optional_tag: "(tidak wajib)", choose: "Sila pilih satu jawapan.", question_n: "Soalan {n} daripada paling banyak 3",
     hold_title: "Pembayaran anda ditahan untuk panggilan balik", hold_1: "Wang anda belum dihantar. Ia masih dalam akaun anda.",
-    hold_2: "Seorang pegawai penipuan kami akan menghubungi anda di {phone}, nombor dalam rekod kami.", hold_3: "Sila jangan cuba menghantar wang ini dengan cara lain sementara menunggu.",
-    hold_4: "Jika sesiapa menyuruh anda memindahkan wang atau merahsiakannya, anda boleh letak telefon. Pegawai sebenar tidak akan meminta anda berbuat begitu.",
+    hold_2: "Seorang pegawai pencegahan penipuan kami akan menelefon anda di {phone}, nombor dalam rekod kami.", hold_3: "Sila jangan cuba menghantar wang ini dengan cara lain sementara menunggu.",
+    hold_4: "Jika sesiapa menyuruh anda memindahkan wang atau merahsiakannya, anda boleh terus letak telefon. Pegawai sebenar tidak akan meminta anda berbuat begitu.",
     next_title: "Apa yang berlaku seterusnya", reference: "Rujukan", callback: "Jangkaan panggilan balik: dalam 15 minit", never_otp: "Kami tidak akan meminta OTP atau kata laluan anda.",
     cancelled_title: "Pembayaran dibatalkan", cancelled_text: "Wang anda kekal dalam akaun anda. Tiada apa-apa dihantar.", new_withdrawal: "Mulakan pengeluaran baharu",
-    sent_title: "Pembayaran dihantar", sent_text: "Simulasi: dalam produksi, bursa menandatangani dan menyiarkannya sekarang.",
+    sent_title: "Pembayaran dihantar", sent_state: "Dihantar", sent_box: "Pembayaran anda sedang dihantar", sent_text: "Simulasi: dalam penggunaan sebenar, bursa akan menandatangani dan menghantarnya sekarang.",
     err_amount: "Sila masukkan jumlah.", err_wallet: "Sila masukkan alamat dompet: 0x diikuti 40 huruf atau nombor.", err_check: "Kami tidak dapat menyemak pembayaran ini. Sila semak alamat dompet dan jumlah.",
     err_net: "Kami tidak dapat menghubungi bursa. Sila cuba lagi sebentar lagi.", err_answer: "Kami tidak dapat menghantar jawapan anda. Sila cuba lagi.",
     recent: "Pengeluaran sesi ini", none_yet: "Belum ada.", about_t: "Tentang semakan ini",
@@ -294,14 +309,14 @@ const T = {
     ok_title: "சரிபார்ப்பு முடிந்தது", ok_text: "இந்தப் பணத்தை நீங்கள் அனுப்பலாம்.", ok_note: "பணப்பை அல்லது தொகையை மாற்றினால், மீண்டும் சரிபார்ப்போம்.", check_again: "மீண்டும் சரிபார்", send: "அனுப்பு",
     warn_title: "அனுப்பும் முன் சரிபார்க்கவும்", warn_text: "இந்தப் பணப்பை வழக்கத்துக்கு மாறாகத் தெரிகிறது. அதன் உரிமையாளரை நீங்கள் நேரடியாக அறிந்து நம்பினால் மட்டும் தொடரவும்.",
     warn_text2: "மோசடிக்காரர்கள் பெரும்பாலும் விரைவாகப் பணம் அனுப்ப அழுத்தம் தருவார்கள். நீங்கள் நேரம் எடுத்துக்கொள்ளலாம்.", cancel: "இந்தப் பணம் செலுத்துதலை ரத்து செய்", continue_anyway: "இருந்தாலும் தொடர்",
-    warn_note: "இருண்ட பொத்தானே கவனமான தேர்வு. தொடர்ந்தால் பணம் அப்படியே அனுப்பப்படும்.", help: "எனக்கு இப்போது உதவி தேவை: உங்கள் வங்கியின் 24 மணி நேர உதவி எண்ணை அழைக்கவும்",
-    q_continue: "தொடர்", back: "பின்செல்", optional: "வேறு ஏதாவது சொல்ல விரும்புகிறீர்களா? (விருப்பம்)", choose: "ஒரு பதிலைத் தேர்ந்தெடுக்கவும்.", question_n: "கேள்வி {n} (அதிகபட்சம் 3)",
+    warn_note: "உறுதியாகத் தெரியவில்லையா? ரத்து செய்யுங்கள். தொடர்ந்தால் பணம் அப்படியே அனுப்பப்படும்.", help: "எனக்கு இப்போது உதவி தேவை: உங்கள் வங்கியின் 24 மணி நேர உதவி எண்ணை அழைக்கவும்",
+    q_continue: "தொடர்", back: "பின்செல்", optional: "வேறு ஏதாவது சொல்ல விரும்புகிறீர்களா?", optional_tag: "(கட்டாயமில்லை)", choose: "ஒரு பதிலைத் தேர்ந்தெடுக்கவும்.", question_n: "கேள்வி {n} (அதிகபட்சம் 3)",
     hold_title: "திரும்ப அழைப்பதற்காக உங்கள் பணம் நிறுத்தி வைக்கப்பட்டுள்ளது", hold_1: "உங்கள் பணம் அனுப்பப்படவில்லை. அது இன்னும் உங்கள் கணக்கில் உள்ளது.",
     hold_2: "எங்கள் மோசடித் தடுப்பு அதிகாரி ஒருவர் {phone} என்ற எண்ணில் உங்களை அழைப்பார்; இது எங்கள் பதிவில் உள்ள எண்.", hold_3: "காத்திருக்கும்போது இந்தப் பணத்தை வேறு வழியில் அனுப்ப முயல வேண்டாம்.",
     hold_4: "யாராவது பணத்தை மாற்றச் சொன்னால் அல்லது இதை ரகசியமாக வைக்கச் சொன்னால், அழைப்பைத் துண்டிக்கலாம். உண்மையான அதிகாரிகள் ஒருபோதும் அப்படிக் கேட்க மாட்டார்கள்.",
     next_title: "அடுத்து என்ன நடக்கும்", reference: "குறிப்பு எண்", callback: "எதிர்பார்க்கும் அழைப்பு: 15 நிமிடங்களுக்குள்", never_otp: "உங்கள் OTP அல்லது கடவுச்சொல்லை நாங்கள் ஒருபோதும் கேட்க மாட்டோம்.",
     cancelled_title: "பணம் செலுத்துதல் ரத்து செய்யப்பட்டது", cancelled_text: "உங்கள் பணம் உங்கள் கணக்கிலேயே உள்ளது. எதுவும் அனுப்பப்படவில்லை.", new_withdrawal: "புதிதாகத் தொடங்கு",
-    sent_title: "பணம் அனுப்பப்பட்டது", sent_text: "மாதிரி: உண்மையில் பரிமாற்றகம் இப்போது கையொப்பமிட்டு அனுப்பும்.",
+    sent_title: "பணம் அனுப்பப்பட்டது", sent_state: "அனுப்பப்பட்டது", sent_box: "உங்கள் பணம் அனுப்பப்படுகிறது", sent_text: "மாதிரி: உண்மையில் பரிமாற்றகம் இப்போது கையொப்பமிட்டு அனுப்பும்.",
     err_amount: "தொகையை உள்ளிடவும்.", err_wallet: "பணப்பை முகவரியை உள்ளிடவும்: 0x மற்றும் 40 எழுத்துகள் அல்லது எண்கள்.", err_check: "இந்தப் பணம் செலுத்துதலைச் சரிபார்க்க முடியவில்லை. முகவரியையும் தொகையையும் சரிபார்க்கவும்.",
     err_net: "பரிமாற்றகத்தை அணுக முடியவில்லை. சிறிது நேரத்தில் மீண்டும் முயலவும்.", err_answer: "உங்கள் பதிலை அனுப்ப முடியவில்லை. மீண்டும் முயலவும்.",
     recent: "இந்த அமர்வின் பரிமாற்றங்கள்", none_yet: "இன்னும் இல்லை.", about_t: "இந்தச் சோதனை பற்றி",
@@ -314,11 +329,11 @@ const T = {
 const QT = {
   zh: {
     why: { title: "付款前的安全检查", intro: "真正的警察、银行或政府官员绝不会要求您把积蓄转到“安全”钱包。", text: "您为什么要发送这笔钱？",
-      o: { known: "付款给我认识并信任的人", own_platform: "投资我自己选择的平台", contacted: "有人联系我，叫我转移我的钱", officer: "政府、银行或警察的官员叫我这样做", other: "其他原因" } },
-    how: { title: "需要更多资料", text: "这个人是怎样联系您的？",
+      o: { known: "付款给我认识并信任的人", own_platform: "在我自己选择的平台上投资", contacted: "有人联系我，叫我转移我的钱", officer: "政府、银行或警方人员叫我这样做", other: "其他原因" } },
+    how: { title: "还需要一些资料", text: "这个人是怎样联系您的？",
       o: { phone: "电话", text_whatsapp: "短信或 WhatsApp", social_dating: "社交媒体或交友应用", email: "电子邮件", in_person: "当面", not_sure: "我不确定" } },
     asked: { title: "最后一个安全问题", text: "这个人有没有要求您做以下任何事情？", hint: "请勾选所有适用的选项。",
-      o: { secret: "对家人或银行保密", act_fast: "尽快或今天就办", new_account: "开设新的加密货币账户", safe_wallet: "把积蓄转到“安全”钱包", install_app: "安装应用程序或共享屏幕", none: "以上都没有" } },
+      o: { secret: "对家人或银行保密", act_fast: "要尽快或今天就办好", new_account: "开设新的加密货币账户", safe_wallet: "把积蓄转到“安全”钱包", install_app: "安装应用程序或分享手机屏幕", none: "以上都没有" } },
   },
   ms: {
     why: { title: "Semakan keselamatan sebelum pembayaran anda dihantar", intro: "Polis, bank atau pegawai kerajaan yang sebenar tidak pernah meminta anda memindahkan simpanan ke dompet \"selamat\".", text: "Mengapa anda menghantar wang ini?",
@@ -347,7 +362,7 @@ const $ = (id) => document.getElementById(id);
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
 const short = (a) => a.slice(0, 10) + "…" + a.slice(-6);
 const f = $("f"), out = $("result");
-let QUESTIONS = null, persona = null, customer = null, payment = null, decision = null, redraw = null;
+let QUESTIONS = null, persona = null, customer = null, payment = null, decision = null, redraw = null, quiet = false;
 const session = [];  // this session's withdrawals, newest first
 
 // Rates: CoinGecko (no key) for USDT and ETH in SGD and USD, refreshed every 60 s; sample rates if it's unreachable.
@@ -385,8 +400,9 @@ function applyLang() {
   if (persona) showPersona();
   showRate();
   renderFeed();
-  if (redraw) redraw();
+  if (redraw) { quiet = true; redraw(); quiet = false; }
 }
+$("nav-history").addEventListener("click", (e) => { e.preventDefault(); $("history").scrollIntoView({ block: "start" }); $("history-h").focus(); });
 $("lang").addEventListener("change", () => { lang = $("lang").value; try { localStorage.setItem("lang", lang); } catch { /* ignore */ } applyLang(); });
 
 // ---- sign-in (demo: no real authentication; the exchange's own sign-in in production)
@@ -401,12 +417,13 @@ $("login").addEventListener("submit", async (e) => {
   catch { err.textContent = t("err_net"); err.hidden = false; return; }
   customer = id;
   showPersona();
-  $("login").hidden = true; $("app").hidden = false; $("signout").hidden = false;
+  $("login").hidden = true; $("app").hidden = false; $("signout").hidden = false; $("nav-history").hidden = false;
   edit();
 });
 $("signout").addEventListener("click", () => {
   customer = persona = null; session.length = 0; renderFeed(); redraw = null;
-  $("app").hidden = true; $("signout").hidden = true; $("login").hidden = false; demoLine(null);
+  $("app").hidden = true; $("signout").hidden = true; $("nav-history").hidden = true; $("login").hidden = false; demoLine(null);
+  $("login-h").focus();
 });
 
 // ---- demo strip
@@ -439,46 +456,64 @@ function track(state) {  // add or update this payment's line in the aside
 }
 
 // ---- screens
-function paymentCard(state) {
-  const c = el("div", null, "pay"), l = el("div");
-  l.append(el("div", t("sending"), "k"), el("div", `${payment.qty.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${payment.asset}`, "big"),
+function paymentCard(state, compact) {  // compact: the question and hold screens, as in the wireframe
+  const c = el("div", null, "pay" + (compact ? " compact" : "")), l = el("div");
+  if (!compact) l.append(el("div", t(state === "sent_state" ? "amount_label" : "sending"), "k"));
+  l.append(el("div", `${payment.qty.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${payment.asset}`, "big"),
            el("div", `${t("rate", { sgd: sgdOf(payment.qty, payment.asset) })}${payment.asset === "USDT" ? "" : ` · ≈ ${payment.amount.toLocaleString()} USDT`} · Ethereum`, "sub"),
            el("div", `${t("to")} ${payment.wallet}`, "to"));
   c.append(l);
-  if (state) c.append(el("span", t(state), "state" + (state === "not_sent" ? " held" : "")));
+  if (state) c.append(el("span", t(state), "state" + (state === "not_sent" ? " held" : state === "sent_state" ? " done" : "")));
   else { const e = el("button", t("edit"), "link"); e.type = "button"; e.onclick = edit; c.append(e); }
   return c;
 }
+// Outcome box. The title is a heading (h1 when the screen has no other, so focus can land on it) with an icon,
+// so the outcome never relies on colour alone.
+const ICON = { ok: "✓", warn: "!", bad: "!", q: "?" };
 function box(kind, title, ...lines) {
   const b = el("div", null, "box " + kind);
   b.setAttribute("role", kind === "ok" || kind === "plain" ? "status" : "alert");
-  if (title) b.append(el("div", title, "t"));
+  if (title) {
+    const lvl = typeof title === "object" ? "h1" : "h2", txt = typeof title === "object" ? title.h1 : title;
+    const h = el(lvl, null, "t"), ic = ICON[title.icon || kind.split(" ")[0]];
+    if (ic) { const i = el("span", ic, "ic"); i.setAttribute("aria-hidden", "true"); h.append(i); }
+    h.append(el("span", txt));
+    b.append(h);
+  }
   for (const x of lines) b.append(typeof x === "string" ? el("p", x) : x);
   return b;
 }
 function btn(text, onclick, ghost) { const b = el("button", text, ghost ? "ghost" : ""); b.type = "button"; b.onclick = onclick; return b; }
 function row(...bs) { const r = el("div", null, "btns"); r.append(...bs); return r; }
+function stack(...bs) { const r = row(...bs); r.classList.add("stack"); return r; }
 const help = () => { const a = el("a", t("help"), "help"); a.href = "tel:1800"; return a; };
 function show(parts, draw) {
   redraw = draw || null;
   out.replaceChildren(...parts);
   out.hidden = false; f.hidden = true;
+  if (quiet) return;  // a language switch redraws in place; focus stays on the dropdown
+  const h = out.querySelector("h1, h2");  // a new screen: move focus to its heading for screen readers and keyboards
+  if (h) { h.tabIndex = -1; h.focus(); }
 }
 function edit() { redraw = null; out.hidden = true; f.hidden = false; decision = null; demoLine(null); f.wallet.focus(); }
 
 async function cancel() {
   try { if (decision) await api("/cancel", { id: decision.id }); } catch { /* not sent either way */ }
   track("cancelled");
-  const draw = () => show([el("h1", t("cancelled_title")), box("plain", null, t("cancelled_text")), row(btn(t("new_withdrawal"), edit, true))], draw);
+  const draw = () => show([el("h1", t("cancelled_title")), paymentCard("not_sent"), box("plain", null, t("cancelled_text")), row(btn(t("new_withdrawal"), edit))], draw);
   draw();
 }
 async function sent() {
   try { if (decision) await api("/sent", { id: decision.id }); } catch { /* the demo carries on */ }
   track("sent");
-  const draw = () => show([el("h1", t("sent_title")), paymentCard("sent_state"), box("ok", null, t("sent_text")), row(btn(t("new_withdrawal"), edit, true))], draw);
+  const ref = decision?.ref;
+  const draw = () => {
+    const note = box("ok", t("sent_box"), el("p", t("sent_text"), "small"));
+    if (ref) note.append(el("p", `${t("reference")}: ${ref}`, "small"));
+    show([el("h1", t("sent_title")), paymentCard("sent_state"), note, row(btn(t("new_withdrawal"), edit))], draw);
+  };
   draw();
 }
-T.en.sent_state = "Sent"; T.zh.sent_state = "已发送"; T.ms.sent_state = "Dihantar"; T.ta.sent_state = "அனுப்பப்பட்டது";
 
 function render(d) {
   decision = d;
@@ -491,17 +526,18 @@ function render(d) {
     } else if (d.tier === "warning") {
       const extra = lang === "en" && d.customer_reasons?.length ? [el("p", d.customer_reasons.join(" "), "small")] : [];
       show([el("h1", t("review")), paymentCard(), box("warn", t("warn_title"), t("warn_text"), t("warn_text2"), ...extra),
-            row(btn(t("cancel"), cancel), btn(t("continue_anyway"), sent, true)), el("p", t("warn_note"), "hint"), help()], draw);
+            stack(btn(t("cancel"), cancel), btn(t("continue_anyway"), sent, true)), el("p", t("warn_note"), "hint"), help()], draw);
     } else if (d.tier === "question") {
       askAll(d);
     } else if (d.tier === "hold") {
       const ul = el("ul");
       for (const k of ["hold_1", "hold_2", "hold_3", "hold_4"]) ul.append(el("li", t(k, { phone: persona?.phone_masked || d.persona?.phone_masked || "—" })));
       const next = box("plain", null);
-      next.append(el("h3", t("next_title")), el("p", `${t("reference")}: ${d.ref || "–"}`));
+      const ref = el("p", `${t("reference")}: `); ref.append(el("b", d.ref || "–", "mono"));
+      next.append(el("h2", t("next_title")), ref);
       const eta = el("p", t("callback")); eta.append(el("span", "modelled", "tag"));
       next.append(eta, el("p", t("never_otp")));
-      show([paymentCard("not_sent"), box("bad", t("hold_title"), ul), next, row(btn(t("cancel"), cancel, true)), help()], draw);
+      show([paymentCard("not_sent", true), box("bad hold", { h1: t("hold_title") }, ul), next, stack(btn(t("cancel"), cancel, true)), help()], draw);
     } else {
       show([box("plain", d.tier, (d.customer_reasons || []).join(" "))], draw);
     }
@@ -517,9 +553,8 @@ async function askAll(d) {
   const fixed = (o) => ["other", "not_sure", "none"].includes(o.id);  // answers.FIXED_LAST
   const draw = () => {
     const qid = current, q = QUESTIONS.questions[qid], tr = QT[lang]?.[qid] || {}, multi = q.type === "multi";
-    const b = el("div", null, "box bad");
-    b.setAttribute("role", "alert");
-    b.append(el("div", tr.title || q.title || "", "t"), el("div", t("question_n", { n: trail.length + 1 }), "qn"));
+    const b = box("bad", { h1: tr.title || q.title || "", icon: "q" });
+    b.append(el("div", t("question_n", { n: trail.length + 1 }), "qn"));
     if (q.intro) b.append(el("p", tr.intro || q.intro));
     const fs = el("fieldset");
     fs.append(el("legend", tr.text || q.text));
@@ -541,7 +576,8 @@ async function askAll(d) {
     }
     b.append(fs);
     if (q.free_text) {
-      const w = el("div"), lb = el("label", t("optional")), tb = el("textarea");
+      const w = el("div"), lb = el("label", t("optional") + " "), tb = el("textarea");
+      lb.append(el("span", t("optional_tag"), "opt-tag"));
       tb.id = "more"; tb.rows = 3; tb.maxLength = 2000; tb.value = answers.text || "";
       tb.addEventListener("input", () => { if (tb.value.trim()) answers.text = tb.value.trim(); else delete answers.text; });
       lb.htmlFor = "more"; w.append(lb, tb); b.append(w);
@@ -562,7 +598,7 @@ async function askAll(d) {
     if (trail.length) nav.append(btn(t("back"), () => { delete answers[qid]; current = trail.pop(); draw(); }, true));
     nav.append(go);
     b.append(err, nav);
-    show([paymentCard("paused"), b], draw);
+    show([paymentCard("paused", true), b], draw);
   };
   draw();
 }
@@ -574,11 +610,15 @@ async function submit() {
   if (!/^0x[0-9a-fA-F]{40}$/.test(wallet)) { err.textContent = t("err_wallet"); err.hidden = false; return; }
   if (!(qty > 0)) { err.textContent = t("err_amount"); err.hidden = false; return; }
   const a = asset();
+  const prev = payment;
   payment = { wallet: wallet.toLowerCase(), qty, asset: a, amount: toUsdt(qty, a) };
+  // "Check again" on the same, still-open payment updates its history line instead of adding another
+  if (prev?.row && !["sent", "cancelled"].includes(prev.row.state) && prev.wallet === payment.wallet && prev.qty === qty && prev.asset === a) payment.row = prev.row;
   f.hidden = true; out.hidden = true;
   const ck = $("checking"), steps = ck.querySelectorAll("li"), bar = $("bar");
   steps.forEach((s) => (s.className = "")); bar.style.width = "0";
   ck.hidden = false;
+  ck.querySelector("h2").focus();
   // A short walk through the steps (under a second); the decision itself takes milliseconds.
   const anim = (async () => { let i = 0; for (const s of steps) { s.className = "on"; bar.style.width = (++i / steps.length * 100) + "%"; await new Promise((r) => setTimeout(r, 260)); s.className = "done"; } })();
   try {
