@@ -1,0 +1,2715 @@
+{
+  "definitions": {
+    "payment": "an inbound USDT transfer >= 10 USDT from another wallet, before the freeze; one withdrawal by one customer (the sender)",
+    "first_warning_real": "the first payment at which the engine raised a Tether freeze signal (counterparty: warning; destination: hold)",
+    "first_warning_modelled": "the time of the first simulated customer report (made after a released or warned payment)",
+    "payments_after_warning": "payments decided after the first warning existed (real: from that payment on, it is decided after the signal)",
+    "payments_source_warned": "payments whose decision cites the source's signal (real: a warning shown; modelled: a hold)",
+    "payments_held": "payments the engine put in the hold tier (call-back); each held attempt renews a report, an officer's cleared ends it",
+    "lead_days": "freeze_ts - first warning ts, in days; median over wallets with a warning",
+    "payment_hold_rate": "held payments / payments; on comparison wallets this is the legitimate-hold rate",
+    "false_report_rate": "f: chance a legitimate customer reports the payee after paying (modelled)",
+    "officer": "each hold starts a call-back; a day later the officer records confirmed or cleared; right with probability q (modelled)"
+  },
+  "model_flag": "not available",
+  "positives": {
+    "group": "test_pos",
+    "truncated_wallets": 3,
+    "real": {
+      "all": {
+        "wallets": 134,
+        "wallets_warned": 2,
+        "payments": 2791,
+        "payments_after_warning": 3,
+        "payments_source_warned": 3,
+        "payments_held": 0,
+        "wallets_with_any_hold": 0,
+        "payment_hold_rate": 0.0,
+        "median_lead_days": 712.6
+      },
+      "2plus": {
+        "wallets": 105,
+        "wallets_warned": 2,
+        "payments": 2762,
+        "payments_after_warning": 3,
+        "payments_source_warned": 3,
+        "payments_held": 0,
+        "wallets_with_any_hold": 0,
+        "payment_hold_rate": 0.0,
+        "median_lead_days": 712.6
+      }
+    },
+    "modelled": {
+      "seeds": 20,
+      "report_delay_s": 0,
+      "all": {
+        "0.1": {
+          "wallets_warned": {
+            "mean": 61.4,
+            "sd": 4.3,
+            "min": 51,
+            "max": 70
+          },
+          "payments_after_warning": {
+            "mean": 2182.9,
+            "sd": 30.4,
+            "min": 2130,
+            "max": 2251
+          },
+          "payments_source_warned": {
+            "mean": 1835.8,
+            "sd": 37.7,
+            "min": 1744,
+            "max": 1904
+          },
+          "payments_held": {
+            "mean": 1835.8,
+            "sd": 37.7,
+            "min": 1744,
+            "max": 1904
+          },
+          "wallets_with_any_hold": {
+            "mean": 46.9,
+            "sd": 2.8,
+            "min": 40,
+            "max": 54
+          },
+          "payment_hold_rate": {
+            "mean": 0.657775,
+            "sd": 0.013499,
+            "min": 0.624866,
+            "max": 0.682193
+          },
+          "median_lead_days": {
+            "mean": 129.2,
+            "sd": 26.9,
+            "min": 65.9,
+            "max": 174.3
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.2": {
+          "wallets_warned": {
+            "mean": 82.1,
+            "sd": 4.5,
+            "min": 73,
+            "max": 89
+          },
+          "payments_after_warning": {
+            "mean": 2382.5,
+            "sd": 20.2,
+            "min": 2349,
+            "max": 2415
+          },
+          "payments_source_warned": {
+            "mean": 2054.3,
+            "sd": 23.8,
+            "min": 1996,
+            "max": 2091
+          },
+          "payments_held": {
+            "mean": 2054.3,
+            "sd": 23.8,
+            "min": 1996,
+            "max": 2091
+          },
+          "wallets_with_any_hold": {
+            "mean": 60.8,
+            "sd": 4.0,
+            "min": 54,
+            "max": 67
+          },
+          "payment_hold_rate": {
+            "mean": 0.736044,
+            "sd": 0.008511,
+            "min": 0.715156,
+            "max": 0.749194
+          },
+          "median_lead_days": {
+            "mean": 135.1,
+            "sd": 10.5,
+            "min": 114.6,
+            "max": 165.1
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.3": {
+          "wallets_warned": {
+            "mean": 94.4,
+            "sd": 3.7,
+            "min": 84,
+            "max": 101
+          },
+          "payments_after_warning": {
+            "mean": 2477.9,
+            "sd": 23.8,
+            "min": 2440,
+            "max": 2528
+          },
+          "payments_source_warned": {
+            "mean": 2169.7,
+            "sd": 23.3,
+            "min": 2132,
+            "max": 2211
+          },
+          "payments_held": {
+            "mean": 2169.7,
+            "sd": 23.3,
+            "min": 2132,
+            "max": 2211
+          },
+          "wallets_with_any_hold": {
+            "mean": 71.2,
+            "sd": 3.0,
+            "min": 66,
+            "max": 78
+          },
+          "payment_hold_rate": {
+            "mean": 0.777374,
+            "sd": 0.008331,
+            "min": 0.763884,
+            "max": 0.792189
+          },
+          "median_lead_days": {
+            "mean": 130.9,
+            "sd": 16.5,
+            "min": 85.0,
+            "max": 152.4
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.4": {
+          "wallets_warned": {
+            "mean": 105.0,
+            "sd": 4.1,
+            "min": 97,
+            "max": 114
+          },
+          "payments_after_warning": {
+            "mean": 2534.7,
+            "sd": 15.4,
+            "min": 2502,
+            "max": 2559
+          },
+          "payments_source_warned": {
+            "mean": 2258.8,
+            "sd": 18.0,
+            "min": 2225,
+            "max": 2292
+          },
+          "payments_held": {
+            "mean": 2258.8,
+            "sd": 18.0,
+            "min": 2225,
+            "max": 2292
+          },
+          "wallets_with_any_hold": {
+            "mean": 78.3,
+            "sd": 2.9,
+            "min": 72,
+            "max": 85
+          },
+          "payment_hold_rate": {
+            "mean": 0.809334,
+            "sd": 0.006434,
+            "min": 0.797205,
+            "max": 0.821211
+          },
+          "median_lead_days": {
+            "mean": 128.1,
+            "sd": 14.8,
+            "min": 89.8,
+            "max": 148.9
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.5": {
+          "wallets_warned": {
+            "mean": 110.1,
+            "sd": 2.9,
+            "min": 105,
+            "max": 115
+          },
+          "payments_after_warning": {
+            "mean": 2565.2,
+            "sd": 9.6,
+            "min": 2551,
+            "max": 2591
+          },
+          "payments_source_warned": {
+            "mean": 2308.9,
+            "sd": 16.2,
+            "min": 2271,
+            "max": 2337
+          },
+          "payments_held": {
+            "mean": 2308.9,
+            "sd": 16.2,
+            "min": 2271,
+            "max": 2337
+          },
+          "wallets_with_any_hold": {
+            "mean": 81.3,
+            "sd": 2.6,
+            "min": 76,
+            "max": 86
+          },
+          "payment_hold_rate": {
+            "mean": 0.827266,
+            "sd": 0.005791,
+            "min": 0.813687,
+            "max": 0.837334
+          },
+          "median_lead_days": {
+            "mean": 125.9,
+            "sd": 20.2,
+            "min": 77.1,
+            "max": 150.9
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.6": {
+          "wallets_warned": {
+            "mean": 117.8,
+            "sd": 2.6,
+            "min": 113,
+            "max": 124
+          },
+          "payments_after_warning": {
+            "mean": 2596.3,
+            "sd": 12.3,
+            "min": 2576,
+            "max": 2616
+          },
+          "payments_source_warned": {
+            "mean": 2353.9,
+            "sd": 9.7,
+            "min": 2338,
+            "max": 2376
+          },
+          "payments_held": {
+            "mean": 2353.9,
+            "sd": 9.7,
+            "min": 2338,
+            "max": 2376
+          },
+          "wallets_with_any_hold": {
+            "mean": 87.0,
+            "sd": 3.0,
+            "min": 80,
+            "max": 92
+          },
+          "payment_hold_rate": {
+            "mean": 0.843407,
+            "sd": 0.003464,
+            "min": 0.837693,
+            "max": 0.851308
+          },
+          "median_lead_days": {
+            "mean": 130.3,
+            "sd": 8.0,
+            "min": 118.4,
+            "max": 146.3
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.7": {
+          "wallets_warned": {
+            "mean": 123.5,
+            "sd": 2.8,
+            "min": 117,
+            "max": 128
+          },
+          "payments_after_warning": {
+            "mean": 2616.4,
+            "sd": 5.6,
+            "min": 2604,
+            "max": 2626
+          },
+          "payments_source_warned": {
+            "mean": 2392.2,
+            "sd": 9.1,
+            "min": 2377,
+            "max": 2412
+          },
+          "payments_held": {
+            "mean": 2392.2,
+            "sd": 9.1,
+            "min": 2377,
+            "max": 2412
+          },
+          "wallets_with_any_hold": {
+            "mean": 89.7,
+            "sd": 2.5,
+            "min": 85,
+            "max": 95
+          },
+          "payment_hold_rate": {
+            "mean": 0.857094,
+            "sd": 0.003249,
+            "min": 0.851666,
+            "max": 0.864206
+          },
+          "median_lead_days": {
+            "mean": 128.8,
+            "sd": 12.4,
+            "min": 85.0,
+            "max": 136.2
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.8": {
+          "wallets_warned": {
+            "mean": 127.7,
+            "sd": 2.1,
+            "min": 124,
+            "max": 131
+          },
+          "payments_after_warning": {
+            "mean": 2633.6,
+            "sd": 2.7,
+            "min": 2628,
+            "max": 2638
+          },
+          "payments_source_warned": {
+            "mean": 2419.7,
+            "sd": 3.9,
+            "min": 2411,
+            "max": 2427
+          },
+          "payments_held": {
+            "mean": 2419.7,
+            "sd": 3.9,
+            "min": 2411,
+            "max": 2427
+          },
+          "wallets_with_any_hold": {
+            "mean": 93.8,
+            "sd": 1.5,
+            "min": 91,
+            "max": 96
+          },
+          "payment_hold_rate": {
+            "mean": 0.866965,
+            "sd": 0.001388,
+            "min": 0.863848,
+            "max": 0.869581
+          },
+          "median_lead_days": {
+            "mean": 127.3,
+            "sd": 9.1,
+            "min": 108.2,
+            "max": 140.1
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.9": {
+          "wallets_warned": {
+            "mean": 130.9,
+            "sd": 1.7,
+            "min": 127,
+            "max": 134
+          },
+          "payments_after_warning": {
+            "mean": 2645.4,
+            "sd": 2.7,
+            "min": 2639,
+            "max": 2650
+          },
+          "payments_source_warned": {
+            "mean": 2446.5,
+            "sd": 4.0,
+            "min": 2441,
+            "max": 2457
+          },
+          "payments_held": {
+            "mean": 2446.5,
+            "sd": 4.0,
+            "min": 2441,
+            "max": 2457
+          },
+          "wallets_with_any_hold": {
+            "mean": 95.7,
+            "sd": 1.7,
+            "min": 92,
+            "max": 98
+          },
+          "payment_hold_rate": {
+            "mean": 0.876568,
+            "sd": 0.001449,
+            "min": 0.874597,
+            "max": 0.88033
+          },
+          "median_lead_days": {
+            "mean": 128.6,
+            "sd": 7.9,
+            "min": 108.3,
+            "max": 136.2
+          },
+          "wallets": 134,
+          "payments": 2791
+        }
+      },
+      "2plus": {
+        "0.1": {
+          "wallets_warned": {
+            "mean": 58.5,
+            "sd": 4.1,
+            "min": 50,
+            "max": 67
+          },
+          "payments_after_warning": {
+            "mean": 2182.9,
+            "sd": 30.4,
+            "min": 2130,
+            "max": 2251
+          },
+          "payments_source_warned": {
+            "mean": 1835.8,
+            "sd": 37.7,
+            "min": 1744,
+            "max": 1904
+          },
+          "payments_held": {
+            "mean": 1835.8,
+            "sd": 37.7,
+            "min": 1744,
+            "max": 1904
+          },
+          "wallets_with_any_hold": {
+            "mean": 46.9,
+            "sd": 2.8,
+            "min": 40,
+            "max": 54
+          },
+          "payment_hold_rate": {
+            "mean": 0.664681,
+            "sd": 0.013641,
+            "min": 0.631427,
+            "max": 0.689356
+          },
+          "median_lead_days": {
+            "mean": 137.9,
+            "sd": 28.2,
+            "min": 77.6,
+            "max": 188.2
+          },
+          "wallets": 105,
+          "payments": 2762
+        },
+        "0.2": {
+          "wallets_warned": {
+            "mean": 75.7,
+            "sd": 3.9,
+            "min": 68,
+            "max": 82
+          },
+          "payments_after_warning": {
+            "mean": 2382.5,
+            "sd": 20.2,
+            "min": 2349,
+            "max": 2415
+          },
+          "payments_source_warned": {
+            "mean": 2054.3,
+            "sd": 23.8,
+            "min": 1996,
+            "max": 2091
+          },
+          "payments_held": {
+            "mean": 2054.3,
+            "sd": 23.8,
+            "min": 1996,
+            "max": 2091
+          },
+          "wallets_with_any_hold": {
+            "mean": 60.8,
+            "sd": 4.0,
+            "min": 54,
+            "max": 67
+          },
+          "payment_hold_rate": {
+            "mean": 0.743773,
+            "sd": 0.008601,
+            "min": 0.722665,
+            "max": 0.75706
+          },
+          "median_lead_days": {
+            "mean": 138.8,
+            "sd": 12.2,
+            "min": 118.7,
+            "max": 165.8
+          },
+          "wallets": 105,
+          "payments": 2762
+        },
+        "0.3": {
+          "wallets_warned": {
+            "mean": 86.1,
+            "sd": 3.0,
+            "min": 78,
+            "max": 91
+          },
+          "payments_after_warning": {
+            "mean": 2477.9,
+            "sd": 23.8,
+            "min": 2440,
+            "max": 2528
+          },
+          "payments_source_warned": {
+            "mean": 2169.7,
+            "sd": 23.3,
+            "min": 2132,
+            "max": 2211
+          },
+          "payments_held": {
+            "mean": 2169.7,
+            "sd": 23.3,
+            "min": 2132,
+            "max": 2211
+          },
+          "wallets_with_any_hold": {
+            "mean": 71.2,
+            "sd": 3.0,
+            "min": 66,
+            "max": 78
+          },
+          "payment_hold_rate": {
+            "mean": 0.785536,
+            "sd": 0.008418,
+            "min": 0.771904,
+            "max": 0.800507
+          },
+          "median_lead_days": {
+            "mean": 139.9,
+            "sd": 10.6,
+            "min": 119.7,
+            "max": 164.2
+          },
+          "wallets": 105,
+          "payments": 2762
+        },
+        "0.4": {
+          "wallets_warned": {
+            "mean": 93.5,
+            "sd": 2.8,
+            "min": 87,
+            "max": 99
+          },
+          "payments_after_warning": {
+            "mean": 2534.7,
+            "sd": 15.4,
+            "min": 2502,
+            "max": 2559
+          },
+          "payments_source_warned": {
+            "mean": 2258.8,
+            "sd": 18.0,
+            "min": 2225,
+            "max": 2292
+          },
+          "payments_held": {
+            "mean": 2258.8,
+            "sd": 18.0,
+            "min": 2225,
+            "max": 2292
+          },
+          "wallets_with_any_hold": {
+            "mean": 78.3,
+            "sd": 2.9,
+            "min": 72,
+            "max": 85
+          },
+          "payment_hold_rate": {
+            "mean": 0.817831,
+            "sd": 0.006501,
+            "min": 0.805576,
+            "max": 0.829833
+          },
+          "median_lead_days": {
+            "mean": 136.4,
+            "sd": 11.4,
+            "min": 109.6,
+            "max": 165.9
+          },
+          "wallets": 105,
+          "payments": 2762
+        },
+        "0.5": {
+          "wallets_warned": {
+            "mean": 96.0,
+            "sd": 2.7,
+            "min": 89,
+            "max": 100
+          },
+          "payments_after_warning": {
+            "mean": 2565.2,
+            "sd": 9.6,
+            "min": 2551,
+            "max": 2591
+          },
+          "payments_source_warned": {
+            "mean": 2308.9,
+            "sd": 16.2,
+            "min": 2271,
+            "max": 2337
+          },
+          "payments_held": {
+            "mean": 2308.9,
+            "sd": 16.2,
+            "min": 2271,
+            "max": 2337
+          },
+          "wallets_with_any_hold": {
+            "mean": 81.3,
+            "sd": 2.6,
+            "min": 76,
+            "max": 86
+          },
+          "payment_hold_rate": {
+            "mean": 0.835952,
+            "sd": 0.005851,
+            "min": 0.82223,
+            "max": 0.846126
+          },
+          "median_lead_days": {
+            "mean": 140.2,
+            "sd": 7.1,
+            "min": 129.1,
+            "max": 162.0
+          },
+          "wallets": 105,
+          "payments": 2762
+        },
+        "0.6": {
+          "wallets_warned": {
+            "mean": 99.9,
+            "sd": 2.2,
+            "min": 95,
+            "max": 103
+          },
+          "payments_after_warning": {
+            "mean": 2596.3,
+            "sd": 12.3,
+            "min": 2576,
+            "max": 2616
+          },
+          "payments_source_warned": {
+            "mean": 2353.9,
+            "sd": 9.7,
+            "min": 2338,
+            "max": 2376
+          },
+          "payments_held": {
+            "mean": 2353.9,
+            "sd": 9.7,
+            "min": 2338,
+            "max": 2376
+          },
+          "wallets_with_any_hold": {
+            "mean": 87.0,
+            "sd": 3.0,
+            "min": 80,
+            "max": 92
+          },
+          "payment_hold_rate": {
+            "mean": 0.852263,
+            "sd": 0.0035,
+            "min": 0.846488,
+            "max": 0.860246
+          },
+          "median_lead_days": {
+            "mean": 140.2,
+            "sd": 6.7,
+            "min": 132.5,
+            "max": 152.4
+          },
+          "wallets": 105,
+          "payments": 2762
+        },
+        "0.7": {
+          "wallets_warned": {
+            "mean": 102.9,
+            "sd": 1.1,
+            "min": 101,
+            "max": 105
+          },
+          "payments_after_warning": {
+            "mean": 2616.4,
+            "sd": 5.6,
+            "min": 2604,
+            "max": 2626
+          },
+          "payments_source_warned": {
+            "mean": 2392.2,
+            "sd": 9.1,
+            "min": 2377,
+            "max": 2412
+          },
+          "payments_held": {
+            "mean": 2392.2,
+            "sd": 9.1,
+            "min": 2377,
+            "max": 2412
+          },
+          "wallets_with_any_hold": {
+            "mean": 89.7,
+            "sd": 2.5,
+            "min": 85,
+            "max": 95
+          },
+          "payment_hold_rate": {
+            "mean": 0.866093,
+            "sd": 0.003283,
+            "min": 0.860608,
+            "max": 0.87328
+          },
+          "median_lead_days": {
+            "mean": 141.7,
+            "sd": 5.5,
+            "min": 133.8,
+            "max": 152.4
+          },
+          "wallets": 105,
+          "payments": 2762
+        },
+        "0.8": {
+          "wallets_warned": {
+            "mean": 104.0,
+            "sd": 1.0,
+            "min": 102,
+            "max": 105
+          },
+          "payments_after_warning": {
+            "mean": 2633.6,
+            "sd": 2.7,
+            "min": 2628,
+            "max": 2638
+          },
+          "payments_source_warned": {
+            "mean": 2419.7,
+            "sd": 3.9,
+            "min": 2411,
+            "max": 2427
+          },
+          "payments_held": {
+            "mean": 2419.7,
+            "sd": 3.9,
+            "min": 2411,
+            "max": 2427
+          },
+          "wallets_with_any_hold": {
+            "mean": 93.8,
+            "sd": 1.5,
+            "min": 91,
+            "max": 96
+          },
+          "payment_hold_rate": {
+            "mean": 0.876068,
+            "sd": 0.001403,
+            "min": 0.872918,
+            "max": 0.878711
+          },
+          "median_lead_days": {
+            "mean": 141.1,
+            "sd": 5.0,
+            "min": 135.0,
+            "max": 148.6
+          },
+          "wallets": 105,
+          "payments": 2762
+        },
+        "0.9": {
+          "wallets_warned": {
+            "mean": 104.9,
+            "sd": 0.3,
+            "min": 104,
+            "max": 105
+          },
+          "payments_after_warning": {
+            "mean": 2645.4,
+            "sd": 2.7,
+            "min": 2639,
+            "max": 2650
+          },
+          "payments_source_warned": {
+            "mean": 2446.5,
+            "sd": 4.0,
+            "min": 2441,
+            "max": 2457
+          },
+          "payments_held": {
+            "mean": 2446.5,
+            "sd": 4.0,
+            "min": 2441,
+            "max": 2457
+          },
+          "wallets_with_any_hold": {
+            "mean": 95.7,
+            "sd": 1.7,
+            "min": 92,
+            "max": 98
+          },
+          "payment_hold_rate": {
+            "mean": 0.885771,
+            "sd": 0.001464,
+            "min": 0.88378,
+            "max": 0.889573
+          },
+          "median_lead_days": {
+            "mean": 144.7,
+            "sd": 2.5,
+            "min": 135.0,
+            "max": 146.3
+          },
+          "wallets": 105,
+          "payments": 2762
+        }
+      }
+    },
+    "modelled_with_officers": {
+      "officer_delay_s": 86400,
+      "0.8": {
+        "0.1": {
+          "wallets_warned": {
+            "mean": 61.4,
+            "sd": 4.3,
+            "min": 51,
+            "max": 70
+          },
+          "payments_after_warning": {
+            "mean": 2182.9,
+            "sd": 30.4,
+            "min": 2130,
+            "max": 2251
+          },
+          "payments_source_warned": {
+            "mean": 2019.1,
+            "sd": 50.4,
+            "min": 1935,
+            "max": 2156
+          },
+          "payments_held": {
+            "mean": 2019.1,
+            "sd": 50.4,
+            "min": 1935,
+            "max": 2156
+          },
+          "wallets_with_any_hold": {
+            "mean": 46.9,
+            "sd": 2.8,
+            "min": 40,
+            "max": 54
+          },
+          "payment_hold_rate": {
+            "mean": 0.723432,
+            "sd": 0.01805,
+            "min": 0.6933,
+            "max": 0.772483
+          },
+          "median_lead_days": {
+            "mean": 129.2,
+            "sd": 26.9,
+            "min": 65.9,
+            "max": 174.3
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.2": {
+          "wallets_warned": {
+            "mean": 82.1,
+            "sd": 4.5,
+            "min": 73,
+            "max": 89
+          },
+          "payments_after_warning": {
+            "mean": 2382.5,
+            "sd": 20.2,
+            "min": 2349,
+            "max": 2415
+          },
+          "payments_source_warned": {
+            "mean": 2239.1,
+            "sd": 45.3,
+            "min": 2173,
+            "max": 2322
+          },
+          "payments_held": {
+            "mean": 2239.1,
+            "sd": 45.3,
+            "min": 2173,
+            "max": 2322
+          },
+          "wallets_with_any_hold": {
+            "mean": 60.8,
+            "sd": 4.0,
+            "min": 54,
+            "max": 67
+          },
+          "payment_hold_rate": {
+            "mean": 0.802257,
+            "sd": 0.016222,
+            "min": 0.778574,
+            "max": 0.83196
+          },
+          "median_lead_days": {
+            "mean": 135.1,
+            "sd": 10.5,
+            "min": 114.6,
+            "max": 165.1
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.3": {
+          "wallets_warned": {
+            "mean": 94.4,
+            "sd": 3.7,
+            "min": 84,
+            "max": 101
+          },
+          "payments_after_warning": {
+            "mean": 2477.9,
+            "sd": 23.8,
+            "min": 2440,
+            "max": 2528
+          },
+          "payments_source_warned": {
+            "mean": 2353.3,
+            "sd": 35.0,
+            "min": 2287,
+            "max": 2406
+          },
+          "payments_held": {
+            "mean": 2353.3,
+            "sd": 35.0,
+            "min": 2287,
+            "max": 2406
+          },
+          "wallets_with_any_hold": {
+            "mean": 71.2,
+            "sd": 3.0,
+            "min": 66,
+            "max": 78
+          },
+          "payment_hold_rate": {
+            "mean": 0.843175,
+            "sd": 0.012543,
+            "min": 0.81942,
+            "max": 0.862057
+          },
+          "median_lead_days": {
+            "mean": 130.9,
+            "sd": 16.5,
+            "min": 85.0,
+            "max": 152.4
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.4": {
+          "wallets_warned": {
+            "mean": 105.0,
+            "sd": 4.1,
+            "min": 97,
+            "max": 114
+          },
+          "payments_after_warning": {
+            "mean": 2534.7,
+            "sd": 15.4,
+            "min": 2502,
+            "max": 2559
+          },
+          "payments_source_warned": {
+            "mean": 2428.8,
+            "sd": 19.9,
+            "min": 2394,
+            "max": 2464
+          },
+          "payments_held": {
+            "mean": 2428.8,
+            "sd": 19.9,
+            "min": 2394,
+            "max": 2464
+          },
+          "wallets_with_any_hold": {
+            "mean": 78.3,
+            "sd": 2.9,
+            "min": 72,
+            "max": 85
+          },
+          "payment_hold_rate": {
+            "mean": 0.870244,
+            "sd": 0.00714,
+            "min": 0.857757,
+            "max": 0.882838
+          },
+          "median_lead_days": {
+            "mean": 128.1,
+            "sd": 14.8,
+            "min": 89.8,
+            "max": 148.9
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.5": {
+          "wallets_warned": {
+            "mean": 110.1,
+            "sd": 2.9,
+            "min": 105,
+            "max": 115
+          },
+          "payments_after_warning": {
+            "mean": 2565.2,
+            "sd": 9.6,
+            "min": 2551,
+            "max": 2591
+          },
+          "payments_source_warned": {
+            "mean": 2472.6,
+            "sd": 20.9,
+            "min": 2436,
+            "max": 2507
+          },
+          "payments_held": {
+            "mean": 2472.6,
+            "sd": 20.9,
+            "min": 2436,
+            "max": 2507
+          },
+          "wallets_with_any_hold": {
+            "mean": 81.3,
+            "sd": 2.6,
+            "min": 76,
+            "max": 86
+          },
+          "payment_hold_rate": {
+            "mean": 0.885919,
+            "sd": 0.007503,
+            "min": 0.872805,
+            "max": 0.898244
+          },
+          "median_lead_days": {
+            "mean": 125.9,
+            "sd": 20.2,
+            "min": 77.1,
+            "max": 150.9
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.6": {
+          "wallets_warned": {
+            "mean": 117.8,
+            "sd": 2.6,
+            "min": 113,
+            "max": 124
+          },
+          "payments_after_warning": {
+            "mean": 2596.3,
+            "sd": 12.3,
+            "min": 2576,
+            "max": 2616
+          },
+          "payments_source_warned": {
+            "mean": 2514.9,
+            "sd": 17.0,
+            "min": 2476,
+            "max": 2544
+          },
+          "payments_held": {
+            "mean": 2514.9,
+            "sd": 17.0,
+            "min": 2476,
+            "max": 2544
+          },
+          "wallets_with_any_hold": {
+            "mean": 87.0,
+            "sd": 3.0,
+            "min": 80,
+            "max": 92
+          },
+          "payment_hold_rate": {
+            "mean": 0.901075,
+            "sd": 0.006098,
+            "min": 0.887137,
+            "max": 0.911501
+          },
+          "median_lead_days": {
+            "mean": 130.3,
+            "sd": 8.0,
+            "min": 118.4,
+            "max": 146.3
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.7": {
+          "wallets_warned": {
+            "mean": 123.5,
+            "sd": 2.8,
+            "min": 117,
+            "max": 128
+          },
+          "payments_after_warning": {
+            "mean": 2616.4,
+            "sd": 5.6,
+            "min": 2604,
+            "max": 2626
+          },
+          "payments_source_warned": {
+            "mean": 2540.5,
+            "sd": 12.1,
+            "min": 2520,
+            "max": 2560
+          },
+          "payments_held": {
+            "mean": 2540.5,
+            "sd": 12.1,
+            "min": 2520,
+            "max": 2560
+          },
+          "wallets_with_any_hold": {
+            "mean": 89.7,
+            "sd": 2.5,
+            "min": 85,
+            "max": 95
+          },
+          "payment_hold_rate": {
+            "mean": 0.910247,
+            "sd": 0.004348,
+            "min": 0.902902,
+            "max": 0.917234
+          },
+          "median_lead_days": {
+            "mean": 128.8,
+            "sd": 12.4,
+            "min": 85.0,
+            "max": 136.2
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.8": {
+          "wallets_warned": {
+            "mean": 127.7,
+            "sd": 2.1,
+            "min": 124,
+            "max": 131
+          },
+          "payments_after_warning": {
+            "mean": 2633.6,
+            "sd": 2.7,
+            "min": 2628,
+            "max": 2638
+          },
+          "payments_source_warned": {
+            "mean": 2563.7,
+            "sd": 8.3,
+            "min": 2545,
+            "max": 2578
+          },
+          "payments_held": {
+            "mean": 2563.7,
+            "sd": 8.3,
+            "min": 2545,
+            "max": 2578
+          },
+          "wallets_with_any_hold": {
+            "mean": 93.8,
+            "sd": 1.5,
+            "min": 91,
+            "max": 96
+          },
+          "payment_hold_rate": {
+            "mean": 0.91856,
+            "sd": 0.002983,
+            "min": 0.91186,
+            "max": 0.923683
+          },
+          "median_lead_days": {
+            "mean": 127.3,
+            "sd": 9.1,
+            "min": 108.2,
+            "max": 140.1
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.9": {
+          "wallets_warned": {
+            "mean": 130.9,
+            "sd": 1.7,
+            "min": 127,
+            "max": 134
+          },
+          "payments_after_warning": {
+            "mean": 2645.4,
+            "sd": 2.7,
+            "min": 2639,
+            "max": 2650
+          },
+          "payments_source_warned": {
+            "mean": 2581.2,
+            "sd": 7.9,
+            "min": 2563,
+            "max": 2592
+          },
+          "payments_held": {
+            "mean": 2581.2,
+            "sd": 7.9,
+            "min": 2563,
+            "max": 2592
+          },
+          "wallets_with_any_hold": {
+            "mean": 95.7,
+            "sd": 1.7,
+            "min": 92,
+            "max": 98
+          },
+          "payment_hold_rate": {
+            "mean": 0.924812,
+            "sd": 0.002831,
+            "min": 0.918309,
+            "max": 0.928699
+          },
+          "median_lead_days": {
+            "mean": 128.6,
+            "sd": 7.9,
+            "min": 108.3,
+            "max": 136.2
+          },
+          "wallets": 134,
+          "payments": 2791
+        }
+      },
+      "0.9": {
+        "0.1": {
+          "wallets_warned": {
+            "mean": 61.4,
+            "sd": 4.3,
+            "min": 51,
+            "max": 70
+          },
+          "payments_after_warning": {
+            "mean": 2182.9,
+            "sd": 30.4,
+            "min": 2130,
+            "max": 2251
+          },
+          "payments_source_warned": {
+            "mean": 2066.8,
+            "sd": 44.8,
+            "min": 1957,
+            "max": 2180
+          },
+          "payments_held": {
+            "mean": 2066.8,
+            "sd": 44.8,
+            "min": 1957,
+            "max": 2180
+          },
+          "wallets_with_any_hold": {
+            "mean": 46.9,
+            "sd": 2.8,
+            "min": 40,
+            "max": 54
+          },
+          "payment_hold_rate": {
+            "mean": 0.740541,
+            "sd": 0.016061,
+            "min": 0.701182,
+            "max": 0.781082
+          },
+          "median_lead_days": {
+            "mean": 129.2,
+            "sd": 26.9,
+            "min": 65.9,
+            "max": 174.3
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.2": {
+          "wallets_warned": {
+            "mean": 82.1,
+            "sd": 4.5,
+            "min": 73,
+            "max": 89
+          },
+          "payments_after_warning": {
+            "mean": 2382.5,
+            "sd": 20.2,
+            "min": 2349,
+            "max": 2415
+          },
+          "payments_source_warned": {
+            "mean": 2272.1,
+            "sd": 38.7,
+            "min": 2198,
+            "max": 2341
+          },
+          "payments_held": {
+            "mean": 2272.1,
+            "sd": 38.7,
+            "min": 2198,
+            "max": 2341
+          },
+          "wallets_with_any_hold": {
+            "mean": 60.8,
+            "sd": 4.0,
+            "min": 54,
+            "max": 67
+          },
+          "payment_hold_rate": {
+            "mean": 0.814063,
+            "sd": 0.013852,
+            "min": 0.787531,
+            "max": 0.838767
+          },
+          "median_lead_days": {
+            "mean": 135.1,
+            "sd": 10.5,
+            "min": 114.6,
+            "max": 165.1
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.3": {
+          "wallets_warned": {
+            "mean": 94.4,
+            "sd": 3.7,
+            "min": 84,
+            "max": 101
+          },
+          "payments_after_warning": {
+            "mean": 2477.9,
+            "sd": 23.8,
+            "min": 2440,
+            "max": 2528
+          },
+          "payments_source_warned": {
+            "mean": 2384.4,
+            "sd": 37.3,
+            "min": 2291,
+            "max": 2444
+          },
+          "payments_held": {
+            "mean": 2384.4,
+            "sd": 37.3,
+            "min": 2291,
+            "max": 2444
+          },
+          "wallets_with_any_hold": {
+            "mean": 71.2,
+            "sd": 3.0,
+            "min": 66,
+            "max": 78
+          },
+          "payment_hold_rate": {
+            "mean": 0.854317,
+            "sd": 0.013377,
+            "min": 0.820853,
+            "max": 0.875672
+          },
+          "median_lead_days": {
+            "mean": 130.9,
+            "sd": 16.5,
+            "min": 85.0,
+            "max": 152.4
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.4": {
+          "wallets_warned": {
+            "mean": 105.0,
+            "sd": 4.1,
+            "min": 97,
+            "max": 114
+          },
+          "payments_after_warning": {
+            "mean": 2534.7,
+            "sd": 15.4,
+            "min": 2502,
+            "max": 2559
+          },
+          "payments_source_warned": {
+            "mean": 2457.9,
+            "sd": 14.0,
+            "min": 2427,
+            "max": 2482
+          },
+          "payments_held": {
+            "mean": 2457.9,
+            "sd": 14.0,
+            "min": 2427,
+            "max": 2482
+          },
+          "wallets_with_any_hold": {
+            "mean": 78.3,
+            "sd": 2.9,
+            "min": 72,
+            "max": 85
+          },
+          "payment_hold_rate": {
+            "mean": 0.88067,
+            "sd": 0.005005,
+            "min": 0.869581,
+            "max": 0.889287
+          },
+          "median_lead_days": {
+            "mean": 128.1,
+            "sd": 14.8,
+            "min": 89.8,
+            "max": 148.9
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.5": {
+          "wallets_warned": {
+            "mean": 110.1,
+            "sd": 2.9,
+            "min": 105,
+            "max": 115
+          },
+          "payments_after_warning": {
+            "mean": 2565.2,
+            "sd": 9.6,
+            "min": 2551,
+            "max": 2591
+          },
+          "payments_source_warned": {
+            "mean": 2493.5,
+            "sd": 19.2,
+            "min": 2444,
+            "max": 2524
+          },
+          "payments_held": {
+            "mean": 2493.5,
+            "sd": 19.2,
+            "min": 2444,
+            "max": 2524
+          },
+          "wallets_with_any_hold": {
+            "mean": 81.3,
+            "sd": 2.6,
+            "min": 76,
+            "max": 86
+          },
+          "payment_hold_rate": {
+            "mean": 0.893407,
+            "sd": 0.006894,
+            "min": 0.875672,
+            "max": 0.904335
+          },
+          "median_lead_days": {
+            "mean": 125.9,
+            "sd": 20.2,
+            "min": 77.1,
+            "max": 150.9
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.6": {
+          "wallets_warned": {
+            "mean": 117.8,
+            "sd": 2.6,
+            "min": 113,
+            "max": 124
+          },
+          "payments_after_warning": {
+            "mean": 2596.3,
+            "sd": 12.3,
+            "min": 2576,
+            "max": 2616
+          },
+          "payments_source_warned": {
+            "mean": 2536.1,
+            "sd": 13.0,
+            "min": 2508,
+            "max": 2558
+          },
+          "payments_held": {
+            "mean": 2536.1,
+            "sd": 13.0,
+            "min": 2508,
+            "max": 2558
+          },
+          "wallets_with_any_hold": {
+            "mean": 87.0,
+            "sd": 3.0,
+            "min": 80,
+            "max": 92
+          },
+          "payment_hold_rate": {
+            "mean": 0.908653,
+            "sd": 0.004656,
+            "min": 0.898603,
+            "max": 0.916517
+          },
+          "median_lead_days": {
+            "mean": 130.3,
+            "sd": 8.0,
+            "min": 118.4,
+            "max": 146.3
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.7": {
+          "wallets_warned": {
+            "mean": 123.5,
+            "sd": 2.8,
+            "min": 117,
+            "max": 128
+          },
+          "payments_after_warning": {
+            "mean": 2616.4,
+            "sd": 5.6,
+            "min": 2604,
+            "max": 2626
+          },
+          "payments_source_warned": {
+            "mean": 2559.1,
+            "sd": 9.3,
+            "min": 2543,
+            "max": 2581
+          },
+          "payments_held": {
+            "mean": 2559.1,
+            "sd": 9.3,
+            "min": 2543,
+            "max": 2581
+          },
+          "wallets_with_any_hold": {
+            "mean": 89.7,
+            "sd": 2.5,
+            "min": 85,
+            "max": 95
+          },
+          "payment_hold_rate": {
+            "mean": 0.916911,
+            "sd": 0.003326,
+            "min": 0.911143,
+            "max": 0.924758
+          },
+          "median_lead_days": {
+            "mean": 128.8,
+            "sd": 12.4,
+            "min": 85.0,
+            "max": 136.2
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.8": {
+          "wallets_warned": {
+            "mean": 127.7,
+            "sd": 2.1,
+            "min": 124,
+            "max": 131
+          },
+          "payments_after_warning": {
+            "mean": 2633.6,
+            "sd": 2.7,
+            "min": 2628,
+            "max": 2638
+          },
+          "payments_source_warned": {
+            "mean": 2579.8,
+            "sd": 7.1,
+            "min": 2562,
+            "max": 2589
+          },
+          "payments_held": {
+            "mean": 2579.8,
+            "sd": 7.1,
+            "min": 2562,
+            "max": 2589
+          },
+          "wallets_with_any_hold": {
+            "mean": 93.8,
+            "sd": 1.5,
+            "min": 91,
+            "max": 96
+          },
+          "payment_hold_rate": {
+            "mean": 0.924328,
+            "sd": 0.002543,
+            "min": 0.917951,
+            "max": 0.927625
+          },
+          "median_lead_days": {
+            "mean": 127.3,
+            "sd": 9.1,
+            "min": 108.2,
+            "max": 140.1
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.9": {
+          "wallets_warned": {
+            "mean": 130.9,
+            "sd": 1.7,
+            "min": 127,
+            "max": 134
+          },
+          "payments_after_warning": {
+            "mean": 2645.4,
+            "sd": 2.7,
+            "min": 2639,
+            "max": 2650
+          },
+          "payments_source_warned": {
+            "mean": 2595.8,
+            "sd": 6.1,
+            "min": 2582,
+            "max": 2607
+          },
+          "payments_held": {
+            "mean": 2595.8,
+            "sd": 6.1,
+            "min": 2582,
+            "max": 2607
+          },
+          "wallets_with_any_hold": {
+            "mean": 95.7,
+            "sd": 1.7,
+            "min": 92,
+            "max": 98
+          },
+          "payment_hold_rate": {
+            "mean": 0.930061,
+            "sd": 0.00219,
+            "min": 0.925116,
+            "max": 0.934074
+          },
+          "median_lead_days": {
+            "mean": 128.6,
+            "sd": 7.9,
+            "min": 108.3,
+            "max": 136.2
+          },
+          "wallets": 134,
+          "payments": 2791
+        }
+      },
+      "1.0": {
+        "0.1": {
+          "wallets_warned": {
+            "mean": 61.4,
+            "sd": 4.3,
+            "min": 51,
+            "max": 70
+          },
+          "payments_after_warning": {
+            "mean": 2182.9,
+            "sd": 30.4,
+            "min": 2130,
+            "max": 2251
+          },
+          "payments_source_warned": {
+            "mean": 2089.2,
+            "sd": 37.1,
+            "min": 2033,
+            "max": 2186
+          },
+          "payments_held": {
+            "mean": 2089.2,
+            "sd": 37.1,
+            "min": 2033,
+            "max": 2186
+          },
+          "wallets_with_any_hold": {
+            "mean": 46.9,
+            "sd": 2.8,
+            "min": 40,
+            "max": 54
+          },
+          "payment_hold_rate": {
+            "mean": 0.748531,
+            "sd": 0.013301,
+            "min": 0.728413,
+            "max": 0.783232
+          },
+          "median_lead_days": {
+            "mean": 129.2,
+            "sd": 26.9,
+            "min": 65.9,
+            "max": 174.3
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.2": {
+          "wallets_warned": {
+            "mean": 82.1,
+            "sd": 4.5,
+            "min": 73,
+            "max": 89
+          },
+          "payments_after_warning": {
+            "mean": 2382.5,
+            "sd": 20.2,
+            "min": 2349,
+            "max": 2415
+          },
+          "payments_source_warned": {
+            "mean": 2293.2,
+            "sd": 34.6,
+            "min": 2222,
+            "max": 2351
+          },
+          "payments_held": {
+            "mean": 2293.2,
+            "sd": 34.6,
+            "min": 2222,
+            "max": 2351
+          },
+          "wallets_with_any_hold": {
+            "mean": 60.8,
+            "sd": 4.0,
+            "min": 54,
+            "max": 67
+          },
+          "payment_hold_rate": {
+            "mean": 0.821659,
+            "sd": 0.012412,
+            "min": 0.79613,
+            "max": 0.84235
+          },
+          "median_lead_days": {
+            "mean": 135.1,
+            "sd": 10.5,
+            "min": 114.6,
+            "max": 165.1
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.3": {
+          "wallets_warned": {
+            "mean": 94.4,
+            "sd": 3.7,
+            "min": 84,
+            "max": 101
+          },
+          "payments_after_warning": {
+            "mean": 2477.9,
+            "sd": 23.8,
+            "min": 2440,
+            "max": 2528
+          },
+          "payments_source_warned": {
+            "mean": 2401.4,
+            "sd": 33.9,
+            "min": 2324,
+            "max": 2463
+          },
+          "payments_held": {
+            "mean": 2401.4,
+            "sd": 33.9,
+            "min": 2324,
+            "max": 2463
+          },
+          "wallets_with_any_hold": {
+            "mean": 71.2,
+            "sd": 3.0,
+            "min": 66,
+            "max": 78
+          },
+          "payment_hold_rate": {
+            "mean": 0.860408,
+            "sd": 0.012133,
+            "min": 0.832676,
+            "max": 0.882479
+          },
+          "median_lead_days": {
+            "mean": 130.9,
+            "sd": 16.5,
+            "min": 85.0,
+            "max": 152.4
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.4": {
+          "wallets_warned": {
+            "mean": 105.0,
+            "sd": 4.1,
+            "min": 97,
+            "max": 114
+          },
+          "payments_after_warning": {
+            "mean": 2534.7,
+            "sd": 15.4,
+            "min": 2502,
+            "max": 2559
+          },
+          "payments_source_warned": {
+            "mean": 2474,
+            "sd": 13.3,
+            "min": 2446,
+            "max": 2505
+          },
+          "payments_held": {
+            "mean": 2474,
+            "sd": 13.3,
+            "min": 2446,
+            "max": 2505
+          },
+          "wallets_with_any_hold": {
+            "mean": 78.3,
+            "sd": 2.9,
+            "min": 72,
+            "max": 85
+          },
+          "payment_hold_rate": {
+            "mean": 0.886421,
+            "sd": 0.00477,
+            "min": 0.876388,
+            "max": 0.897528
+          },
+          "median_lead_days": {
+            "mean": 128.1,
+            "sd": 14.8,
+            "min": 89.8,
+            "max": 148.9
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.5": {
+          "wallets_warned": {
+            "mean": 110.1,
+            "sd": 2.9,
+            "min": 105,
+            "max": 115
+          },
+          "payments_after_warning": {
+            "mean": 2565.2,
+            "sd": 9.6,
+            "min": 2551,
+            "max": 2591
+          },
+          "payments_source_warned": {
+            "mean": 2508.6,
+            "sd": 19.0,
+            "min": 2467,
+            "max": 2536
+          },
+          "payments_held": {
+            "mean": 2508.6,
+            "sd": 19.0,
+            "min": 2467,
+            "max": 2536
+          },
+          "wallets_with_any_hold": {
+            "mean": 81.3,
+            "sd": 2.6,
+            "min": 76,
+            "max": 86
+          },
+          "payment_hold_rate": {
+            "mean": 0.898818,
+            "sd": 0.006819,
+            "min": 0.883913,
+            "max": 0.908635
+          },
+          "median_lead_days": {
+            "mean": 125.9,
+            "sd": 20.2,
+            "min": 77.1,
+            "max": 150.9
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.6": {
+          "wallets_warned": {
+            "mean": 117.8,
+            "sd": 2.6,
+            "min": 113,
+            "max": 124
+          },
+          "payments_after_warning": {
+            "mean": 2596.3,
+            "sd": 12.3,
+            "min": 2576,
+            "max": 2616
+          },
+          "payments_source_warned": {
+            "mean": 2549.4,
+            "sd": 9.9,
+            "min": 2534,
+            "max": 2566
+          },
+          "payments_held": {
+            "mean": 2549.4,
+            "sd": 9.9,
+            "min": 2534,
+            "max": 2566
+          },
+          "wallets_with_any_hold": {
+            "mean": 87.0,
+            "sd": 3.0,
+            "min": 80,
+            "max": 92
+          },
+          "payment_hold_rate": {
+            "mean": 0.913454,
+            "sd": 0.003562,
+            "min": 0.907918,
+            "max": 0.919384
+          },
+          "median_lead_days": {
+            "mean": 130.3,
+            "sd": 8.0,
+            "min": 118.4,
+            "max": 146.3
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.7": {
+          "wallets_warned": {
+            "mean": 123.5,
+            "sd": 2.8,
+            "min": 117,
+            "max": 128
+          },
+          "payments_after_warning": {
+            "mean": 2616.4,
+            "sd": 5.6,
+            "min": 2604,
+            "max": 2626
+          },
+          "payments_source_warned": {
+            "mean": 2571.2,
+            "sd": 7.3,
+            "min": 2554,
+            "max": 2584
+          },
+          "payments_held": {
+            "mean": 2571.2,
+            "sd": 7.3,
+            "min": 2554,
+            "max": 2584
+          },
+          "wallets_with_any_hold": {
+            "mean": 89.7,
+            "sd": 2.5,
+            "min": 85,
+            "max": 95
+          },
+          "payment_hold_rate": {
+            "mean": 0.921247,
+            "sd": 0.002625,
+            "min": 0.915084,
+            "max": 0.925833
+          },
+          "median_lead_days": {
+            "mean": 128.8,
+            "sd": 12.4,
+            "min": 85.0,
+            "max": 136.2
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.8": {
+          "wallets_warned": {
+            "mean": 127.7,
+            "sd": 2.1,
+            "min": 124,
+            "max": 131
+          },
+          "payments_after_warning": {
+            "mean": 2633.6,
+            "sd": 2.7,
+            "min": 2628,
+            "max": 2638
+          },
+          "payments_source_warned": {
+            "mean": 2590.2,
+            "sd": 4.8,
+            "min": 2581,
+            "max": 2598
+          },
+          "payments_held": {
+            "mean": 2590.2,
+            "sd": 4.8,
+            "min": 2581,
+            "max": 2598
+          },
+          "wallets_with_any_hold": {
+            "mean": 93.8,
+            "sd": 1.5,
+            "min": 91,
+            "max": 96
+          },
+          "payment_hold_rate": {
+            "mean": 0.928037,
+            "sd": 0.001712,
+            "min": 0.924758,
+            "max": 0.930849
+          },
+          "median_lead_days": {
+            "mean": 127.3,
+            "sd": 9.1,
+            "min": 108.2,
+            "max": 140.1
+          },
+          "wallets": 134,
+          "payments": 2791
+        },
+        "0.9": {
+          "wallets_warned": {
+            "mean": 130.9,
+            "sd": 1.7,
+            "min": 127,
+            "max": 134
+          },
+          "payments_after_warning": {
+            "mean": 2645.4,
+            "sd": 2.7,
+            "min": 2639,
+            "max": 2650
+          },
+          "payments_source_warned": {
+            "mean": 2605.7,
+            "sd": 2.5,
+            "min": 2601,
+            "max": 2611
+          },
+          "payments_held": {
+            "mean": 2605.7,
+            "sd": 2.5,
+            "min": 2601,
+            "max": 2611
+          },
+          "wallets_with_any_hold": {
+            "mean": 95.7,
+            "sd": 1.7,
+            "min": 92,
+            "max": 98
+          },
+          "payment_hold_rate": {
+            "mean": 0.93359,
+            "sd": 0.000901,
+            "min": 0.931924,
+            "max": 0.935507
+          },
+          "median_lead_days": {
+            "mean": 128.6,
+            "sd": 7.9,
+            "min": 108.3,
+            "max": 136.2
+          },
+          "wallets": 134,
+          "payments": 2791
+        }
+      }
+    },
+    "modelled_r0.5_delay_1d": {
+      "wallets_warned": {
+        "mean": 110.1,
+        "sd": 2.9,
+        "min": 105,
+        "max": 115
+      },
+      "payments_after_warning": {
+        "mean": 2294.6,
+        "sd": 9.8,
+        "min": 2281,
+        "max": 2316
+      },
+      "payments_source_warned": {
+        "mean": 1980.3,
+        "sd": 11.6,
+        "min": 1962,
+        "max": 2001
+      },
+      "payments_held": {
+        "mean": 1980.3,
+        "sd": 11.6,
+        "min": 1962,
+        "max": 2001
+      },
+      "wallets_with_any_hold": {
+        "mean": 60.2,
+        "sd": 2.0,
+        "min": 56,
+        "max": 63
+      },
+      "payment_hold_rate": {
+        "mean": 0.709549,
+        "sd": 0.004166,
+        "min": 0.702974,
+        "max": 0.716947
+      },
+      "median_lead_days": {
+        "mean": 124.9,
+        "sd": 20.2,
+        "min": 76.1,
+        "max": 149.9
+      },
+      "wallets": 134,
+      "payments": 2791
+    },
+    "model_flag": "not available"
+  },
+  "legitimate": {
+    "test_neg": {
+      "wallets": 422,
+      "truncated_wallets": 0,
+      "real": {
+        "wallets": 422,
+        "wallets_warned": 2,
+        "payments": 10705,
+        "payments_after_warning": 49,
+        "payments_source_warned": 49,
+        "payments_held": 0,
+        "wallets_with_any_hold": 0,
+        "payment_hold_rate": 0.0,
+        "median_lead_days": null
+      },
+      "false_reports": {
+        "seeds": 5,
+        "0.001": {
+          "no_officer": {
+            "wallets_warned": {
+              "mean": 9.8,
+              "sd": 1.9,
+              "min": 7,
+              "max": 12
+            },
+            "payments_after_warning": {
+              "mean": 464.2,
+              "sd": 154.7,
+              "min": 282,
+              "max": 685
+            },
+            "payments_source_warned": {
+              "mean": 367.6,
+              "sd": 122.3,
+              "min": 224,
+              "max": 525
+            },
+            "payments_held": {
+              "mean": 367.6,
+              "sd": 122.3,
+              "min": 224,
+              "max": 525
+            },
+            "wallets_with_any_hold": {
+              "mean": 8.4,
+              "sd": 2.2,
+              "min": 6,
+              "max": 11
+            },
+            "payment_hold_rate": {
+              "mean": 0.034339,
+              "sd": 0.011422,
+              "min": 0.020925,
+              "max": 0.049043
+            },
+            "median_lead_days": null,
+            "wallets": 422,
+            "payments": 10705
+          },
+          "officer_q0.9": {
+            "wallets_warned": {
+              "mean": 9.8,
+              "sd": 1.9,
+              "min": 7,
+              "max": 12
+            },
+            "payments_after_warning": {
+              "mean": 464.2,
+              "sd": 154.7,
+              "min": 282,
+              "max": 685
+            },
+            "payments_source_warned": {
+              "mean": 50.8,
+              "sd": 45.9,
+              "min": 18,
+              "max": 141
+            },
+            "payments_held": {
+              "mean": 50.8,
+              "sd": 45.9,
+              "min": 18,
+              "max": 141
+            },
+            "wallets_with_any_hold": {
+              "mean": 8.4,
+              "sd": 2.2,
+              "min": 6,
+              "max": 11
+            },
+            "payment_hold_rate": {
+              "mean": 0.004745,
+              "sd": 0.004289,
+              "min": 0.001681,
+              "max": 0.013171
+            },
+            "median_lead_days": null,
+            "wallets": 422,
+            "payments": 10705
+          },
+          "officer_q1.0": {
+            "wallets_warned": {
+              "mean": 9.8,
+              "sd": 1.9,
+              "min": 7,
+              "max": 12
+            },
+            "payments_after_warning": {
+              "mean": 464.2,
+              "sd": 154.7,
+              "min": 282,
+              "max": 685
+            },
+            "payments_source_warned": {
+              "mean": 30.8,
+              "sd": 10.0,
+              "min": 18,
+              "max": 44
+            },
+            "payments_held": {
+              "mean": 30.8,
+              "sd": 10.0,
+              "min": 18,
+              "max": 44
+            },
+            "wallets_with_any_hold": {
+              "mean": 8.4,
+              "sd": 2.2,
+              "min": 6,
+              "max": 11
+            },
+            "payment_hold_rate": {
+              "mean": 0.002877,
+              "sd": 0.000937,
+              "min": 0.001681,
+              "max": 0.00411
+            },
+            "median_lead_days": null,
+            "wallets": 422,
+            "payments": 10705
+          }
+        },
+        "0.01": {
+          "no_officer": {
+            "wallets_warned": {
+              "mean": 73.8,
+              "sd": 3.5,
+              "min": 69,
+              "max": 79
+            },
+            "payments_after_warning": {
+              "mean": 3364.6,
+              "sd": 158.2,
+              "min": 3123,
+              "max": 3594
+            },
+            "payments_source_warned": {
+              "mean": 2595.8,
+              "sd": 187.9,
+              "min": 2385,
+              "max": 2914
+            },
+            "payments_held": {
+              "mean": 2595.8,
+              "sd": 187.9,
+              "min": 2385,
+              "max": 2914
+            },
+            "wallets_with_any_hold": {
+              "mean": 62.6,
+              "sd": 3.7,
+              "min": 58,
+              "max": 68
+            },
+            "payment_hold_rate": {
+              "mean": 0.242485,
+              "sd": 0.01755,
+              "min": 0.222793,
+              "max": 0.272209
+            },
+            "median_lead_days": null,
+            "wallets": 422,
+            "payments": 10705
+          },
+          "officer_q0.9": {
+            "wallets_warned": {
+              "mean": 73.8,
+              "sd": 3.5,
+              "min": 69,
+              "max": 79
+            },
+            "payments_after_warning": {
+              "mean": 3364.6,
+              "sd": 158.2,
+              "min": 3123,
+              "max": 3594
+            },
+            "payments_source_warned": {
+              "mean": 663.8,
+              "sd": 107.5,
+              "min": 525,
+              "max": 768
+            },
+            "payments_held": {
+              "mean": 663.8,
+              "sd": 107.5,
+              "min": 525,
+              "max": 768
+            },
+            "wallets_with_any_hold": {
+              "mean": 62.6,
+              "sd": 3.7,
+              "min": 58,
+              "max": 68
+            },
+            "payment_hold_rate": {
+              "mean": 0.062008,
+              "sd": 0.01004,
+              "min": 0.049043,
+              "max": 0.071742
+            },
+            "median_lead_days": null,
+            "wallets": 422,
+            "payments": 10705
+          },
+          "officer_q1.0": {
+            "wallets_warned": {
+              "mean": 73.8,
+              "sd": 3.5,
+              "min": 69,
+              "max": 79
+            },
+            "payments_after_warning": {
+              "mean": 3364.6,
+              "sd": 158.2,
+              "min": 3123,
+              "max": 3594
+            },
+            "payments_source_warned": {
+              "mean": 290.2,
+              "sd": 56.7,
+              "min": 225,
+              "max": 359
+            },
+            "payments_held": {
+              "mean": 290.2,
+              "sd": 56.7,
+              "min": 225,
+              "max": 359
+            },
+            "wallets_with_any_hold": {
+              "mean": 62.6,
+              "sd": 3.7,
+              "min": 58,
+              "max": 68
+            },
+            "payment_hold_rate": {
+              "mean": 0.027109,
+              "sd": 0.005296,
+              "min": 0.021018,
+              "max": 0.033536
+            },
+            "median_lead_days": null,
+            "wallets": 422,
+            "payments": 10705
+          }
+        }
+      }
+    },
+    "test_negv": {
+      "wallets": 550,
+      "truncated_wallets": 289,
+      "real": {
+        "wallets": 550,
+        "wallets_warned": 1,
+        "payments": 141148,
+        "payments_after_warning": 202,
+        "payments_source_warned": 202,
+        "payments_held": 0,
+        "wallets_with_any_hold": 0,
+        "payment_hold_rate": 0.0,
+        "median_lead_days": null
+      },
+      "false_reports": {
+        "seeds": 5,
+        "0.001": {
+          "no_officer": {
+            "wallets_warned": {
+              "mean": 112,
+              "sd": 8.6,
+              "min": 102,
+              "max": 123
+            },
+            "payments_after_warning": {
+              "mean": 30872.8,
+              "sd": 4218.5,
+              "min": 26664,
+              "max": 37364
+            },
+            "payments_source_warned": {
+              "mean": 29747.4,
+              "sd": 4207.7,
+              "min": 24527,
+              "max": 36014
+            },
+            "payments_held": {
+              "mean": 29747.4,
+              "sd": 4207.7,
+              "min": 24527,
+              "max": 36014
+            },
+            "wallets_with_any_hold": {
+              "mean": 109.4,
+              "sd": 8.8,
+              "min": 98,
+              "max": 120
+            },
+            "payment_hold_rate": {
+              "mean": 0.210753,
+              "sd": 0.02981,
+              "min": 0.173768,
+              "max": 0.255151
+            },
+            "median_lead_days": null,
+            "wallets": 550,
+            "payments": 141148
+          },
+          "officer_q0.9": {
+            "wallets_warned": {
+              "mean": 112,
+              "sd": 8.6,
+              "min": 102,
+              "max": 123
+            },
+            "payments_after_warning": {
+              "mean": 30872.8,
+              "sd": 4218.5,
+              "min": 26664,
+              "max": 37364
+            },
+            "payments_source_warned": {
+              "mean": 13380.4,
+              "sd": 1880.1,
+              "min": 10535,
+              "max": 15462
+            },
+            "payments_held": {
+              "mean": 13380.4,
+              "sd": 1880.1,
+              "min": 10535,
+              "max": 15462
+            },
+            "wallets_with_any_hold": {
+              "mean": 109.4,
+              "sd": 8.8,
+              "min": 98,
+              "max": 120
+            },
+            "payment_hold_rate": {
+              "mean": 0.094797,
+              "sd": 0.013321,
+              "min": 0.074638,
+              "max": 0.109545
+            },
+            "median_lead_days": null,
+            "wallets": 550,
+            "payments": 141148
+          },
+          "officer_q1.0": {
+            "wallets_warned": {
+              "mean": 112,
+              "sd": 8.6,
+              "min": 102,
+              "max": 123
+            },
+            "payments_after_warning": {
+              "mean": 30872.8,
+              "sd": 4218.5,
+              "min": 26664,
+              "max": 37364
+            },
+            "payments_source_warned": {
+              "mean": 11235,
+              "sd": 1279.1,
+              "min": 9926,
+              "max": 12900
+            },
+            "payments_held": {
+              "mean": 11235,
+              "sd": 1279.1,
+              "min": 9926,
+              "max": 12900
+            },
+            "wallets_with_any_hold": {
+              "mean": 109.4,
+              "sd": 8.8,
+              "min": 98,
+              "max": 120
+            },
+            "payment_hold_rate": {
+              "mean": 0.079597,
+              "sd": 0.009062,
+              "min": 0.070323,
+              "max": 0.091393
+            },
+            "median_lead_days": null,
+            "wallets": 550,
+            "payments": 141148
+          }
+        },
+        "0.01": {
+          "no_officer": {
+            "wallets_warned": {
+              "mean": 335.2,
+              "sd": 1.2,
+              "min": 334,
+              "max": 337
+            },
+            "payments_after_warning": {
+              "mean": 105560.4,
+              "sd": 903.4,
+              "min": 104602,
+              "max": 106904
+            },
+            "payments_source_warned": {
+              "mean": 101742.8,
+              "sd": 1055.1,
+              "min": 100546,
+              "max": 103116
+            },
+            "payments_held": {
+              "mean": 101742.8,
+              "sd": 1055.1,
+              "min": 100546,
+              "max": 103116
+            },
+            "wallets_with_any_hold": {
+              "mean": 325,
+              "sd": 2.3,
+              "min": 321,
+              "max": 328
+            },
+            "payment_hold_rate": {
+              "mean": 0.720823,
+              "sd": 0.007475,
+              "min": 0.712344,
+              "max": 0.730552
+            },
+            "median_lead_days": null,
+            "wallets": 550,
+            "payments": 141148
+          },
+          "officer_q0.9": {
+            "wallets_warned": {
+              "mean": 335.2,
+              "sd": 1.2,
+              "min": 334,
+              "max": 337
+            },
+            "payments_after_warning": {
+              "mean": 105560.4,
+              "sd": 903.4,
+              "min": 104602,
+              "max": 106904
+            },
+            "payments_source_warned": {
+              "mean": 61493.2,
+              "sd": 1942.8,
+              "min": 58814,
+              "max": 64466
+            },
+            "payments_held": {
+              "mean": 61493.2,
+              "sd": 1942.8,
+              "min": 58814,
+              "max": 64466
+            },
+            "wallets_with_any_hold": {
+              "mean": 325,
+              "sd": 2.3,
+              "min": 321,
+              "max": 328
+            },
+            "payment_hold_rate": {
+              "mean": 0.435665,
+              "sd": 0.013764,
+              "min": 0.416683,
+              "max": 0.456726
+            },
+            "median_lead_days": null,
+            "wallets": 550,
+            "payments": 141148
+          },
+          "officer_q1.0": {
+            "wallets_warned": {
+              "mean": 335.2,
+              "sd": 1.2,
+              "min": 334,
+              "max": 337
+            },
+            "payments_after_warning": {
+              "mean": 105560.4,
+              "sd": 903.4,
+              "min": 104602,
+              "max": 106904
+            },
+            "payments_source_warned": {
+              "mean": 48211.2,
+              "sd": 966.0,
+              "min": 46638,
+              "max": 49677
+            },
+            "payments_held": {
+              "mean": 48211.2,
+              "sd": 966.0,
+              "min": 46638,
+              "max": 49677
+            },
+            "wallets_with_any_hold": {
+              "mean": 325,
+              "sd": 2.3,
+              "min": 321,
+              "max": 328
+            },
+            "payment_hold_rate": {
+              "mean": 0.341565,
+              "sd": 0.006844,
+              "min": 0.330419,
+              "max": 0.35195
+            },
+            "median_lead_days": null,
+            "wallets": 550,
+            "payments": 141148
+          }
+        }
+      }
+    }
+  }
+}
