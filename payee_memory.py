@@ -9,7 +9,9 @@ Evidence about a wallet:
 - Customer reports decay with a half-life (default 7 days; the build plan's 6 h was too short
   for wallets that collect for ~4 months). One fresh report is enough to hold.
 - An officer's "confirmed" pins the wallet with no decay; "cleared" drops everything before it.
-  The latest officer outcome wins.
+  The latest officer outcome wins. Outcomes carry a real/modelled kind (a scripted demo or replay
+  officer is modelled) and the reason code the officer picked; outcome_for() maps the officer
+  console's decision + reason to "confirmed", "cleared" or nothing.
 - Tether freezes of the wallet itself never decay (they are facts). Counterparty freezes are
   looked up by the engine through frozen_before().
 
@@ -41,6 +43,40 @@ class OfficerOutcome:
     outcome: str  # "cleared" or "confirmed"
     ts: int
     officer_id: str = ""
+    kind: str = "real"  # "modelled" for a scripted officer (demo, replay)
+    reason: str = ""  # a REASON_CODES key, from the officer console
+
+
+# The officer console's reason codes (UI v2 wireframe), in display order.
+REASON_CODES = {
+    "confirmed_impersonation": "Confirmed scam: police or official impersonation",
+    "confirmed_investment_romance": "Confirmed scam: investment or romance",
+    "unsure_cancelled": "Customer unsure, cancelled to be safe",
+    "genuine_known_recipient": "Genuine payment: customer knows the recipient",
+    "genuine_own_wallet": "Genuine payment: customer's own wallet",
+    "other": "Other (note required)",
+}
+DECISIONS = ("cancel", "release", "keep")
+
+
+def outcome_for(decision, reason):
+    """What an officer's decision on one payment tells payee memory about the wallet:
+    "confirmed" (pins it for every customer), "cleared" (ends its holds) or None (this payment only).
+    Raises ValueError on unknown values and on contradictions such as releasing a confirmed scam."""
+    if decision not in DECISIONS:
+        raise ValueError(f"unknown decision {decision!r}")
+    if reason not in REASON_CODES:
+        raise ValueError(f"unknown reason {reason!r}")
+    scam, genuine = reason.startswith("confirmed_"), reason.startswith("genuine_")
+    if decision == "release" and scam:
+        raise ValueError("can't release a payment with a confirmed-scam reason")
+    if decision == "cancel" and genuine:
+        raise ValueError("a genuine payment is released or kept, not cancelled")
+    if decision == "cancel" and scam:
+        return "confirmed"
+    if decision == "release" and genuine:
+        return "cleared"
+    return None  # unsure, other, keep on hold, or a release without a genuine reason: no change to the wallet
 
 
 @dataclass(frozen=True)
@@ -68,11 +104,16 @@ class PayeeMemory:
         self.db.executescript("""
             CREATE TABLE IF NOT EXISTS paid (customer TEXT, wallet TEXT, ts INTEGER, PRIMARY KEY (customer, wallet));
             CREATE TABLE IF NOT EXISTS reports (wallet TEXT, ts INTEGER, source TEXT, kind TEXT, actor TEXT, note TEXT);
-            CREATE TABLE IF NOT EXISTS outcomes (wallet TEXT, ts INTEGER, outcome TEXT, officer TEXT);
+            CREATE TABLE IF NOT EXISTS outcomes (wallet TEXT, ts INTEGER, outcome TEXT, officer TEXT,
+                                                 kind TEXT DEFAULT 'real', reason TEXT DEFAULT '');
             CREATE TABLE IF NOT EXISTS freezes (wallet TEXT PRIMARY KEY, ts INTEGER);
             CREATE INDEX IF NOT EXISTS reports_wallet ON reports (wallet, ts);
             CREATE INDEX IF NOT EXISTS outcomes_wallet ON outcomes (wallet, ts);
         """)
+        cols = {row[1] for row in self.db.execute("PRAGMA table_info(outcomes)")}
+        for col in ("kind TEXT DEFAULT 'real'", "reason TEXT DEFAULT ''"):  # files made before outcomes had them
+            if col.split()[0] not in cols:
+                self.db.execute(f"ALTER TABLE outcomes ADD COLUMN {col}")
 
     # --- customer's own payees (#3) ---
     def paid_before(self, customer_id, wallet, now):
@@ -91,8 +132,10 @@ class PayeeMemory:
         elif isinstance(event, OfficerOutcome):
             if event.outcome not in ("cleared", "confirmed"):
                 raise ValueError(f"unknown officer outcome {event.outcome!r}")
-            self.db.execute("INSERT INTO outcomes VALUES (?, ?, ?, ?)",
-                            (event.wallet, event.ts, event.outcome, event.officer_id))
+            if event.reason and event.reason not in REASON_CODES:
+                raise ValueError(f"unknown reason {event.reason!r}")
+            self.db.execute("INSERT INTO outcomes (wallet, ts, outcome, officer, kind, reason) VALUES (?, ?, ?, ?, ?, ?)",
+                            (event.wallet, event.ts, event.outcome, event.officer_id, event.kind, event.reason))
         elif isinstance(event, Freeze):  # earliest freeze per wallet, as in snapshot.py
             self.db.execute("INSERT INTO freezes VALUES (?, ?) ON CONFLICT (wallet) DO UPDATE "
                             "SET ts = min(ts, excluded.ts)", (event.wallet, event.ts))
@@ -116,10 +159,10 @@ class PayeeMemory:
     def evidence(self, wallet, now):
         """Evidence strong enough to hold a withdrawal to `wallet` at `now`."""
         out = []
-        last = self.db.execute("SELECT ts, outcome, officer FROM outcomes WHERE wallet = ? AND ts < ? "
+        last = self.db.execute("SELECT ts, outcome, officer, kind FROM outcomes WHERE wallet = ? AND ts < ? "
                                "ORDER BY ts DESC, rowid DESC LIMIT 1", (wallet, now)).fetchone()
         if last and last[1] == "confirmed":
-            out.append(Evidence("officer_confirmed", "officer", "real",
+            out.append(Evidence("officer_confirmed", "officer", last[3],
                                 "A fraud officer confirmed this wallet as a scam.", 1.0))
         since = last[0] if last and last[1] == "cleared" else -1
         # Reports older than 20 half-lives weigh < 1e-6 each, so they can't decide a hold; skipping them
@@ -191,11 +234,41 @@ def _self_check():
     m.add(OfficerOutcome("0xf", "cleared", 60))
     assert m.evidence("0xf", 61) == [], "an officer can clear a frozen wallet too"
 
+    m.add(OfficerOutcome("0xdemo", "confirmed", 5, "demo officer", kind="modelled", reason="confirmed_impersonation"))
+    [e] = m.evidence("0xdemo", 6)
+    assert e.signal == "officer_confirmed" and e.kind == "modelled", "a scripted officer stays modelled"
+    assert m.evidence("0xw", 900 * DAY)[0].kind == "real", "officers are real by default"
+    try:
+        m.add(OfficerOutcome("0xdemo", "confirmed", 7, reason="made_up"))
+        raise AssertionError("unknown reason accepted")
+    except ValueError:
+        pass
+
+    assert outcome_for("cancel", "confirmed_impersonation") == "confirmed"
+    assert outcome_for("cancel", "confirmed_investment_romance") == "confirmed"
+    assert outcome_for("release", "genuine_known_recipient") == "cleared"
+    assert outcome_for("release", "genuine_own_wallet") == "cleared"
+    assert outcome_for("cancel", "unsure_cancelled") is None, "unsure cancels this payment only"
+    assert outcome_for("cancel", "other") is None and outcome_for("release", "other") is None
+    assert all(outcome_for("keep", r) is None for r in REASON_CODES), "keep on hold changes nothing"
+    for bad in (("release", "confirmed_impersonation"), ("cancel", "genuine_own_wallet"),
+                ("approve", "other"), ("cancel", "nope")):
+        try:
+            outcome_for(*bad)
+            raise AssertionError(f"accepted {bad}")
+        except ValueError:
+            pass
+
     fz = load_freezes()
     assert fz and all(a.startswith("0x") for a, _ in fz)
     with tempfile.TemporaryDirectory() as d:  # the SQLite file survives a restart
         PayeeMemory(Path(d) / "m.sqlite").add(Report("0xp", 1))
         assert PayeeMemory(Path(d) / "m.sqlite").evidence("0xp", 2)
+        old = sqlite3.connect(str(Path(d) / "old.sqlite"))  # a file from before outcomes had kind/reason
+        old.execute("CREATE TABLE outcomes (wallet TEXT, ts INTEGER, outcome TEXT, officer TEXT)")
+        old.execute("INSERT INTO outcomes VALUES ('0xo', 1, 'confirmed', 'x')")
+        old.commit(); old.close()
+        assert PayeeMemory(Path(d) / "old.sqlite").evidence("0xo", 2)[0].kind == "real", "old files migrate"
     import threading
     m = PayeeMemory()
     t = threading.Thread(target=lambda: m.add(Report("0xt", 1)))

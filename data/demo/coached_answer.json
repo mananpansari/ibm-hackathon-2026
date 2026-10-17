@@ -1,0 +1,13 @@
+{
+ "note": "The demo's scripted answer from customer 1 (modelled): what a coached victim of a police-impersonation scam would pick.",
+ "answer": {
+  "why": "officer",
+  "how": "phone",
+  "asked": [
+   "secret",
+   "act_fast",
+   "safe_wallet"
+  ],
+  "text": "The police officer on the phone said my account is linked to a crime and I must move my savings to this safe wallet."
+ }
+}
