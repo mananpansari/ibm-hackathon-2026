@@ -30,7 +30,7 @@ GRANITE_URL = os.environ.get("GRANITE_URL", "http://127.0.0.1:8080")
 if urllib.parse.urlparse(GRANITE_URL).hostname not in ("127.0.0.1", "localhost", "::1"):
     raise SystemExit("GRANITE_URL must be on this machine: customer answers never leave it")
 GRANITE_GGUF = os.environ.get("GRANITE_GGUF")
-TIMEOUT_S = 2.0
+TIMEOUT_S = float(os.environ.get("GRANITE_TIMEOUT_S", 2.0))  # the product limit; eval may raise it to measure Granite itself
 RETRY_AFTER_S = 60  # after a failure, skip Granite this long so every request doesn't pay the timeout
 _down_until = 0.0
 _llm, _worker = None, ThreadPoolExecutor(1)  # one worker: llama.cpp is not thread-safe
