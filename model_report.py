@@ -109,6 +109,17 @@ def card(pos, comps, engine_flag):
 
 # ---------- scoring the test set ----------
 
+def load_v2(folder):
+    """A v2 candidate (train_v2.py): XGBoost only, on features_v2. Returns (scorers, feature fn, names, meta)."""
+    from xgboost import XGBClassifier
+    from features_v2 import features_v2
+    d = Path(folder)
+    meta = json.loads((d / "meta.json").read_text())
+    m = XGBClassifier()
+    m.load_model(d / "xgb.json")
+    return {"xgb": lambda x: m.predict_proba(x)[:, 1]}, features_v2, meta["features"], meta
+
+
 def load_models(folder):
     import model
     if folder:
@@ -134,7 +145,7 @@ def scorers(model, models):
     return out
 
 
-def feature_points(hs, bad, frozen_at, ofac):
+def feature_points(hs, bad, frozen_at, ofac, feature_fn=F.features, names=F.FEATURES):
     """{group: [(address, ts list, feature matrix, freeze_ts)]}, one row per inbound payment >= 10 USDT."""
     import numpy as np
     out = {}
@@ -146,7 +157,7 @@ def feature_points(hs, bad, frozen_at, ofac):
             pays = inbound(h)
             if not pays:
                 continue  # can never be flagged: left out, as in Result 1
-            X = np.array([[float(F.features(h, t["ts"], bad, frozen_at)[k]) for k in F.FEATURES] for t in pays],
+            X = np.array([[float(feature_fn(h, t["ts"], bad, frozen_at)[k]) for k in names] for t in pays],
                          dtype=np.float32)
             rows.append((h["address"], [t["ts"] for t in pays], X, h.get("freeze_ts")))
         out[g] = rows
@@ -176,21 +187,33 @@ def run(folder, label, save):
     import numpy as np
     from engine import Config
     t0 = time.time()
-    model, models = load_models(folder)
+    v2 = bool(folder) and json.loads((Path(folder) / "meta.json").read_text()).get("feature_set") == "v2"
     train = {r["address"] for r in csv.DictReader(open(F.DATA / "features.csv")) if r["group"].startswith("train")}
+    v2_points = F.DATA / "model_v2" / "train_points.csv.gz"
+    if v2_points.exists():
+        import gzip
+        train |= {r["wallet"] for r in csv.DictReader(gzip.open(v2_points, "rt"))}
     hs, bad, frozen_at, ofac = load()
     assert not {h["address"] for g in hs.values() for h in g} & train, "test wallets in the training rows: stop"
-    pts = feature_points(hs, bad, frozen_at, ofac)
-    one = pts["test_pos"][0]  # batch scoring == model.score() on the same features
-    assert abs(float(scorers(model, models)[list(scorers(model, models))[-1]](one[2][:1])[0])
-               - model.score(dict(zip(F.FEATURES, map(float, one[2][0]))))) < 1e-5
-    meta = json.loads(model.META.read_text()) if model.META.exists() else {}
+    if v2:
+        score_fns, feature_fn, names, meta = load_v2(folder)
+        pts = feature_points(hs, bad, frozen_at, ofac, feature_fn, names)
+        files = [Path(folder) / "xgb.json"]
+    else:
+        model, models = load_models(folder)
+        score_fns = scorers(model, models)
+        pts = feature_points(hs, bad, frozen_at, ofac)
+        one = pts["test_pos"][0]  # batch scoring == model.score() on the same features
+        assert abs(float(score_fns[list(score_fns)[-1]](one[2][:1])[0])
+                   - model.score(dict(zip(F.FEATURES, map(float, one[2][0]))))) < 1e-5
+        meta = json.loads(model.META.read_text()) if model.META.exists() else {}
+        files = [model.XGB, model.MLP]
     entry = {"when": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "label": label,
-             "commit": git_commit(), "models": file_hash([model.XGB, model.MLP]),
-             "validation_auc_train_period": meta.get("validation_auc"),
+             "commit": git_commit(), "models": file_hash(files),
+             "validation_auc_train_period": meta.get("validation_auc") or meta.get("cv"),
              "positives": len(pts["test_pos"]), "positive_payments": sum(len(r[1]) for r in pts["test_pos"]),
              "scores": {}}
-    for name, f in scorers(model, models).items():
+    for name, f in score_fns.items():
         sc = lambda rows: [list(map(float, f(X))) for _, _, X, _ in rows]
         pos = [(ts, s, fz) for (_, ts, _, fz), s in zip(pts["test_pos"], sc(pts["test_pos"]))]
         entry["scores"][name] = card(pos, {b: sc(pts[b]) for b in BASES}, Config().model_flag)
