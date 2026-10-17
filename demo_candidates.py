@@ -16,6 +16,7 @@ wallet through the engine (as #10 does) and is what the narration quotes. The es
     python demo_candidates.py                 # ranked table
     python demo_candidates.py --export 3      # also write data/demo/<address>.json for the top 3
     python demo_candidates.py --numbers 0x74f6...  # engine replay -> data/demo/narration_numbers.json
+                                                   # (incl. ui_v2_spine: Mrs Tan as payment 2, the app's path)
 """
 import argparse
 import csv
@@ -179,6 +180,55 @@ def engine_numbers(h):
     return out
 
 
+TAN_STEP = 2  # UI v2 spine: Mrs Tan is the 78,000 USDT payment, which the engine itself asks about
+
+
+def spine_numbers(h, tan_step=TAN_STEP):
+    """The UI v2 demo spine through the engine exactly as the app runs it (answers.StructuredClassifier):
+    every payment is its own customer (exchange hot wallets carry many customers' withdrawals), Mrs Tan
+    is payment `tan_step`. Her structured answer (data/demo/coached_answer.json) and an officer's
+    confirmation a day after her hold are scripted, so modelled. The tier before her answer is the
+    engine's own: no scripted question."""
+    import tempfile
+    import granite
+    from answers import StructuredClassifier
+    from decision_log import DecisionLog
+    from engine import Engine, Withdrawal
+    from payee_memory import OfficerOutcome, PayeeMemory, load_freezes
+
+    answer = json.loads((DATA / "demo" / "coached_answer.json").read_text())["answer"]
+    pays = payments(h)
+    out = {}
+    for name, confirm in (("officer_confirms", True), ("answer_only", False)):
+        clock = {"now": 0}
+        memory = PayeeMemory()
+        memory.add_freezes(load_freezes())
+        eng = Engine(lambda w, as_of: {**h, "freeze_ts": None, "transfers": [t for t in h["transfers"] if t["ts"] < as_of]},
+                     memory, lambda: clock["now"], DecisionLog(Path(tempfile.mkdtemp()) / "log.jsonl"),
+                     classifier=StructuredClassifier(granite))
+        tiers, before = [], None
+        for i, t in enumerate(pays, 1):
+            clock["now"] = t["ts"]
+            w = Withdrawal("mrs-tan" if i == tan_step else f"customer-{i}", h["address"], t["usdt"], t["ts"])
+            d = eng.decide(w)
+            if i == tan_step:
+                before = d.tier
+                d = eng.decide(w, answer, "modelled")
+                if confirm and d.tier == "hold":
+                    eng.record(OfficerOutcome(h["address"], "confirmed", t["ts"] + DAY, "demo officer (scripted)",
+                                              kind="modelled", reason="confirmed_impersonation"))
+            tiers.append(d.tier)
+        held = [i for i, tier in enumerate(tiers) if tier == "hold"]
+        after = [i for i in held if i >= tan_step]
+        out[name] = {"tiers": tiers, "payments_held": len(held), "usdt_held": round(sum(pays[i]["usdt"] for i in held), 2),
+                     "held_after_tan": len(after), "usdt_held_after_tan": round(sum(pays[i]["usdt"] for i in after), 2)}
+    t = pays[tan_step - 1]
+    return {"tan_step": tan_step, "tan_usdt": t["usdt"], "tan_time": iso(t["ts"]), "tan_tier_before_answer": before,
+            "days_tan_to_freeze": round((h["freeze_ts"] - t["ts"]) / DAY, 1),
+            "days_tan_to_last_payment": round((pays[-1]["ts"] - t["ts"]) / DAY, 1),
+            "n_senders_after_tan": len({p["from"] for p in pays[tan_step:]}), **out}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--export", type=int, default=0, help="write data/demo/<address>.json for the top N")
@@ -190,7 +240,7 @@ def main():
         h = next(h for h in hists if h["address"] == args.numbers.lower())
         nums = {"address": h["address"], "source": "demo_candidates.py --numbers (engine via replay.replay_wallet)",
                 "modelled": "customer 1's confirming answer and the officer's confirmation are scripted, not measured",
-                **engine_numbers(h)}
+                **engine_numbers(h), "ui_v2_spine": spine_numbers(h)}
         path = DATA / "demo" / "narration_numbers.json"
         path.write_text(json.dumps(nums, indent=1) + "\n")
         print(json.dumps(nums, indent=1))

@@ -64,5 +64,56 @@
   "usdt_held": 0,
   "first_held_step": null,
   "days_first_hold_to_freeze": null
+ },
+ "ui_v2_spine": {
+  "tan_step": 2,
+  "tan_usdt": 78000.0,
+  "tan_time": "2026-05-12 13:46 UTC",
+  "tan_tier_before_answer": "question",
+  "days_tan_to_freeze": 85.0,
+  "days_tan_to_last_payment": 79.3,
+  "n_senders_after_tan": 8,
+  "officer_confirms": {
+   "tiers": [
+    "warning",
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "hold",
+    "hold"
+   ],
+   "payments_held": 12,
+   "usdt_held": 120228.96,
+   "held_after_tan": 11,
+   "usdt_held_after_tan": 42228.96
+  },
+  "answer_only": {
+   "tiers": [
+    "warning",
+    "hold",
+    "hold",
+    "hold",
+    "warning",
+    "warning",
+    "question",
+    "warning",
+    "warning",
+    "question",
+    "question",
+    "question",
+    "question"
+   ],
+   "payments_held": 3,
+   "usdt_held": 80911.05,
+   "held_after_tan": 2,
+   "usdt_held_after_tan": 2911.05
+  }
  }
 }
