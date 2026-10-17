@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fraud queue</title>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js" integrity="sha384-IWROdLKRsN1UuJywMlWl7/blXQ8GEooN2n7dzTxfEPd7ybYIKCUJ2Ol/1Gpf3YV4" crossorigin="anonymous"></script>
+<style>
+  :root { --bg: #fff; --fg: #1a1a1a; --muted: #666; --line: #ccc; --card: #f7f7f7; --hold: #b3261e; --warn: #b26a00; --ok: #2e7d32; --q: #6a1b9a; }
+  body { font: 15px/1.45 system-ui, sans-serif; margin: 0; color: var(--fg); background: var(--bg); }
+  header { padding: .75rem 1rem; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
+  header h1 { font-size: 1.5rem; margin: 0 1rem 0 0; }
+  main { display: grid; grid-template-columns: minmax(18rem, 1fr) 2fr; gap: 1rem; padding: 1rem; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid var(--line); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover, tbody tr.sel { background: var(--card); }
+  .mono { font-family: ui-monospace, monospace; font-size: .85em; word-break: break-all; }
+  .muted { color: var(--muted); }
+  section.card { background: var(--card); border-radius: 6px; padding: .75rem 1rem; margin-bottom: 1rem; }
+  h2 { font-size: 1.2rem; margin: 0 0 .5rem; }
+  .tag { display: inline-block; font-size: .75em; padding: 0 .4em; border-radius: 3px; border: 1px solid currentColor; margin-left: .3em; }
+  .real { color: var(--ok); } .modelled { color: var(--q); }
+  #graph { height: 22rem; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+  button { font: inherit; padding: .35rem .8rem; cursor: pointer; }
+  input { font: inherit; padding: .3rem .5rem; }
+  .freeze { color: var(--hold); font-weight: 600; }
+  #live-out { margin-left: .5rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fraud queue</h1>
+  <span>Demo:</span>
+  <button id="reset">Reset</button>
+  <button id="next">Next payment</button>
+  <button id="play">Play</button>
+  <span id="demo-status" class="muted"></span>
+  <form id="live" style="display:flex;gap:.4rem;align-items:center;margin-left:auto">
+    <label for="live-wallet">Live check</label>
+    <input id="live-wallet" placeholder="0x… any wallet" pattern="0x[0-9a-fA-F]{40}" required size="44" spellcheck="false">
+    <button>Score</button>
+    <span id="live-out" role="status"></span>
+  </form>
+</header>
+<main>
+  <div>
+    <h2>Held withdrawals <span class="muted">(largest expected loss first)</span></h2>
+    <table>
+      <thead><tr><th>Customer</th><th>Wallet</th><th class="num">USDT</th><th class="num">Exp. loss</th></tr></thead>
+      <tbody id="queue"><tr><td colspan="4" class="muted">Nothing held.</td></tr></tbody>
+    </table>
+  </div>
+  <div id="case"><p class="muted">Select a held withdrawal to see its why-card.</p></div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
+const date = (ts) => new Date(ts * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
+const short = (a) => a.slice(0, 8) + "…" + a.slice(-6);
+const TIER_COLOR = { hold: "#b3261e", question: "#6a1b9a", warning: "#b26a00", release: "#2e7d32" };
+let selected = null, cy = null, playing = null;
+
+async function api(url, body) {
+  const r = await fetch(url, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function refresh() {
+  const q = await api("/queue");
+  const tb = $("queue");
+  tb.replaceChildren();
+  if (!q.length) { const tr = el("tr"); const td = el("td", "Nothing held.", "muted"); td.colSpan = 4; tr.append(td); tb.append(tr); }
+  for (const r of q) {
+    const tr = el("tr");
+    if (r.id === selected) tr.className = "sel";
+    tr.append(el("td", r.customer), el("td", short(r.wallet), "mono"), el("td", r.amount.toLocaleString(), "num"), el("td", r.expected_loss.toLocaleString(undefined, { maximumFractionDigits: 0 }), "num"));
+    tr.addEventListener("click", () => { selected = r.id; refresh(); });
+    tb.append(tr);
+  }
+  if (selected == null && q.length) selected = q[0].id;
+  if (selected != null) await showCase(selected);
+}
+
+async function showCase(id) {
+  let c;
+  try { c = await api("/case/" + id); } catch { return; }
+  const w = c.withdrawal, d = c.decision, box = $("case");
+  box.replaceChildren();
+
+  const card = el("section", null, "card");
+  card.append(el("h2", `Why-card: ${w.customer} → ${short(w.wallet)}`));
+  card.append(el("p", `${w.amount.toLocaleString()} USDT at ${date(w.time)} · tier ${d.tier} · expected loss ${d.expected_loss.toLocaleString(undefined, { maximumFractionDigits: 0 })} · engine ${d.engine_version}`, "muted"));
+  card.append(el("div", w.wallet, "mono"));
+
+  card.append(el("h2", "Signals that fired"));
+  const ul = el("ul");
+  for (const r of d.reasons) {
+    const li = el("li", r.detail + " ");
+    li.append(el("span", r.source, "muted"), el("span", r.kind, "tag " + r.kind));
+    ul.append(li);
+  }
+  card.append(ul);
+
+  card.append(el("h2", "Customer's answer"));
+  if (c.answer) {
+    const p = el("p", "“" + c.answer + "”");
+    if (c.modelled_answer) p.append(el("span", "modelled (demo script)", "tag modelled"));
+    card.append(p);
+  } else card.append(el("p", "No question was asked.", "muted"));
+
+  card.append(el("h2", "Earlier warnings on this wallet"));
+  if (c.prior_warnings.length) {
+    const pw = el("ul");
+    for (const m of c.prior_warnings) { const li = el("li", m.detail + " "); li.append(el("span", m.source.replace(/_/g, " "), "muted"), el("span", m.kind, "tag " + m.kind)); pw.append(li); }
+    card.append(pw);
+  } else card.append(el("p", "None before this withdrawal.", "muted"));
+
+  if (c.tether_froze_at) {
+    const days = Math.round((c.tether_froze_at - w.time) / 86400);
+    card.append(el("p", days > 0 ? `Tether froze this wallet on ${date(c.tether_froze_at)}, ${days} days after this withdrawal.`
+                                 : `Tether froze this wallet on ${date(c.tether_froze_at)}.`, "freeze"));
+  }
+
+  const act = el("p");
+  const clear = el("button", "Mark wallet cleared"), conf = el("button", "Confirm scam");
+  clear.onclick = () => outcome(w.wallet, "cleared");
+  conf.onclick = () => outcome(w.wallet, "confirmed");
+  act.append(clear, " ", conf);
+  card.append(act);
+  box.append(card);
+
+  const g = el("section", null, "card");
+  g.append(el("h2", "Everyone who paid or tried to pay this wallet"), el("div", null));
+  g.lastChild.id = "graph";
+  box.append(g);
+  drawGraph(w.wallet, c.payers);
+}
+
+function drawGraph(wallet, payers) {
+  const els = [{ data: { id: wallet, label: short(wallet), wallet: 1 } }];
+  const last = new Map(payers.map((p) => [p.customer, p]));  // latest attempt per customer labels the node
+  for (const [c, p] of last) els.push({ data: { id: "c:" + c, label: `${c} · ${Math.round(p.amount)} USDT · ${p.tier}` } });
+  payers.forEach((p, i) => {
+    els.push({ data: { id: "e" + i, source: "c:" + p.customer, target: wallet, color: TIER_COLOR[p.tier] || "#888" } });
+  });
+  if (cy) cy.destroy();
+  cy = cytoscape({
+    container: $("graph"), elements: els, userZoomingEnabled: false,
+    layout: { name: "concentric", concentric: (n) => (n.data("wallet") ? 2 : 1), levelWidth: () => 1, minNodeSpacing: 60 },
+    style: [
+      { selector: "node", style: { label: "data(label)", "font-size": 10, "background-color": "#607d8b", width: 18, height: 18 } },
+      { selector: "node[wallet]", style: { "background-color": "#b3261e", width: 30, height: 30, "font-weight": "bold", "text-valign": "bottom", "text-margin-y": 6 } },
+      { selector: "edge", style: { "line-color": "data(color)", "target-arrow-color": "data(color)", "target-arrow-shape": "triangle", "curve-style": "bezier", width: 2 } },
+    ],
+  });
+}
+
+async function outcome(wallet, o) {
+  await api("/outcome", { wallet, outcome: o });
+  selected = null;
+  refresh();
+}
+
+async function step() {
+  const s = await api("/demo/next", {});
+  if (s.done) { stop(); $("demo-status").textContent = `Replay finished. Tether froze the wallet on ${date(s.tether_froze_at)}.`; return; }
+  $("demo-status").textContent = `Payment ${s.step}: ${s.withdrawal.customer}, ${Math.round(s.withdrawal.amount)} USDT, ${date(s.withdrawal.time)} → ${s.decision.tier}`;
+  if (s.officer_confirmed) $("demo-status").textContent += ". An officer called back and confirmed the scam (scripted, modelled): every later payment is held.";
+  if (s.decision.tier === "hold") selected = s.decision.id;
+  await refresh();
+}
+function stop() { clearInterval(playing); playing = null; $("play").textContent = "Play"; }
+
+$("reset").onclick = async () => { stop(); const r = await api("/demo/reset", {}); selected = null; $("demo-status").textContent = `Demo wallet ${short(r.wallet)} reset.`; refresh(); };
+$("next").onclick = step;
+$("play").onclick = () => { if (playing) return stop(); $("play").textContent = "Pause"; playing = setInterval(step, 1500); step(); };
+$("live").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("live-out").textContent = "checking…";
+  try {
+    const d = await api("/live", { wallet: $("live-wallet").value.trim() });
+    $("live-out").textContent = `${d.tier} (history: ${d.history_source}) · ${d.reasons.map((r) => r.detail).join(" ")}`;
+    refresh();
+  } catch { $("live-out").textContent = "couldn't score that address"; }
+});
+
+refresh().catch(() => {});
+setInterval(() => { if (!playing) refresh().catch(() => {}); }, 3000);  // server restarts are fine
+</script>
+</body>
+</html>
