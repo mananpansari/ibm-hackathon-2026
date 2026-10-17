@@ -52,18 +52,20 @@ Payment 1 = 150 USDT, 2026-05-12 13:36 UTC, sender nonce 619,422 (exchange hot w
 `{{decide_p50_ms}}`: Result 4 (`bench.py`, #15). Question text: build-plan.md §7.
 
 **Beat 3: the answer confirms the script.**
-> She answers: "The police officer said my account is linked to a crime." That confirms the script, and the wallet goes into the shared payee memory. [On screen: "modelled answer".]
+> She answers: "The police officer said my account is linked to a crime." That matches a scam script, so her payment is held for a call-back, and the wallet goes into the shared payee memory. [On screen: "modelled answer".]
 
-The answer is scripted (`COACHED` in D's `app.py`) and is labelled modelled.
+The answer is scripted (`COACHED` in D's `app.py`) and is labelled modelled. Holding payment 1 itself comes from the question tier (#7), which the #10 replay doesn't include yet: in `narration_numbers.json` payment 1 is `warning` and the holds start at payment 2. So no number below counts payment 1.
 
 **Beat 4: the next payments are held.**
-> Ten minutes later, 78,000 USDT goes to the same wallet. It's held for a call-back, because of the first answer. The memory is shared, so it protects every customer of the bank, not just her.
+> Ten minutes later, 78,000 USDT goes to the same wallet. It's held too, because of that warning. The memory is shared, so it protects every customer of the bank, not just her.
 >
-> The officer calls back and confirms the scam, so the wallet stays held. [Replay continues.] It kept collecting for 79 more days: 12 more payments, 120,229 USDT, from 9 senders. The engine holds all 12.
+> An officer calls back and confirms the scam. A confirmed wallet never fades. [Replay continues.] It kept collecting for 79 more days: 12 more payments, 120,229 USDT, from 9 senders. The engine holds all 12 once an officer confirms. [On screen: "officer confirmation modelled".]
 
 Engine (`narration_numbers.json`, `officer_confirms`, through `replay.replay_wallet(officer=…)` with #10's one-day officer delay): tiers `warning` then 12 × `hold`; 12 payments held, 120,228.96 USDT. The confirmation lands a day after payment 2 and payment 4 is 10.7 days later, so the delay changes nothing here. Snapshot: payment 2 = 78,000 USDT at 13:46 UTC; last payment 2026-07-30, 79.3 days after payment 1.
 
-**If D's demo has no officer confirmation step**, use this line instead: "The next two payments, 78,010 USDT, are held. Without an officer's confirmation the warning fades after a week, and the later payments go through." (`answer_only`: 2 held, 78,010 USDT). This is a real limit, and worth saying if it's what the screen shows.
+D confirmed (17 Oct) that the demo includes the officer step, in this order: customer 1's answer → held; the next payment held by that warning; officer confirms; every later payment held up to the freeze. Both customer 1's answer and the officer's confirmation are scripted, so both are labelled modelled.
+
+Limits line (one sentence, results or limits slide): "Without a confirmation, a single warning fades after about a week." Source: `answer_only` in `narration_numbers.json` (2 held, then payment 4, 10.7 days later, goes through); 7-day half-life in `payee_memory.py`.
 
 Payments 1 and 2 come from the **same** exchange hot wallet, so payment 2 may be Mrs Tan's own second payment. Say "the next payment", not "the next victim". Payment 3 (10 USDT, from a different exchange, 12 minutes later) is the first from another sender.
 
