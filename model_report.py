@@ -9,6 +9,7 @@ new model is always judged on the same yardstick as the one it would replace.
     python model_report.py --models DIR --label "name"    # a candidate in DIR (xgb.json, mlp.keras, meta.json)
     python model_report.py --no-save                      # print only
     python model_report.py check                          # self-check of the metrics (no model needed)
+    --workers N                                           # feature processes (default: all CPUs, ~3x faster on the VM)
 
 Needs xgboost (and keras + tensorflow for the MLP): run it in the LinuxONE lab container, where the
 models were trained. A copy there has no .git, so pass the commit and host:
@@ -145,22 +146,36 @@ def scorers(model, models):
     return out
 
 
-def feature_points(hs, bad, frozen_at, ofac, feature_fn=F.features, names=F.FEATURES):
-    """{group: [(address, ts list, feature matrix, freeze_ts)]}, one row per inbound payment >= 10 USDT."""
+_ctx = {}  # what worker processes need: set before the pool forks
+
+
+def _wallet_rows(h):
+    """One wallet's (address, ts list, feature matrix, freeze_ts), or None if it has no payment to score."""
     import numpy as np
+    feature_fn, names, bad, frozen_at = _ctx["fn"], _ctx["names"], _ctx["bad"], _ctx["frozen_at"]
+    pays = inbound(h)
+    if not pays:
+        return None  # can never be flagged: left out, as in Result 1
+    X = np.array([[float(feature_fn(h, t["ts"], bad, frozen_at)[k]) for k in names] for t in pays], dtype=np.float32)
+    return h["address"], [t["ts"] for t in pays], X, h.get("freeze_ts")
+
+
+def feature_points(hs, bad, frozen_at, ofac, feature_fn=F.features, names=F.FEATURES, workers=1):
+    """{group: [(address, ts list, feature matrix, freeze_ts)]}, one row per inbound payment >= 10 USDT.
+    workers > 1 computes wallets in parallel processes (same rows, same order); scoring stays in this one."""
+    import multiprocessing as mp
+    _ctx.update(fn=feature_fn, names=names, bad=bad, frozen_at=frozen_at)
     out = {}
-    for g, wallets in hs.items():
-        rows = []
-        for h in wallets:
-            if g == "test_pos" and h["address"] in ofac:
-                continue
-            pays = inbound(h)
-            if not pays:
-                continue  # can never be flagged: left out, as in Result 1
-            X = np.array([[float(feature_fn(h, t["ts"], bad, frozen_at)[k]) for k in names] for t in pays],
-                         dtype=np.float32)
-            rows.append((h["address"], [t["ts"] for t in pays], X, h.get("freeze_ts")))
-        out[g] = rows
+    pool = mp.get_context("fork").Pool(workers) if workers > 1 and "fork" in mp.get_all_start_methods() else None
+    try:
+        for g, wallets in hs.items():
+            todo = [h for h in wallets if not (g == "test_pos" and h["address"] in ofac)]
+            rows = pool.map(_wallet_rows, todo, chunksize=4) if pool else map(_wallet_rows, todo)
+            out[g] = [r for r in rows if r is not None]
+    finally:
+        if pool:
+            pool.close()
+            pool.join()
     return out
 
 
@@ -183,7 +198,7 @@ def git_commit():
         return "unknown"
 
 
-def run(folder, label, save):
+def run(folder, label, save, workers=1):
     import numpy as np
     from engine import Config
     t0 = time.time()
@@ -196,21 +211,24 @@ def run(folder, label, save):
         train |= {r["wallet"] for r in csv.DictReader(gzip.open(v2_points, "rt"))}
     hs, bad, frozen_at, ofac = load()
     assert not {h["address"] for g in hs.values() for h in g} & train, "test wallets in the training rows: stop"
+    # Features first, models after: worker processes are forked before TensorFlow is loaded.
+    if kind in ("hybrid", "v2"):
+        from features_v2 import FEATURES_V2, features_v2
+        pts = feature_points(hs, bad, frozen_at, ofac, features_v2, FEATURES_V2, workers)
+    else:
+        pts = feature_points(hs, bad, frozen_at, ofac, workers=workers)
     if kind == "hybrid":  # v1, v2 and the size-routed hybrid, all from one features_v2 pass
         import hybrid
-        from features_v2 import FEATURES_V2, features_v2
         meta = json.loads((Path(folder) / "meta.json").read_text())
         score_fns = hybrid.scorers(meta)
-        pts = feature_points(hs, bad, frozen_at, ofac, features_v2, FEATURES_V2)
         files = [HERE / "models" / "xgb.json", HERE / "models" / "mlp.keras", HERE / "models_v2" / "xgb.json", Path(folder) / "meta.json"]
     elif v2:
         score_fns, feature_fn, names, meta = load_v2(folder)
-        pts = feature_points(hs, bad, frozen_at, ofac, feature_fn, names)
+        assert names == FEATURES_V2, "a v2 candidate must use features_v2's feature list"
         files = [Path(folder) / "xgb.json"]
     else:
         model, models = load_models(folder)
         score_fns = scorers(model, models)
-        pts = feature_points(hs, bad, frozen_at, ofac)
         one = pts["test_pos"][0]  # batch scoring == model.score() on the same features
         assert abs(float(score_fns[list(score_fns)[-1]](one[2][:1])[0])
                    - model.score(dict(zip(F.FEATURES, map(float, one[2][0]))))) < 1e-5
@@ -310,7 +328,16 @@ def _self_check():
     # The card has every number for both bases.
     c = card(pos, {"test_negv": comp, "test_neg": comp}, 0.78)
     assert set(c) == {"test_negv", "test_neg"} and c["test_negv"]["auc_wallet"] == 1.0
-    print("self-check passed: AUC, recall, 90-day window, freeze cut-off, payment-level cut, held-out split")
+    # Parallel feature computation gives exactly the serial rows, in the same order (real wallets, if present).
+    if (F.DATA / "histories" / "test_pos.jsonl.gz").exists():
+        import gzip
+        import numpy as np
+        hs = {"test_pos": [json.loads(l) for l in gzip.open(F.DATA / "histories" / "test_pos.jsonl.gz", "rt")][:12]}
+        frozen = {r["address"]: int(r["freeze_ts"]) for r in csv.DictReader(open(F.DATA / "freezes.csv"))}
+        a, b = feature_points(hs, set(), frozen, set()), feature_points(hs, set(), frozen, set(), workers=3)
+        assert [(r[0], r[1], r[3]) for r in a["test_pos"]] == [(r[0], r[1], r[3]) for r in b["test_pos"]]
+        assert all(np.array_equal(x[2], y[2]) for x, y in zip(a["test_pos"], b["test_pos"]))
+    print("self-check passed: AUC, recall, 90-day window, freeze cut-off, payment-level cut, held-out split, parallel = serial")
 
 
 if __name__ == "__main__":
@@ -321,5 +348,7 @@ if __name__ == "__main__":
         ap.add_argument("--models", help="folder with xgb.json / mlp.keras / meta.json (default: models/)")
         ap.add_argument("--label", default="current models/", help="name for this run in the history")
         ap.add_argument("--no-save", action="store_true", help="print only; don't append to the history")
+        ap.add_argument("--workers", type=int, default=os.cpu_count() or 1,
+                        help="processes computing features (default: all CPUs; 1 = serial)")
         a = ap.parse_args()
-        run(a.models, a.label, not a.no_save)
+        run(a.models, a.label, not a.no_save, a.workers)
