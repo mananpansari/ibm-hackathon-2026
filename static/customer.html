@@ -97,6 +97,8 @@
   .box.ok .ic { background: var(--ok); } .box.warn .ic { background: var(--warn); } .box.bad .ic { background: var(--bad); }
   .box.hold .t { font-size: 22px; }
   .opt-tag { font-weight: 400; color: var(--mut); }
+  .eta { color: var(--bad-ink); font-size: 18px; }
+  .demo-btn { flex: none; min-height: 44px; margin-top: 6px; padding: 0 12px; background: #fff; color: var(--ink); font: 600 13px var(--mono); }
   .box p { margin: 0; }
   .box.ok { border-color: var(--ok); background: var(--ok-bg); } .box.ok .t { color: var(--ok-ink); }
   .box.warn { border-color: var(--warn); background: var(--warn-bg); } .box.warn .t { color: var(--warn-ink); }
@@ -158,7 +160,6 @@
       <input id="cid" list="demo-ids" value="mrs-tan" autocomplete="username" maxlength="64" spellcheck="false">
       <datalist id="demo-ids"></datalist></div>
     <div><label for="pw" data-t="login_pw">Password</label><input id="pw" type="password" value="demo-password" autocomplete="current-password"></div>
-    <div><label for="otp" data-t="login_otp">One-time code</label><input id="otp" inputmode="numeric" value="482193" maxlength="6" autocomplete="one-time-code"></div>
     <p class="err" id="login-err" role="alert" hidden></p>
     <div class="btns"><button type="submit" data-t="login_btn">Log in</button></div>
     <p class="hint" data-t="login_note">Demo login: details are pre-filled. In production this is the exchange's own sign-in.</p>
@@ -203,6 +204,7 @@
 <footer class="demo" aria-label="Demo information">
   <div><b>DEMO MODE · hidden from customers</b></div>
   <div id="demo-line">tier: pending</div>
+  <div id="demo-ctl" hidden><button type="button" class="demo-btn" id="demo-fill">Fill Mrs Tan's real payment (video)</button> <span id="demo-at"></span></div>
 </footer>
 
 <script>
@@ -219,7 +221,7 @@ const T = {
   en: {
     protected: "Protected by {b}", sim_b: "Simulated exchange withdrawal screen.", sim: "In production this check runs inside the exchange's own withdrawal flow, just before signing.",
     nav_wallet: "Wallet", nav_withdraw: "Withdraw", nav_history: "History", sign_out: "Sign out",
-    login_title: "Log in", login_id: "Customer ID", login_pw: "Password", login_otp: "One-time code", login_btn: "Log in",
+    login_title: "Log in", login_id: "Customer ID", login_pw: "Password", login_btn: "Log in",
     login_note: "Demo login: details are pre-filled. In production this is the exchange's own sign-in.", login_err: "We couldn't sign you in. Check your customer ID.",
     signed_in: "Signed in as", account_ending: "Account ending", withdraw_title: "Withdraw to an external wallet", sending_what: "What are you sending?",
     network: "Network: Ethereum", wallet_label: "Wallet you are sending to", amount_label: "Amount", check_btn: "Check payment",
@@ -233,9 +235,9 @@ const T = {
     hold_title: "Your payment is on hold for a call-back", hold_1: "Your money has not been sent. It is still in your account.",
     hold_2: "One of our fraud officers will call you on {phone}, the number we have on file.", hold_3: "Please don't try to send this money another way while you wait.",
     hold_4: "If anyone is telling you to move money or keep this secret, you can hang up. Real officers will never ask you to do that.",
-    next_title: "What happens next", reference: "Reference", callback: "Expected call-back: within 15 minutes", never_otp: "We will never ask for your OTP or password.",
+    next_title: "What happens next", reference: "Reference", callback_l: "Expected call-back:", callback_v: "within 15 minutes", never_otp: "We will never ask for your OTP or password.",
     cancelled_title: "Payment cancelled", cancelled_text: "Your money stays in your account. Nothing was sent.", new_withdrawal: "Start a new withdrawal",
-    sent_title: "Payment sent", sent_state: "Sent", sent_box: "Your payment is on its way", sent_text: "Simulated: in production the exchange signs and broadcasts it now.",
+    sent_title: "Payment sent", sent_state: "Sent", sent_box: "Your payment is on its way",
     err_amount: "Please enter an amount.", err_wallet: "Please enter a wallet address: 0x followed by 40 letters or numbers.", err_check: "We couldn't check this payment. Please check the wallet address and amount.",
     err_net: "We couldn't reach the exchange. Please try again in a moment.", err_answer: "We couldn't send your answer. Please try again.",
     recent: "This session's withdrawals", none_yet: "None yet.", about_t: "About this check",
@@ -246,7 +248,7 @@ const T = {
   zh: {
     protected: "由 {b} 保护", sim_b: "模拟的交易所提币页面。", sim: "在实际产品中，这项检查嵌入交易所自己的提币流程，在签名前运行。",
     nav_wallet: "钱包", nav_withdraw: "提币", nav_history: "记录", sign_out: "退出",
-    login_title: "登录", login_id: "客户编号", login_pw: "密码", login_otp: "一次性验证码", login_btn: "登录",
+    login_title: "登录", login_id: "客户编号", login_pw: "密码", login_btn: "登录",
     login_note: "演示登录：资料已预先填写。实际产品使用交易所自己的登录。", login_err: "无法登录，请检查客户编号。",
     signed_in: "已登录：", account_ending: "账户尾号", withdraw_title: "提币到外部钱包", sending_what: "您要发送什么？",
     network: "网络：以太坊", wallet_label: "收款钱包地址", amount_label: "金额", check_btn: "检查付款",
@@ -260,9 +262,9 @@ const T = {
     hold_title: "您的付款已暂停，等待回电", hold_1: "您的钱还没有转出，仍在您的账户里。",
     hold_2: "我们的反诈骗专员会打 {phone} 给您，这是我们记录中的号码。", hold_3: "等待期间，请不要尝试用其他方式发送这笔钱。",
     hold_4: "如果有人叫您转钱或保密，您可以直接挂断。真正的官员绝不会这样要求您。",
-    next_title: "接下来", reference: "参考编号", callback: "预计回电：15分钟内", never_otp: "我们绝不会索取您的验证码或密码。",
+    next_title: "接下来", reference: "参考编号", callback_l: "预计回电：", callback_v: "15 分钟内", never_otp: "我们绝不会索取您的验证码或密码。",
     cancelled_title: "付款已取消", cancelled_text: "您的钱仍在您的账户里，没有发送任何款项。", new_withdrawal: "开始新的提币",
-    sent_title: "付款已发送", sent_state: "已发送", sent_box: "您的付款正在发出", sent_text: "模拟：实际产品中，交易所此时会签名并广播交易。",
+    sent_title: "付款已发送", sent_state: "已发送", sent_box: "您的付款正在发出",
     err_amount: "请输入金额。", err_wallet: "请输入钱包地址：0x 加 40 个字母或数字。", err_check: "无法检查这笔付款。请检查钱包地址和金额。",
     err_net: "无法连接交易所，请稍后再试。", err_answer: "无法提交您的回答，请重试。",
     recent: "本次提币记录", none_yet: "暂无。", about_t: "关于这项检查",
@@ -273,7 +275,7 @@ const T = {
   ms: {
     protected: "Dilindungi oleh {b}", sim_b: "Skrin pengeluaran bursa simulasi.", sim: "Dalam penggunaan sebenar, semakan ini berjalan dalam proses pengeluaran bursa itu sendiri, sejurus sebelum ditandatangani.",
     nav_wallet: "Dompet", nav_withdraw: "Pengeluaran", nav_history: "Sejarah", sign_out: "Log keluar",
-    login_title: "Log masuk", login_id: "ID pelanggan", login_pw: "Kata laluan", login_otp: "Kod sekali guna", login_btn: "Log masuk",
+    login_title: "Log masuk", login_id: "ID pelanggan", login_pw: "Kata laluan", login_btn: "Log masuk",
     login_note: "Log masuk demo: butiran telah diisi. Dalam penggunaan sebenar, ini ialah log masuk bursa itu sendiri.", login_err: "Kami tidak dapat log masuk anda. Semak ID pelanggan anda.",
     signed_in: "Log masuk sebagai", account_ending: "Akaun berakhir dengan", withdraw_title: "Keluarkan ke dompet luar", sending_what: "Apakah yang anda hantar?",
     network: "Rangkaian: Ethereum", wallet_label: "Dompet penerima", amount_label: "Jumlah", check_btn: "Semak pembayaran",
@@ -287,9 +289,9 @@ const T = {
     hold_title: "Pembayaran anda ditahan untuk panggilan balik", hold_1: "Wang anda belum dihantar. Ia masih dalam akaun anda.",
     hold_2: "Seorang pegawai pencegahan penipuan kami akan menelefon anda di {phone}, nombor dalam rekod kami.", hold_3: "Sila jangan cuba menghantar wang ini dengan cara lain sementara menunggu.",
     hold_4: "Jika sesiapa menyuruh anda memindahkan wang atau merahsiakannya, anda boleh terus letak telefon. Pegawai sebenar tidak akan meminta anda berbuat begitu.",
-    next_title: "Apa yang berlaku seterusnya", reference: "Rujukan", callback: "Jangkaan panggilan balik: dalam 15 minit", never_otp: "Kami tidak akan meminta OTP atau kata laluan anda.",
+    next_title: "Apa yang berlaku seterusnya", reference: "Rujukan", callback_l: "Jangkaan panggilan balik:", callback_v: "dalam 15 minit", never_otp: "Kami tidak akan meminta OTP atau kata laluan anda.",
     cancelled_title: "Pembayaran dibatalkan", cancelled_text: "Wang anda kekal dalam akaun anda. Tiada apa-apa dihantar.", new_withdrawal: "Mulakan pengeluaran baharu",
-    sent_title: "Pembayaran dihantar", sent_state: "Dihantar", sent_box: "Pembayaran anda sedang dihantar", sent_text: "Simulasi: dalam penggunaan sebenar, bursa akan menandatangani dan menghantarnya sekarang.",
+    sent_title: "Pembayaran dihantar", sent_state: "Dihantar", sent_box: "Pembayaran anda sedang dihantar",
     err_amount: "Sila masukkan jumlah.", err_wallet: "Sila masukkan alamat dompet: 0x diikuti 40 huruf atau nombor.", err_check: "Kami tidak dapat menyemak pembayaran ini. Sila semak alamat dompet dan jumlah.",
     err_net: "Kami tidak dapat menghubungi bursa. Sila cuba lagi sebentar lagi.", err_answer: "Kami tidak dapat menghantar jawapan anda. Sila cuba lagi.",
     recent: "Pengeluaran sesi ini", none_yet: "Belum ada.", about_t: "Tentang semakan ini",
@@ -300,7 +302,7 @@ const T = {
   ta: {
     protected: "{b} பாதுகாப்புடன்", sim_b: "இது ஒரு மாதிரி பரிமாற்றகத் திரை.", sim: "உண்மையான சேவையில், இந்தச் சோதனை பரிமாற்றகத்தின் சொந்தப் பணம் எடுக்கும் செயல்முறையில், கையொப்பமிடுவதற்கு முன் இயங்கும்.",
     nav_wallet: "பணப்பை", nav_withdraw: "பணம் அனுப்புதல்", nav_history: "வரலாறு", sign_out: "வெளியேறு",
-    login_title: "உள்நுழைக", login_id: "வாடிக்கையாளர் எண்", login_pw: "கடவுச்சொல்", login_otp: "ஒருமுறைக் குறியீடு", login_btn: "உள்நுழைக",
+    login_title: "உள்நுழைக", login_id: "வாடிக்கையாளர் எண்", login_pw: "கடவுச்சொல்", login_btn: "உள்நுழைக",
     login_note: "மாதிரி உள்நுழைவு: விவரங்கள் முன்பே நிரப்பப்பட்டுள்ளன. உண்மையில் இது பரிமாற்றகத்தின் சொந்த உள்நுழைவு.", login_err: "உள்நுழைய முடியவில்லை. வாடிக்கையாளர் எண்ணைச் சரிபார்க்கவும்.",
     signed_in: "உள்நுழைந்தவர்", account_ending: "கணக்கு இறுதி எண்", withdraw_title: "வெளிப் பணப்பைக்குப் பணம் அனுப்புதல்", sending_what: "நீங்கள் எதை அனுப்புகிறீர்கள்?",
     network: "வலையமைப்பு: Ethereum", wallet_label: "பெறுநரின் பணப்பை முகவரி", amount_label: "தொகை", check_btn: "சரிபார்க்கவும்",
@@ -314,9 +316,9 @@ const T = {
     hold_title: "திரும்ப அழைப்பதற்காக உங்கள் பணம் நிறுத்தி வைக்கப்பட்டுள்ளது", hold_1: "உங்கள் பணம் அனுப்பப்படவில்லை. அது இன்னும் உங்கள் கணக்கில் உள்ளது.",
     hold_2: "எங்கள் மோசடித் தடுப்பு அதிகாரி ஒருவர் {phone} என்ற எண்ணில் உங்களை அழைப்பார்; இது எங்கள் பதிவில் உள்ள எண்.", hold_3: "காத்திருக்கும்போது இந்தப் பணத்தை வேறு வழியில் அனுப்ப முயல வேண்டாம்.",
     hold_4: "யாராவது பணத்தை மாற்றச் சொன்னால் அல்லது இதை ரகசியமாக வைக்கச் சொன்னால், அழைப்பைத் துண்டிக்கலாம். உண்மையான அதிகாரிகள் ஒருபோதும் அப்படிக் கேட்க மாட்டார்கள்.",
-    next_title: "அடுத்து என்ன நடக்கும்", reference: "குறிப்பு எண்", callback: "எதிர்பார்க்கும் அழைப்பு: 15 நிமிடங்களுக்குள்", never_otp: "உங்கள் OTP அல்லது கடவுச்சொல்லை நாங்கள் ஒருபோதும் கேட்க மாட்டோம்.",
+    next_title: "அடுத்து என்ன நடக்கும்", reference: "குறிப்பு எண்", callback_l: "எதிர்பார்க்கும் அழைப்பு:", callback_v: "15 நிமிடங்களுக்குள்", never_otp: "உங்கள் OTP அல்லது கடவுச்சொல்லை நாங்கள் ஒருபோதும் கேட்க மாட்டோம்.",
     cancelled_title: "பணம் செலுத்துதல் ரத்து செய்யப்பட்டது", cancelled_text: "உங்கள் பணம் உங்கள் கணக்கிலேயே உள்ளது. எதுவும் அனுப்பப்படவில்லை.", new_withdrawal: "புதிதாகத் தொடங்கு",
-    sent_title: "பணம் அனுப்பப்பட்டது", sent_state: "அனுப்பப்பட்டது", sent_box: "உங்கள் பணம் அனுப்பப்படுகிறது", sent_text: "மாதிரி: உண்மையில் பரிமாற்றகம் இப்போது கையொப்பமிட்டு அனுப்பும்.",
+    sent_title: "பணம் அனுப்பப்பட்டது", sent_state: "அனுப்பப்பட்டது", sent_box: "உங்கள் பணம் அனுப்பப்படுகிறது",
     err_amount: "தொகையை உள்ளிடவும்.", err_wallet: "பணப்பை முகவரியை உள்ளிடவும்: 0x மற்றும் 40 எழுத்துகள் அல்லது எண்கள்.", err_check: "இந்தப் பணம் செலுத்துதலைச் சரிபார்க்க முடியவில்லை. முகவரியையும் தொகையையும் சரிபார்க்கவும்.",
     err_net: "பரிமாற்றகத்தை அணுக முடியவில்லை. சிறிது நேரத்தில் மீண்டும் முயலவும்.", err_answer: "உங்கள் பதிலை அனுப்ப முடியவில்லை. மீண்டும் முயலவும்.",
     recent: "இந்த அமர்வின் பரிமாற்றங்கள்", none_yet: "இன்னும் இல்லை.", about_t: "இந்தச் சோதனை பற்றி",
@@ -328,7 +330,7 @@ const T = {
 // The question tree's text per language, keyed like answers.QUESTIONS; English comes from the API.
 const QT = {
   zh: {
-    why: { title: "付款前的安全检查", intro: "真正的警察、银行或政府官员绝不会要求您把积蓄转到“安全”钱包。", text: "您为什么要发送这笔钱？",
+    why: { title: "付款前的安全检查", text: "您为什么要发送这笔钱？",
       o: { known: "付款给我认识并信任的人", own_platform: "在我自己选择的平台上投资", contacted: "有人联系我，叫我转移我的钱", officer: "政府、银行或警方人员叫我这样做", other: "其他原因" } },
     how: { title: "还需要一些资料", text: "这个人是怎样联系您的？",
       o: { phone: "电话", text_whatsapp: "短信或 WhatsApp", social_dating: "社交媒体或交友应用", email: "电子邮件", in_person: "当面", not_sure: "我不确定" } },
@@ -336,7 +338,7 @@ const QT = {
       o: { secret: "对家人或银行保密", act_fast: "要尽快或今天就办好", new_account: "开设新的加密货币账户", safe_wallet: "把积蓄转到“安全”钱包", install_app: "安装应用程序或分享手机屏幕", none: "以上都没有" } },
   },
   ms: {
-    why: { title: "Semakan keselamatan sebelum pembayaran anda dihantar", intro: "Polis, bank atau pegawai kerajaan yang sebenar tidak pernah meminta anda memindahkan simpanan ke dompet \"selamat\".", text: "Mengapa anda menghantar wang ini?",
+    why: { title: "Semakan keselamatan sebelum pembayaran anda dihantar", text: "Mengapa anda menghantar wang ini?",
       o: { known: "Membayar seseorang yang saya kenali dan percayai", own_platform: "Melabur di platform yang saya pilih sendiri", contacted: "Seseorang menghubungi saya dan menyuruh saya memindahkan wang", officer: "Seorang pegawai kerajaan, bank atau polis menyuruh saya", other: "Sebab lain" } },
     how: { title: "Butiran tambahan diperlukan", text: "Bagaimanakah orang ini menghubungi anda?",
       o: { phone: "Panggilan telefon", text_whatsapp: "SMS atau mesej WhatsApp", social_dating: "Media sosial atau aplikasi temu janji", email: "E-mel", in_person: "Secara bersemuka", not_sure: "Saya tidak pasti" } },
@@ -344,7 +346,7 @@ const QT = {
       o: { secret: "Merahsiakannya daripada keluarga atau bank", act_fast: "Bertindak cepat atau hari ini", new_account: "Membuka akaun kripto baharu", safe_wallet: "Memindahkan simpanan ke dompet \"selamat\"", install_app: "Memasang aplikasi atau berkongsi skrin", none: "Tiada yang berkenaan" } },
   },
   ta: {
-    why: { title: "பணம் அனுப்பும் முன் பாதுகாப்புச் சோதனை", intro: "உண்மையான காவல்துறை, வங்கி அல்லது அரசு அதிகாரிகள் உங்கள் சேமிப்பை \"பாதுகாப்பான\" பணப்பைக்கு மாற்றச் சொல்ல மாட்டார்கள்.", text: "இந்தப் பணத்தை ஏன் அனுப்புகிறீர்கள்?",
+    why: { title: "பணம் அனுப்பும் முன் பாதுகாப்புச் சோதனை", text: "இந்தப் பணத்தை ஏன் அனுப்புகிறீர்கள்?",
       o: { known: "எனக்குத் தெரிந்த, நம்பிக்கையான ஒருவருக்குச் செலுத்துகிறேன்", own_platform: "நானே தேர்ந்தெடுத்த தளத்தில் முதலீடு செய்கிறேன்", contacted: "ஒருவர் என்னைத் தொடர்புகொண்டு பணத்தை மாற்றச் சொன்னார்", officer: "அரசு, வங்கி அல்லது காவல்துறை அதிகாரி ஒருவர் சொன்னார்", other: "வேறு காரணம்" } },
     how: { title: "கூடுதல் விவரங்கள் தேவை", text: "இந்த நபர் உங்களை எப்படித் தொடர்புகொண்டார்?",
       o: { phone: "தொலைபேசி அழைப்பு", text_whatsapp: "குறுஞ்செய்தி அல்லது WhatsApp", social_dating: "சமூக ஊடகம் அல்லது டேட்டிங் செயலி", email: "மின்னஞ்சல்", in_person: "நேரில்", not_sure: "எனக்குத் தெரியவில்லை" } },
@@ -362,6 +364,7 @@ const $ = (id) => document.getElementById(id);
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
 const short = (a) => a.slice(0, 10) + "…" + a.slice(-6);
 const f = $("f"), out = $("result");
+let replayAt = null;  // demo: decide at a real past payment's time (GET /customer/demo-payment), else now
 let QUESTIONS = null, persona = null, customer = null, payment = null, decision = null, redraw = null, quiet = false;
 const session = [];  // this session's withdrawals, newest first
 
@@ -417,16 +420,34 @@ $("login").addEventListener("submit", async (e) => {
   catch { err.textContent = t("err_net"); err.hidden = false; return; }
   customer = id;
   showPersona();
-  $("login").hidden = true; $("app").hidden = false; $("signout").hidden = false; $("nav-history").hidden = false;
+  $("login").hidden = true; $("app").hidden = false; $("signout").hidden = false; $("nav-history").hidden = false; $("demo-ctl").hidden = false;
   edit();
 });
 $("signout").addEventListener("click", () => {
   customer = persona = null; session.length = 0; renderFeed(); redraw = null;
-  $("app").hidden = true; $("signout").hidden = true; $("nav-history").hidden = true; $("login").hidden = false; demoLine(null);
+  setReplay(null);
+  $("app").hidden = true; $("signout").hidden = true; $("nav-history").hidden = true; $("demo-ctl").hidden = true; $("login").hidden = false; demoLine(null);
   $("login-h").focus();
 });
 
 // ---- demo strip
+// The video's Mrs Tan payment (docs/demo-script.md §3): the demo wallet's real 78,000 USDT, checked as of its
+// real time, before Tether's freeze. Checked now, the freeze alone would hold it without any questions.
+function setReplay(at) {
+  replayAt = at;
+  $("demo-at").textContent = at ? "replaying at " + new Date(at * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC (real payment)" : "";
+}
+$("demo-fill").addEventListener("click", async () => {
+  try {
+    const p = await api("/customer/demo-payment");
+    edit();
+    f.asset.value = "USDT"; f.wallet.value = p.wallet; f.amount.value = p.amount; showRate();
+    setReplay(p.at);
+    $("check").focus();
+  } catch { $("demo-at").textContent = "demo payment unavailable"; }
+});
+for (const n of [f.wallet, f.amount]) n.addEventListener("input", () => setReplay(null));
+for (const n of f.asset) n.addEventListener("change", () => setReplay(null));
 function demoLine(d) {
   const line = $("demo-line");
   line.replaceChildren();
@@ -506,10 +527,11 @@ async function cancel() {
 async function sent() {
   try { if (decision) await api("/sent", { id: decision.id }); } catch { /* the demo carries on */ }
   track("sent");
+  $("demo-line").append(" · ", el("b", "send simulated: no real transaction"));
   const ref = decision?.ref;
   const draw = () => {
-    const note = box("ok", t("sent_box"), el("p", t("sent_text"), "small"));
-    if (ref) note.append(el("p", `${t("reference")}: ${ref}`, "small"));
+    const note = box("ok", t("sent_box"));
+    if (ref) note.append(el("p", `${t("reference")}: ${ref}`));
     show([el("h1", t("sent_title")), paymentCard("sent_state"), note, row(btn(t("new_withdrawal"), edit))], draw);
   };
   draw();
@@ -535,7 +557,7 @@ function render(d) {
       const next = box("plain", null);
       const ref = el("p", `${t("reference")}: `); ref.append(el("b", d.ref || "–", "mono"));
       next.append(el("h2", t("next_title")), ref);
-      const eta = el("p", t("callback")); eta.append(el("span", "modelled", "tag"));
+      const eta = el("p", t("callback_l") + " "); eta.append(el("strong", t("callback_v"), "eta"), " ", el("span", "modelled", "tag"));
       next.append(eta, el("p", t("never_otp")));
       show([paymentCard("not_sent", true), box("bad hold", { h1: t("hold_title") }, ul), next, stack(btn(t("cancel"), cancel, true)), help()], draw);
     } else {
@@ -555,7 +577,6 @@ async function askAll(d) {
     const qid = current, q = QUESTIONS.questions[qid], tr = QT[lang]?.[qid] || {}, multi = q.type === "multi";
     const b = box("bad", { h1: tr.title || q.title || "", icon: "q" });
     b.append(el("div", t("question_n", { n: trail.length + 1 }), "qn"));
-    if (q.intro) b.append(el("p", tr.intro || q.intro));
     const fs = el("fieldset");
     fs.append(el("legend", tr.text || q.text));
     if (multi) fs.append(el("p", tr.hint || q.hint || "Tick all that apply.", "hint"));
@@ -622,7 +643,7 @@ async function submit() {
   // A short walk through the steps (under a second); the decision itself takes milliseconds.
   const anim = (async () => { let i = 0; for (const s of steps) { s.className = "on"; bar.style.width = (++i / steps.length * 100) + "%"; await new Promise((r) => setTimeout(r, 260)); s.className = "done"; } })();
   try {
-    const [d] = await Promise.all([api("/score", { customer, wallet: payment.wallet, amount: payment.amount, asset: a, qty }), anim]);
+    const [d] = await Promise.all([api("/score", { customer, wallet: payment.wallet, amount: payment.amount, asset: a, qty, ...(replayAt ? { at: replayAt } : {}) }), anim]);
     ck.hidden = true;
     render(d);
   } catch (e) {

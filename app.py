@@ -100,6 +100,9 @@ class WithdrawalIn(BaseModel):
     amount: float = Field(gt=0, le=1e9)  # in USDT: the engine scores every payment in USDT
     asset: Literal["USDT", "ETH"] = "USDT"  # what the customer sends; display only (an ETH amount arrives as its USDT value)
     qty: Optional[float] = Field(default=None, gt=0, le=1e9)  # the amount in `asset`, for display
+    # --- customer page --- demo replay: decide at a real past payment's time (the injected clock), so the
+    # video's Mrs Tan payment is checked as on 12 May 2026, before Tether's freeze. Omitted = now.
+    at: Optional[int] = Field(default=None, gt=0)
 
 
 class Answer(BaseModel):
@@ -157,7 +160,10 @@ def answered(w, answer, kind=None):
 
 @app.post("/score")
 async def score(w: WithdrawalIn):
-    return decide({**w.model_dump(), "wallet": w.wallet.lower(), "time": int(time.time())})
+    now = int(time.time())
+    if w.at is not None and w.at > now:
+        raise HTTPException(422, "at must not be in the future")
+    return decide({**w.model_dump(exclude={"at"}), "wallet": w.wallet.lower(), "time": w.at or now})
 
 
 @app.get("/activity")
@@ -382,6 +388,16 @@ async def demo_next():
         demo["confirmed"] = demo["wallet"]
     return {"done": False, "step": step, "withdrawal": w, "decision": d, "asked": asked,
             "answer": COACHED_ANSWER if asked else None, "officer_confirmed": confirmed}
+
+
+# --- customer page ---
+@app.get("/customer/demo-payment")
+async def customer_demo_payment():
+    """Mrs Tan's real payment for the video (docs/demo-script.md §3): the demo wallet's payment TAN_STEP, at its
+    real time. The customer page fills the form with it; the engine still decides through /score."""
+    wallet = demo["wallet"] or _demo_wallet()
+    t = _pays(RECORDED.by_addr[wallet])[TAN_STEP - 1]
+    return {"customer": "mrs-tan", "wallet": wallet, "amount": t["usdt"], "at": t["ts"]}
 
 
 @app.get("/")
