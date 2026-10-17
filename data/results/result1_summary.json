@@ -1,0 +1,518 @@
+{
+ "definitions": {
+  "score_point": "model.score(features(history, as_of)) with as_of = ts of each inbound payment >= 10 USDT; positives only before freeze_ts",
+  "flagged": "any score point >= threshold",
+  "threshold": "smallest attained score flagging <= floor(fa*N) comparison wallets",
+  "comparison_wallets": "test wallets of that group with >= 1 inbound payment >= 10 USDT",
+  "lead_days": "freeze_ts - ts of the first flagged payment",
+  "held_payments": "the first flagged payment and every later inbound payment before the freeze",
+  "payments_after_flag": "held_payments minus the flagged one (build plan's 'payments saved')",
+  "held_senders": "distinct senders of held_payments (an upper bound on victims: senders can be mules or exchanges)"
+ },
+ "model": {
+  "validation_auc": {
+   "xgb": 0.865,
+   "mlp": 0.867,
+   "mean": 0.871
+  },
+  "out_of_time_auc_volume_matched": 0.565,
+  "note": "weak signal only"
+ },
+ "positives": {
+  "test_pos": 137,
+  "ofac_excluded": 0,
+  "no_payment_before_freeze": 3,
+  "used": 134,
+  "with_2plus_payments": 105,
+  "truncated": 3
+ },
+ "headline_basis": "test_negv",
+ "bases": {
+  "test_negv": {
+   "wallets": 550,
+   "no_payment": 0,
+   "truncated": 289,
+   "all_positives": {
+    "comparison_wallets": 550,
+    "auc_wallet_max": 0.557415196743555,
+    "in_sample": {
+     "threshold": 0.9520447254180908,
+     "fa_rate": 0.00909090909090909,
+     "positives": 134,
+     "flagged": 3,
+     "recall": 0.022388059701492536,
+     "lead_days_median": 1277.3383333333334,
+     "lead_days_iqr": [
+      63.968333333333334,
+      1793.3617476851853
+     ],
+     "lead_gt_1d": 3,
+     "lead_gt_7d": 3,
+     "lead_gt_30d": 3,
+     "held_payments_total": 33,
+     "held_payments_median": 10,
+     "payments_after_flag_total": 30,
+     "payments_after_flag_median": 9,
+     "held_senders_total": 14
+    },
+    "curve": [
+     {
+      "fa_target": 0.005,
+      "threshold": 0.9777417182922363,
+      "fa_rate": 0.0036363636363636364,
+      "flagged": 0,
+      "recall": 0.0,
+      "lead_days_median": null
+     },
+     {
+      "fa_target": 0.01,
+      "threshold": 0.9520447254180908,
+      "fa_rate": 0.00909090909090909,
+      "flagged": 3,
+      "recall": 0.022388059701492536,
+      "lead_days_median": 1277.3383333333334
+     },
+     {
+      "fa_target": 0.02,
+      "threshold": 0.9364377856254578,
+      "fa_rate": 0.02,
+      "flagged": 13,
+      "recall": 0.09701492537313433,
+      "lead_days_median": 356.5861111111111
+     },
+     {
+      "fa_target": 0.05,
+      "threshold": 0.9084405899047852,
+      "fa_rate": 0.04909090909090909,
+      "flagged": 22,
+      "recall": 0.16417910447761194,
+      "lead_days_median": 469.5760416666667
+     },
+     {
+      "fa_target": 0.1,
+      "threshold": 0.873448371887207,
+      "fa_rate": 0.1,
+      "flagged": 29,
+      "recall": 0.21641791044776118,
+      "lead_days_median": 246.68791666666667
+     },
+     {
+      "fa_target": 0.2,
+      "threshold": 0.7898716926574707,
+      "fa_rate": 0.2,
+      "flagged": 42,
+      "recall": 0.31343283582089554,
+      "lead_days_median": 202.7834722222222
+     }
+    ],
+    "held_out_seed0": {
+     "threshold": 0.9580159187316895,
+     "fa_rate": 0.007272727272727273,
+     "positives": 134,
+     "flagged": 1,
+     "recall": 0.007462686567164179,
+     "lead_days_median": 63.968333333333334,
+     "lead_days_iqr": [
+      63.968333333333334,
+      63.968333333333334
+     ],
+     "lead_gt_1d": 1,
+     "lead_gt_7d": 1,
+     "lead_gt_30d": 1,
+     "held_payments_total": 10,
+     "held_payments_median": 10,
+     "payments_after_flag_total": 9,
+     "payments_after_flag_median": 9,
+     "held_senders_total": 2
+    },
+    "held_out_splits": {
+     "splits": 200,
+     "fa_median": 0.005454545454545455,
+     "fa_range": [
+      0.0,
+      0.02909090909090909
+     ],
+     "recall_median": 0.0037313432835820895,
+     "recall_range": [
+      0.0,
+      0.08208955223880597
+     ]
+    },
+    "bootstrap": {
+     "reps": 1000,
+     "recall_ci95": [
+      0.0,
+      0.08955223880597014
+     ],
+     "lead_median_ci95": [
+      63.968333333333334,
+      1793.3617476851853
+     ],
+     "reps_with_no_flag": 375
+    }
+   },
+   "positives_2plus": {
+    "comparison_wallets": 550,
+    "auc_wallet_max": 0.6985627705627706,
+    "in_sample": {
+     "threshold": 0.9520447254180908,
+     "fa_rate": 0.00909090909090909,
+     "positives": 105,
+     "flagged": 3,
+     "recall": 0.02857142857142857,
+     "lead_days_median": 1277.3383333333334,
+     "lead_days_iqr": [
+      63.968333333333334,
+      1793.3617476851853
+     ],
+     "lead_gt_1d": 3,
+     "lead_gt_7d": 3,
+     "lead_gt_30d": 3,
+     "held_payments_total": 33,
+     "held_payments_median": 10,
+     "payments_after_flag_total": 30,
+     "payments_after_flag_median": 9,
+     "held_senders_total": 14
+    },
+    "curve": [
+     {
+      "fa_target": 0.005,
+      "threshold": 0.9777417182922363,
+      "fa_rate": 0.0036363636363636364,
+      "flagged": 0,
+      "recall": 0.0,
+      "lead_days_median": null
+     },
+     {
+      "fa_target": 0.01,
+      "threshold": 0.9520447254180908,
+      "fa_rate": 0.00909090909090909,
+      "flagged": 3,
+      "recall": 0.02857142857142857,
+      "lead_days_median": 1277.3383333333334
+     },
+     {
+      "fa_target": 0.02,
+      "threshold": 0.9364377856254578,
+      "fa_rate": 0.02,
+      "flagged": 13,
+      "recall": 0.12380952380952381,
+      "lead_days_median": 356.5861111111111
+     },
+     {
+      "fa_target": 0.05,
+      "threshold": 0.9084405899047852,
+      "fa_rate": 0.04909090909090909,
+      "flagged": 22,
+      "recall": 0.20952380952380953,
+      "lead_days_median": 469.5760416666667
+     },
+     {
+      "fa_target": 0.1,
+      "threshold": 0.873448371887207,
+      "fa_rate": 0.1,
+      "flagged": 29,
+      "recall": 0.2761904761904762,
+      "lead_days_median": 246.68791666666667
+     },
+     {
+      "fa_target": 0.2,
+      "threshold": 0.7898716926574707,
+      "fa_rate": 0.2,
+      "flagged": 42,
+      "recall": 0.4,
+      "lead_days_median": 202.7834722222222
+     }
+    ],
+    "held_out_seed0": {
+     "threshold": 0.9580159187316895,
+     "fa_rate": 0.007272727272727273,
+     "positives": 105,
+     "flagged": 1,
+     "recall": 0.009523809523809525,
+     "lead_days_median": 63.968333333333334,
+     "lead_days_iqr": [
+      63.968333333333334,
+      63.968333333333334
+     ],
+     "lead_gt_1d": 1,
+     "lead_gt_7d": 1,
+     "lead_gt_30d": 1,
+     "held_payments_total": 10,
+     "held_payments_median": 10,
+     "payments_after_flag_total": 9,
+     "payments_after_flag_median": 9,
+     "held_senders_total": 2
+    },
+    "held_out_splits": {
+     "splits": 200,
+     "fa_median": 0.005454545454545455,
+     "fa_range": [
+      0.0,
+      0.02909090909090909
+     ],
+     "recall_median": 0.004761904761904762,
+     "recall_range": [
+      0.0,
+      0.10476190476190476
+     ]
+    },
+    "bootstrap": {
+     "reps": 1000,
+     "recall_ci95": [
+      0.0,
+      0.12380952380952381
+     ],
+     "lead_median_ci95": [
+      63.968333333333334,
+      1793.3617476851853
+     ],
+     "reps_with_no_flag": 368
+    }
+   }
+  },
+  "test_neg": {
+   "wallets": 675,
+   "no_payment": 253,
+   "truncated": 0,
+   "all_positives": {
+    "comparison_wallets": 422,
+    "auc_wallet_max": 0.7247648015844946,
+    "in_sample": {
+     "threshold": 0.9044212102890015,
+     "fa_rate": 0.009478672985781991,
+     "positives": 134,
+     "flagged": 23,
+     "recall": 0.17164179104477612,
+     "lead_days_median": 582.2383333333333,
+     "lead_days_iqr": [
+      129.07083333333333,
+      1008.1654166666667
+     ],
+     "lead_gt_1d": 23,
+     "lead_gt_7d": 23,
+     "lead_gt_30d": 22,
+     "held_payments_total": 631,
+     "held_payments_median": 8,
+     "payments_after_flag_total": 608,
+     "payments_after_flag_median": 7,
+     "held_senders_total": 135
+    },
+    "curve": [
+     {
+      "fa_target": 0.005,
+      "threshold": 0.9278601408004761,
+      "fa_rate": 0.004739336492890996,
+      "flagged": 17,
+      "recall": 0.12686567164179105,
+      "lead_days_median": 582.2383333333333
+     },
+     {
+      "fa_target": 0.01,
+      "threshold": 0.9044212102890015,
+      "fa_rate": 0.009478672985781991,
+      "flagged": 23,
+      "recall": 0.17164179104477612,
+      "lead_days_median": 582.2383333333333
+     },
+     {
+      "fa_target": 0.02,
+      "threshold": 0.8906941413879395,
+      "fa_rate": 0.018957345971563982,
+      "flagged": 26,
+      "recall": 0.19402985074626866,
+      "lead_days_median": 356.6759722222222
+     },
+     {
+      "fa_target": 0.05,
+      "threshold": 0.7482200860977173,
+      "fa_rate": 0.04976303317535545,
+      "flagged": 48,
+      "recall": 0.3582089552238806,
+      "lead_days_median": 170.0879861111111
+     },
+     {
+      "fa_target": 0.1,
+      "threshold": 0.5570937991142273,
+      "fa_rate": 0.0995260663507109,
+      "flagged": 68,
+      "recall": 0.5074626865671642,
+      "lead_days_median": 158.8045138888889
+     },
+     {
+      "fa_target": 0.2,
+      "threshold": 0.40788185596466064,
+      "fa_rate": 0.1990521327014218,
+      "flagged": 89,
+      "recall": 0.664179104477612,
+      "lead_days_median": 132.51708333333335
+     }
+    ],
+    "held_out_seed0": {
+     "threshold": 0.9267995953559875,
+     "fa_rate": 0.004739336492890996,
+     "positives": 134,
+     "flagged": 17,
+     "recall": 0.12686567164179105,
+     "lead_days_median": 582.2383333333333,
+     "lead_days_iqr": [
+      136.19819444444445,
+      1002.2451388888888
+     ],
+     "lead_gt_1d": 17,
+     "lead_gt_7d": 17,
+     "lead_gt_30d": 16,
+     "held_payments_total": 504,
+     "held_payments_median": 7,
+     "payments_after_flag_total": 487,
+     "payments_after_flag_median": 6,
+     "held_senders_total": 93
+    },
+    "held_out_splits": {
+     "splits": 200,
+     "fa_median": 0.004739336492890996,
+     "fa_range": [
+      0.0,
+      0.04265402843601896
+     ],
+     "recall_median": 0.12686567164179105,
+     "recall_range": [
+      0.12686567164179105,
+      0.29850746268656714
+     ]
+    },
+    "bootstrap": {
+     "reps": 1000,
+     "recall_ci95": [
+      0.05970149253731343,
+      0.2537313432835821
+     ],
+     "lead_median_ci95": [
+      136.19819444444445,
+      1001.3723611111111
+     ],
+     "reps_with_no_flag": 0
+    }
+   },
+   "positives_2plus": {
+    "comparison_wallets": 422,
+    "auc_wallet_max": 0.8801060708643647,
+    "in_sample": {
+     "threshold": 0.9044212102890015,
+     "fa_rate": 0.009478672985781991,
+     "positives": 105,
+     "flagged": 23,
+     "recall": 0.21904761904761905,
+     "lead_days_median": 582.2383333333333,
+     "lead_days_iqr": [
+      129.07083333333333,
+      1008.1654166666667
+     ],
+     "lead_gt_1d": 23,
+     "lead_gt_7d": 23,
+     "lead_gt_30d": 22,
+     "held_payments_total": 631,
+     "held_payments_median": 8,
+     "payments_after_flag_total": 608,
+     "payments_after_flag_median": 7,
+     "held_senders_total": 135
+    },
+    "curve": [
+     {
+      "fa_target": 0.005,
+      "threshold": 0.9278601408004761,
+      "fa_rate": 0.004739336492890996,
+      "flagged": 17,
+      "recall": 0.1619047619047619,
+      "lead_days_median": 582.2383333333333
+     },
+     {
+      "fa_target": 0.01,
+      "threshold": 0.9044212102890015,
+      "fa_rate": 0.009478672985781991,
+      "flagged": 23,
+      "recall": 0.21904761904761905,
+      "lead_days_median": 582.2383333333333
+     },
+     {
+      "fa_target": 0.02,
+      "threshold": 0.8906941413879395,
+      "fa_rate": 0.018957345971563982,
+      "flagged": 26,
+      "recall": 0.24761904761904763,
+      "lead_days_median": 356.6759722222222
+     },
+     {
+      "fa_target": 0.05,
+      "threshold": 0.7482200860977173,
+      "fa_rate": 0.04976303317535545,
+      "flagged": 48,
+      "recall": 0.45714285714285713,
+      "lead_days_median": 170.0879861111111
+     },
+     {
+      "fa_target": 0.1,
+      "threshold": 0.5570937991142273,
+      "fa_rate": 0.0995260663507109,
+      "flagged": 68,
+      "recall": 0.6476190476190476,
+      "lead_days_median": 158.8045138888889
+     },
+     {
+      "fa_target": 0.2,
+      "threshold": 0.40788185596466064,
+      "fa_rate": 0.1990521327014218,
+      "flagged": 89,
+      "recall": 0.8476190476190476,
+      "lead_days_median": 132.51708333333335
+     }
+    ],
+    "held_out_seed0": {
+     "threshold": 0.9267995953559875,
+     "fa_rate": 0.004739336492890996,
+     "positives": 105,
+     "flagged": 17,
+     "recall": 0.1619047619047619,
+     "lead_days_median": 582.2383333333333,
+     "lead_days_iqr": [
+      136.19819444444445,
+      1002.2451388888888
+     ],
+     "lead_gt_1d": 17,
+     "lead_gt_7d": 17,
+     "lead_gt_30d": 16,
+     "held_payments_total": 504,
+     "held_payments_median": 7,
+     "payments_after_flag_total": 487,
+     "payments_after_flag_median": 6,
+     "held_senders_total": 93
+    },
+    "held_out_splits": {
+     "splits": 200,
+     "fa_median": 0.004739336492890996,
+     "fa_range": [
+      0.0,
+      0.04265402843601896
+     ],
+     "recall_median": 0.1619047619047619,
+     "recall_range": [
+      0.1619047619047619,
+      0.38095238095238093
+     ]
+    },
+    "bootstrap": {
+     "reps": 1000,
+     "recall_ci95": [
+      0.0761904761904762,
+      0.3238095238095238
+     ],
+     "lead_median_ci95": [
+      136.19819444444445,
+      1002.2451388888888
+     ],
+     "reps_with_no_flag": 0
+    }
+   }
+  }
+ }
+}
