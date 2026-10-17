@@ -50,6 +50,37 @@
   .amt input { font-size: 26px; font-weight: 700; padding-right: 68px; }
   .amt em { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font: 700 14px var(--mono); font-style: normal; color: var(--mut); }
   .sgd { font: 500 13px var(--mono); color: var(--mut); margin: 6px 0 0; }
+  .ticker { display: flex; align-items: stretch; border-bottom: 1px solid var(--rule); background: var(--g2); font: 500 12px var(--mono); }
+  .ticker .live { display: flex; align-items: center; gap: 6px; padding: 7px 10px 7px 16px; font: 800 10px var(--sans); text-transform: uppercase; letter-spacing: .1em; white-space: nowrap; border-right: 1px solid var(--rule); }
+  .ticker .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: pulse 2s ease-out infinite; }
+  .ticker.stale .live::before { background: var(--mut); animation: none; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(31,122,77,.5); } 100% { box-shadow: 0 0 0 7px rgba(31,122,77,0); } }
+  .tape { flex: 1; min-width: 0; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent); }
+  .track { display: flex; width: max-content; animation: tape 140s linear infinite; }
+  .ticker:hover .track, .ticker:focus-within .track { animation-play-state: paused; }
+  @keyframes tape { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .track, .ticker .live::before { animation: none; } .tape { overflow-x: auto; } }
+  .ticker .q { display: flex; gap: 6px; align-items: baseline; padding: 7px 14px; border-right: 1px solid var(--rule); white-space: nowrap; transition: background .6s; }
+  .ticker .q b { font-weight: 700; }
+  .ticker .q .up { color: var(--ok); } .ticker .q .down { color: var(--warn); }
+  .ticker .q.tick { background: #d6dacf; transition: none; }
+  .tsrc { padding: 3px 16px; font: 500 10px var(--mono); color: var(--mut); background: var(--g2); border-bottom: 1px solid var(--rule); }
+  .assets { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 0; }
+  .assets legend { font-size: 15px; font-weight: 600; color: var(--mut); margin-bottom: 6px; padding: 0; }
+  .assets label { margin: 0; color: var(--ink); }
+  .assets input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .assets span { display: inline-flex; gap: 6px; align-items: baseline; padding: 8px 12px; border: 1.5px solid var(--ink); border-radius: 6px; font: 700 14px var(--mono); cursor: pointer; background: #fff; }
+  .assets span small { font: 500 11px var(--sans); color: var(--mut); }
+  .assets input:checked + span { background: var(--ink); color: var(--paper); }
+  .assets input:checked + span small { color: #b9bdb5; }
+  .assets input:focus-visible + span { outline: 3px solid var(--q); outline-offset: 2px; }
+  .more select { font: 700 14px var(--mono); color: var(--ink); background: #fff; border: 1.5px solid var(--ink); border-radius: 6px; padding: 8px 10px; cursor: pointer; }
+  .more select.on { background: var(--ink); color: var(--paper); }
+  .netline { font: 500 13px var(--mono); color: var(--mut); margin: 8px 0 0; }
+  .pair { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .pair label { font-size: 13px; }
+  .amt.usd input { font-size: 20px; }
+  .amt em { min-width: 3ch; text-align: right; }
   .tag { display: inline-block; font: 700 10px var(--mono); text-transform: uppercase; padding: 1px 5px; border: 1.5px dashed currentColor; border-radius: 2px; vertical-align: 1px; margin-left: 4px; }
 
   .btns { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -129,6 +160,8 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 <div class="phone">
   <header class="top"><span class="logo">Demo Exchange<small>logo placeholder</small></span><span class="lang" title="Demo: English only">English</span></header>
   <div class="shield"><svg width="18" height="20" viewBox="0 0 18 20" aria-hidden="true"><path d="M9 1 2 4v5c0 4.4 3 8.4 7 10 4-1.6 7-5.6 7-10V4L9 1Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m5.8 10 2.3 2.3 4.2-4.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>Protected by <b>Score<i>/</i>Before You Sign</b></span></div>
+  <div class="ticker" id="ticker" aria-label="Live prices in US dollars"><span class="live">Live</span><div class="tape"><div class="track" id="track"></div></div></div>
+  <div class="tsrc" id="ticker-src">Prices: loading…</div>
   <div class="sim"><b>Simulated exchange withdrawal screen.</b> In production this check runs inside the exchange's own withdrawal flow, just before signing.</div>
   <div class="who">
     <div class="k">Signed in as</div>
@@ -140,14 +173,22 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     <form id="f" novalidate>
       <div style="display:grid;gap:16px">
         <h1>Withdraw to an external wallet</h1>
-        <div class="net"><span>Network and token</span><b>Ethereum · USDT</b></div>
+        <div>
+          <fieldset class="assets" id="assets"><legend>What are you sending?</legend></fieldset>
+          <p class="netline" id="net">Ethereum · USDT</p>
+        </div>
         <div>
           <label for="wallet">Wallet you are sending to</label>
           <input id="wallet" name="wallet" required pattern="0x[0-9a-fA-F]{40}" placeholder="0x…" autocomplete="off" spellcheck="false">
         </div>
         <div>
-          <label for="amount">Amount</label>
-          <div class="amt"><input id="amount" name="amount" type="number" min="0.01" step="0.01" required inputmode="decimal"><em>USDT</em></div>
+          <div class="pair">
+            <div><label for="amount">Amount (<span id="sym">USDT</span>)</label>
+              <div class="amt"><input id="amount" name="amount" type="number" min="0" step="any" required inputmode="decimal"><em id="sym2">USDT</em></div></div>
+            <div><label for="amount-usd">Same amount in US dollars</label>
+              <div class="amt usd"><input id="amount-usd" type="number" min="0" step="0.01" inputmode="decimal"><em>USD</em></div></div>
+          </div>
+          <p class="sgd" id="rate" aria-live="polite"></p>
           <p class="sgd" id="sgd">≈ S$0 <span class="tag">sample rate</span></p>
         </div>
         <p class="note small" id="form-err" role="alert" hidden></p>
@@ -244,7 +285,140 @@ const short = (a) => a.slice(0, 10) + "…" + a.slice(-6);
 const sgd = (usdt) => "≈ S$" + Math.round(usdt * USDT_SGD).toLocaleString();
 let QUESTIONS = null, payment = null, decision = null;
 
-f.amount.addEventListener("input", () => { $("sgd").firstChild.textContent = sgd(Number(f.amount.value) || 0) + " "; });
+// Live prices (CoinGecko, no key) for the ticker and the converter. Only Ethereum-network coins can be
+// sent (the wallet box takes 0x addresses); the engine scores every payment in USDT: USDT as typed,
+// anything else as its USD value.
+const COINS = [
+  { id: "tether", sym: "USDT", name: "Tether", dp: 2, quick: true, group: "Stablecoins", peg: 1 },
+  { id: "usd-coin", sym: "USDC", name: "USD Coin", dp: 2, quick: true, group: "Stablecoins", peg: 1 },
+  { id: "ethereum", sym: "ETH", name: "Ether", dp: 6, quick: true, group: "Major" },
+  { id: "wrapped-bitcoin", sym: "WBTC", name: "Wrapped BTC", dp: 8, quick: true, group: "Major" },
+  { id: "dai", sym: "DAI", name: "Dai", dp: 2, group: "Stablecoins", peg: 1 },
+  { id: "paypal-usd", sym: "PYUSD", name: "PayPal USD", dp: 2, group: "Stablecoins", peg: 1 },
+  { id: "first-digital-usd", sym: "FDUSD", name: "First Digital USD", dp: 2, group: "Stablecoins", peg: 1 },
+  { id: "ethena-usde", sym: "USDe", name: "Ethena USDe", dp: 2, group: "Stablecoins", peg: 1 },
+  { id: "staked-ether", sym: "stETH", name: "Lido Staked Ether", dp: 6, group: "Major" },
+  { id: "chainlink", sym: "LINK", name: "Chainlink", dp: 4, group: "DeFi and infrastructure" },
+  { id: "uniswap", sym: "UNI", name: "Uniswap", dp: 4, group: "DeFi and infrastructure" },
+  { id: "aave", sym: "AAVE", name: "Aave", dp: 6, group: "DeFi and infrastructure" },
+  { id: "maker", sym: "MKR", name: "Maker", dp: 6, group: "DeFi and infrastructure" },
+  { id: "lido-dao", sym: "LDO", name: "Lido DAO", dp: 4, group: "DeFi and infrastructure" },
+  { id: "curve-dao-token", sym: "CRV", name: "Curve", dp: 4, group: "DeFi and infrastructure" },
+  { id: "1inch", sym: "1INCH", name: "1inch", dp: 4, group: "DeFi and infrastructure" },
+  { id: "ondo-finance", sym: "ONDO", name: "Ondo", dp: 4, group: "DeFi and infrastructure" },
+  { id: "the-graph", sym: "GRT", name: "The Graph", dp: 4, group: "DeFi and infrastructure" },
+  { id: "render-token", sym: "RENDER", name: "Render", dp: 4, group: "DeFi and infrastructure" },
+  { id: "polygon-ecosystem-token", sym: "POL", name: "Polygon", dp: 4, group: "DeFi and infrastructure" },
+  { id: "arbitrum", sym: "ARB", name: "Arbitrum", dp: 4, group: "DeFi and infrastructure" },
+  { id: "shiba-inu", sym: "SHIB", name: "Shiba Inu", dp: 0, group: "Meme coins" },
+  { id: "pepe", sym: "PEPE", name: "Pepe", dp: 0, group: "Meme coins" },
+  { id: "apecoin", sym: "APE", name: "ApeCoin", dp: 4, group: "Meme coins" },
+  { id: "bitcoin", sym: "BTC", name: "Bitcoin" }, { id: "solana", sym: "SOL", name: "Solana" },
+  { id: "ripple", sym: "XRP", name: "XRP" }, { id: "binancecoin", sym: "BNB", name: "BNB" },
+  { id: "dogecoin", sym: "DOGE", name: "Dogecoin" }, { id: "cardano", sym: "ADA", name: "Cardano" },
+  { id: "tron", sym: "TRX", name: "TRON" }, { id: "the-open-network", sym: "TON", name: "Toncoin" },
+  { id: "avalanche-2", sym: "AVAX", name: "Avalanche" }, { id: "polkadot", sym: "DOT", name: "Polkadot" },
+  { id: "litecoin", sym: "LTC", name: "Litecoin" }, { id: "sui", sym: "SUI", name: "Sui" },
+  { id: "stellar", sym: "XLM", name: "Stellar" },
+];
+const PRICE = {};
+let asset = COINS[0], lastEdited = "crypto", pricedAt = 0;
+const usdIn = $("amount-usd");
+const fmtUsd = (n) => n >= 1 ? n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                             : n.toLocaleString("en-US", { maximumSignificantDigits: 4 });
+const price = (c) => PRICE[c.id] ?? c.peg;  // stablecoins still convert 1:1 if the feed is down
+const toUsdt = () => asset.sym === "USDT" ? Number(f.amount.value) : Math.round(Number(f.amount.value) * (price(asset) || 0) * 100) / 100;
+
+const more = el("select"), moreWrap = el("label", null, "more");
+more.id = "more-coins";
+more.setAttribute("aria-label", "More coins");
+more.append(new Option("More coins…", ""));
+for (const g of [...new Set(COINS.filter((c) => c.group && !c.quick).map((c) => c.group))]) {
+  const og = document.createElement("optgroup");
+  og.label = g;
+  for (const c of COINS.filter((c) => c.group === g && !c.quick)) og.append(new Option(`${c.sym} · ${c.name}`, c.id));
+  more.append(og);
+}
+function pick(c) { asset = c; if (usdIn.value !== "") lastEdited = "usd"; setAsset(); }  // keep the dollar value
+for (const c of COINS.filter((c) => c.quick)) {
+  const l = el("label"), r = el("input"), sp = el("span", c.sym);
+  r.type = "radio"; r.name = "asset"; r.value = c.sym; r.checked = c === asset;
+  sp.append(el("small", c.name));
+  l.append(r, sp);
+  r.addEventListener("change", () => { more.value = ""; more.classList.remove("on"); pick(c); });
+  $("assets").append(l);
+}
+more.addEventListener("change", () => {
+  const c = COINS.find((c) => c.id === more.value);
+  if (!c) return;
+  for (const r of document.querySelectorAll("input[name=asset]")) r.checked = false;
+  more.classList.add("on");
+  pick(c);
+});
+moreWrap.append(more);
+$("assets").append(moreWrap);
+
+function setAsset() {
+  $("sym").textContent = $("sym2").textContent = asset.sym;
+  $("net").textContent = "Ethereum · " + asset.sym + (asset.sym === "USDT" ? "" : " · checked as its USD value in USDT");
+  convert();
+}
+function convert() {
+  const p = price(asset);
+  usdIn.disabled = p == null;
+  if (p != null) {
+    if (lastEdited === "crypto") usdIn.value = f.amount.value === "" ? "" : (Number(f.amount.value) * p).toFixed(2);
+    else f.amount.value = usdIn.value === "" ? "" : +(Number(usdIn.value) / p).toFixed(asset.dp);
+  }
+  const age = pricedAt ? Math.round((Date.now() - pricedAt) / 1000) : 0;
+  $("rate").textContent = p == null ? `No live price for ${asset.sym} yet. Enter the amount in ${asset.sym}.`
+    : `1 ${asset.sym} = $${fmtUsd(p)}` + (PRICE[asset.id] ? ` · CoinGecko · ${age < 5 ? "just now" : age + " s ago"}` : " · pegged (live price unavailable)");
+  $("sgd").firstChild.textContent = sgd(toUsdt() || 0) + " ";
+}
+f.amount.addEventListener("input", () => { lastEdited = "crypto"; convert(); });
+usdIn.addEventListener("input", () => { lastEdited = "usd"; convert(); });
+
+// Ticker: the quotes twice in one track so the CSS loop is seamless; the copy is hidden from screen readers.
+const track = $("track"), copy = el("div");
+copy.style.display = "contents";
+copy.setAttribute("aria-hidden", "true");
+const quotes = new Map(COINS.map((c) => {
+  const pair = [0, 1].map(() => { const q = el("span", null, "q"); q.append(el("b", c.sym), el("span", "—"), el("span", "")); return q; });
+  track.append(pair[0]);
+  copy.append(pair[1]);
+  return [c.id, pair];
+}));
+track.append(copy);
+async function prices() {
+  try {
+    const r = await fetch("https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&include_24hr_change=true&ids=" + COINS.map((c) => c.id).join(","));
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    for (const c of COINS) {
+      const d = j[c.id];
+      if (!d) continue;
+      const moved = PRICE[c.id] != null && PRICE[c.id] !== d.usd, ch = d.usd_24h_change ?? 0;
+      PRICE[c.id] = d.usd;
+      for (const q of quotes.get(c.id)) {
+        const [, val, chg] = q.children;
+        val.textContent = "$" + fmtUsd(d.usd);
+        chg.textContent = (ch >= 0 ? "▲ " : "▼ ") + Math.abs(ch).toFixed(2) + "%";
+        chg.className = ch >= 0 ? "up" : "down";
+        if (moved) { q.classList.add("tick"); requestAnimationFrame(() => requestAnimationFrame(() => q.classList.remove("tick"))); }
+      }
+    }
+    pricedAt = Date.now();
+    $("ticker").classList.remove("stale");
+    $("ticker-src").textContent = "Live prices: CoinGecko, 24 h change. Used only to turn a non-USDT amount into USDT for the check.";
+  } catch {
+    $("ticker").classList.add("stale");
+    $("ticker-src").textContent = "Prices unavailable, retrying. Stablecoins convert 1:1.";
+  }
+  convert();
+}
+prices();
+setInterval(prices, 30000);  // ponytail: CoinGecko's free tier allows ~30 calls/min; one per 30 s per page is plenty
+setInterval(() => { if (pricedAt) convert(); }, 5000);  // keep the "s ago" honest
 
 function showPersona(p) {
   if (p) $("who").textContent = `${p.name} · Account ending ${p.account_ending}`;
@@ -267,9 +441,9 @@ function demoLine(d) {
 
 function paymentCard(state) {
   const c = el("div", null, "pay");
-  c.append(el("span", state ? "Payment" : "Sending", "k"), el("span", payment.amount.toLocaleString() + " USDT", "big"));
+  c.append(el("span", state ? "Payment" : "Sending", "k"), el("span", payment.qty.toLocaleString(undefined, { maximumFractionDigits: 8 }) + " " + payment.sym, "big"));
   if (state) c.append(el("span", state === "held" ? "Not sent" : "Paused", "state " + state));
-  c.append(el("span", sgd(payment.amount) + " · Ethereum", "sub"), el("span", "To " + short(payment.wallet), "to"));
+  c.append(el("span", (payment.sym === "USDT" ? "" : `≈ ${payment.amount.toLocaleString()} USDT · `) + sgd(payment.amount) + " · Ethereum", "sub"), el("span", "To " + short(payment.wallet), "to"));
   if (!state) { const e = el("button", "Edit", "link"); e.type = "button"; e.onclick = edit; c.append(e); }
   return c;
 }
@@ -390,7 +564,10 @@ async function submit() {
   const err = $("form-err");
   err.hidden = true;
   if (!f.reportValidity()) return;
-  payment = { customer: f.customer.value.trim() || "mrs-tan", wallet: f.wallet.value.trim().toLowerCase(), amount: Number(f.amount.value) };
+  const usdt = toUsdt();
+  if (!(usdt > 0)) { err.textContent = "Please enter an amount."; err.hidden = false; return; }
+  payment = { customer: f.customer.value.trim() || "mrs-tan", wallet: f.wallet.value.trim().toLowerCase(), amount: usdt,
+              qty: Number(f.amount.value), sym: asset.sym };
   f.hidden = true; out.hidden = true;
   const ck = $("checking"), steps = ck.querySelectorAll("li");
   steps.forEach((s) => (s.className = ""));
@@ -398,7 +575,7 @@ async function submit() {
   // A short walk through the steps (under a second); the decision itself takes milliseconds.
   const anim = (async () => { for (const s of steps) { s.className = "on"; await new Promise((r) => setTimeout(r, 280)); s.className = "done"; } })();
   try {
-    const [d] = await Promise.all([api("/score", payment), anim]);
+    const [d] = await Promise.all([api("/score", { customer: payment.customer, wallet: payment.wallet, amount: payment.amount }), anim]);
     ck.hidden = true;
     render(d);
   } catch (e) {
