@@ -26,7 +26,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
-| [#3](https://github.com/mananpansari/ibm-hackathon-2026/issues/3) | Decision engine core: release or warn, logged | - | doing | 17 Oct | `engine.py` + `decision_log.py` on branch `aariv/c-decision-engine`; self-checks pass |
+| [#3](https://github.com/mananpansari/ibm-hackathon-2026/issues/3) | Decision engine core: release or warn, logged | - | review | 17 Oct | PR from `aariv/c-decision-engine`; self-checks pass on laptop and LinuxONE (s390x) |
 | [#6](https://github.com/mananpansari/ibm-hackathon-2026/issues/6) | Shared payee memory and call-back hold | #3 | blocked |  |  |
 | [#7](https://github.com/mananpansari/ibm-hackathon-2026/issues/7) | Question tier in the engine | #6 | blocked |  |  |
 | [#9](https://github.com/mananpansari/ibm-hackathon-2026/issues/9) | Capacity-aware holds and Result 3 sweep | #6 | blocked |  |  |
