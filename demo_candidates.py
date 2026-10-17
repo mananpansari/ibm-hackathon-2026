@@ -5,8 +5,8 @@ Every per-payment number uses only what was known at that payment's time: a coun
 warning only if Tether froze it before the payment, as in engine.Engine._counterparty_freezes.
 
 Payments are counted exactly as D's demo replays them (app.py demo_next): inbound, >= 10 USDT,
-before the freeze. The "held" columns are PROVISIONAL until the #10 replay confirms what the engine
-actually holds; they assume:
+before the freeze. The table's "held" columns are quick estimates for ranking; --numbers replays one
+wallet through the engine (as #10 does) and is what the narration quotes. The estimates assume:
 - cp_held:     the counterparty-freeze rule alone (real evidence), from the first payment it fires on.
 - ans_held:    customer 1's answer confirms the script and an officer confirms (pins, no decay),
                so every later payment is held. Modelled: depends on customer 1 answering.
@@ -15,6 +15,7 @@ actually holds; they assume:
 
     python demo_candidates.py                 # ranked table
     python demo_candidates.py --export 3      # also write data/demo/<address>.json for the top 3
+    python demo_candidates.py --numbers 0x74f6...  # engine replay -> data/demo/narration_numbers.json
 """
 import argparse
 import csv
@@ -143,16 +144,74 @@ def timeline(h, freezes, frozen_at, r):
         "summary": {k: round(r[k], 2) if isinstance(r[k], float) else r[k]
                     for k in ("n_pays", "n_senders", "n_hot_senders", "total_usdt", "median_usdt",
                               "days_2nd_to_freeze", "cp_warn_step", "cp_held", "ans_held", "ans_held_7d")},
-        "provisional": "cp_held / ans_held / ans_held_7d are this script's estimates; quote #10 replay output instead",
+        "provisional": "cp_held / ans_held / ans_held_7d are quick estimates; quote data/demo/narration_numbers.json (engine replay)",
         "payments": out,
     }
+
+
+def engine_numbers(h):
+    """The demo wallet through the #10 replay's engine path (replay.replay_wallet): what it actually holds.
+
+    Scenarios, all with customer 1's answer confirming the script (modelled, as in D's demo):
+    - answer_only: that answer is the only warning; it decays (7-day half-life).
+    - officer_confirms: the officer confirms the wallet when the first payment is held (pins it).
+    - real_freezes_only: no answer at all, Tether freezes only (the #10 real pass).
+    """
+    import replay
+    from engine import Engine, FixedClock, Withdrawal
+    from payee_memory import OfficerOutcome, PayeeMemory, Report, load_freezes
+
+    def officer_confirms():
+        clock, mem = FixedClock(0), PayeeMemory()
+        eng = Engine(replay.GuardedHistory(h, clock), mem, clock, replay.NullLog())
+        pending, out, confirmed = [], [], False
+        for i, t in enumerate(replay.payments(h)):
+            clock.now = t["ts"]
+            for e in [e for e in pending if e.ts < clock.now]:
+                eng.record(e)
+            pending = [e for e in pending if e.ts >= clock.now]
+            d = eng.decide(Withdrawal(t["from"], h["address"], t["usdt"], t["ts"]))
+            out.append((t, d))
+            if i == 0 and d.tier in ("release", "warning"):
+                pending.append(Report(h["address"], t["ts"], source="customer_answer", kind="modelled", actor=t["from"]))
+            if d.tier == "hold" and not confirmed:  # the officer's call-back confirms the scam
+                pending.append(OfficerOutcome(h["address"], "confirmed", t["ts"], "demo_officer"))
+                confirmed = True
+        return out
+
+    freezes = sorted((ts, w) for w, ts in load_freezes())
+    runs = {"answer_only": replay.replay_wallet(h, reporter=lambda i, t, d: i == 0)[0],
+            "officer_confirms": officer_confirms(),
+            "real_freezes_only": replay.replay_wallet(h, freezes)[0]}
+    out = {}
+    for name, decided in runs.items():
+        held = [i for i, (_, d) in enumerate(decided) if d.tier == "hold"]
+        out[name] = {
+            "tiers": [d.tier for _, d in decided],
+            "payments_held": len(held),
+            "usdt_held": round(sum(decided[i][0]["usdt"] for i in held), 2),
+            "first_held_step": held[0] + 1 if held else None,
+            "days_first_hold_to_freeze": round((h["freeze_ts"] - decided[held[0]][0]["ts"]) / DAY, 1) if held else None,
+        }
+    return out
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--export", type=int, default=0, help="write data/demo/<address>.json for the top N")
     ap.add_argument("--top", type=int, default=5)
+    ap.add_argument("--numbers", metavar="ADDRESS", help="replay one wallet through the engine -> data/demo/narration_numbers.json")
     args = ap.parse_args()
+    if args.numbers:
+        hists, _ = load()
+        h = next(h for h in hists if h["address"] == args.numbers.lower())
+        nums = {"address": h["address"], "source": "demo_candidates.py --numbers (engine via replay.replay_wallet)",
+                "modelled": "customer 1's confirming answer and the officer's confirmation are scripted, not measured",
+                **engine_numbers(h)}
+        path = DATA / "demo" / "narration_numbers.json"
+        path.write_text(json.dumps(nums, indent=1) + "\n")
+        print(json.dumps(nums, indent=1))
+        return
     hists, freezes = load()
     # Counterparty evidence as the engine sees it: every Tether freeze minus OFAC (payee_memory.load_freezes).
     frozen_at = {a: int(r["freeze_ts"]) for a, r in freezes.items() if r["ofac"] != "1"}
@@ -164,7 +223,7 @@ def main():
         print(f"{i:>4} {r['address']} {r['n_pays']:>4} {r['n_senders']:>3} {r['n_hot_senders']:>3} {r['median_usdt']:>9,.0f} "
               f"{r['days_2nd_to_freeze']:>10.0f} {str(r['cp_warn_step'] or '-'):>7} {r['cp_held']:>8} {r['ans_held']:>9} "
               f"{r['ans_held_7d']:>7} {r['score']:>5.2f}")
-    print("\n* provisional until the #10 replay confirms what the engine holds\n")
+    print("\n* quick estimates for ranking; quote --numbers (engine replay) instead\n")
     for i, r in enumerate(ok[:args.top], 1):
         print(f"{i}. {r['address']}: {reason(r)}")
     by_addr = {h["address"]: h for h in hists}

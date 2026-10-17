@@ -1,0 +1,68 @@
+{
+ "address": "0x74f645934fd288dfcb6359870779f68c2b0c48b8",
+ "source": "demo_candidates.py --numbers (engine via replay.replay_wallet)",
+ "modelled": "customer 1's confirming answer and the officer's confirmation are scripted, not measured",
+ "answer_only": {
+  "tiers": [
+   "warning",
+   "hold",
+   "hold",
+   "warning",
+   "warning",
+   "warning",
+   "warning",
+   "warning",
+   "release",
+   "release",
+   "release",
+   "warning",
+   "warning"
+  ],
+  "payments_held": 2,
+  "usdt_held": 78010.0,
+  "first_held_step": 2,
+  "days_first_hold_to_freeze": 85.0
+ },
+ "officer_confirms": {
+  "tiers": [
+   "warning",
+   "hold",
+   "hold",
+   "hold",
+   "hold",
+   "hold",
+   "hold",
+   "hold",
+   "hold",
+   "hold",
+   "hold",
+   "hold",
+   "hold"
+  ],
+  "payments_held": 12,
+  "usdt_held": 120228.96,
+  "first_held_step": 2,
+  "days_first_hold_to_freeze": 85.0
+ },
+ "real_freezes_only": {
+  "tiers": [
+   "warning",
+   "release",
+   "warning",
+   "warning",
+   "warning",
+   "warning",
+   "warning",
+   "warning",
+   "release",
+   "release",
+   "release",
+   "warning",
+   "warning"
+  ],
+  "payments_held": 0,
+  "usdt_held": 0,
+  "first_held_step": null,
+  "days_first_hold_to_freeze": null
+ }
+}

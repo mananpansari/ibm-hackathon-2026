@@ -19,7 +19,7 @@
   "ans_held": 18,
   "ans_held_7d": 3
  },
- "provisional": "cp_held / ans_held / ans_held_7d are this script's estimates; quote #10 replay output instead",
+ "provisional": "cp_held / ans_held / ans_held_7d are quick estimates; quote data/demo/narration_numbers.json (engine replay)",
  "payments": [
   {
    "step": 1,
