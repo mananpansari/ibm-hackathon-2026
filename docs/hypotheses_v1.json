@@ -1,0 +1,66 @@
+{
+ "v1 recipe (XGBoost + MLP, snapshots)": {
+  "wallet_auc_vm": 0.7323347719387323,
+  "recall5_vm": 0.27722772277227725,
+  "payment_auc_vm": 0.8902250908422527,
+  "pay_flag_1pct": 0.17289719626168223,
+  "wallet_auc_random": 0.7166569598136284,
+  "pos_wallets": 101
+ },
+ "H1 XGBoost alone": {
+  "wallet_auc_vm": 0.6864686468646864,
+  "recall5_vm": 0.19801980198019803,
+  "payment_auc_vm": 0.870374998232641,
+  "pay_flag_1pct": 0.1378504672897196,
+  "wallet_auc_random": 0.6808710282792986,
+  "pos_wallets": 101
+ },
+ "H2 size-reweighted negatives": {
+  "wallet_auc_vm": 0.6985698569856986,
+  "recall5_vm": 0.21782178217821782,
+  "payment_auc_vm": 0.8786283880272032,
+  "pay_flag_1pct": 0.20093457943925233,
+  "wallet_auc_random": 0.6614249660260144,
+  "pos_wallets": 101
+ },
+ "H2b volume-matched negatives only": {
+  "wallet_auc_vm": 0.6959042058051959,
+  "recall5_vm": 0.25742574257425743,
+  "payment_auc_vm": 0.8687020162031474,
+  "pay_flag_1pct": 0.18341121495327103,
+  "wallet_auc_random": 0.6534329903578593,
+  "pos_wallets": 101
+ },
+ "H3 every payment": {
+  "wallet_auc_vm": 0.7616992468477617,
+  "recall5_vm": 0.19801980198019803,
+  "payment_auc_vm": 0.8601594864761689,
+  "pay_flag_1pct": 0.0630841121495327,
+  "wallet_auc_random": 0.7739273927392739,
+  "pos_wallets": 101
+ },
+ "H3+H2b every payment, volume-matched": {
+  "wallet_auc_vm": 0.7962680883472962,
+  "recall5_vm": 0.2376237623762376,
+  "payment_auc_vm": 0.8596487197251403,
+  "pay_flag_1pct": 0.19042056074766356,
+  "wallet_auc_random": 0.7410535171164175,
+  "pos_wallets": 101
+ },
+ "H4 monotonic (senders -, holding +)": {
+  "wallet_auc_vm": 0.7583142929677583,
+  "recall5_vm": 0.15841584158415842,
+  "payment_auc_vm": 0.8626511091945085,
+  "pay_flag_1pct": 0.053738317757009345,
+  "wallet_auc_random": 0.7717595288940658,
+  "pos_wallets": 101
+ },
+ "H5 no hack-like frozen wallets": {
+  "wallet_auc_vm": 0.771007870017771,
+  "recall5_vm": 0.15841584158415842,
+  "payment_auc_vm": 0.872784792229276,
+  "pay_flag_1pct": 0.11682242990654206,
+  "wallet_auc_random": 0.7698505144632111,
+  "pos_wallets": 101
+ }
+}
