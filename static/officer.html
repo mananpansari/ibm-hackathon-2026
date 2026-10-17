@@ -4,192 +4,492 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fraud queue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js" integrity="sha384-IWROdLKRsN1UuJywMlWl7/blXQ8GEooN2n7dzTxfEPd7ybYIKCUJ2Ol/1Gpf3YV4" crossorigin="anonymous"></script>
 <style>
-  :root { --bg: #fff; --fg: #1a1a1a; --muted: #666; --line: #ccc; --card: #f7f7f7; --hold: #b3261e; --warn: #b26a00; --ok: #2e7d32; --q: #6a1b9a; }
-  body { font: 15px/1.45 system-ui, sans-serif; margin: 0; color: var(--fg); background: var(--bg); }
-  header { padding: .75rem 1rem; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
-  header h1 { font-size: 1.5rem; margin: 0 1rem 0 0; }
-  main { display: grid; grid-template-columns: minmax(18rem, 1fr) 2fr; gap: 1rem; padding: 1rem; }
-  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid var(--line); }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  tbody tr { cursor: pointer; }
-  tbody tr:hover, tbody tr.sel { background: var(--card); }
-  .mono { font-family: ui-monospace, monospace; font-size: .85em; word-break: break-all; }
-  .muted { color: var(--muted); }
-  section.card { background: var(--card); border-radius: 6px; padding: .75rem 1rem; margin-bottom: 1rem; }
-  h2 { font-size: 1.2rem; margin: 0 0 .5rem; }
-  .tag { display: inline-block; font-size: .75em; padding: 0 .4em; border-radius: 3px; border: 1px solid currentColor; margin-left: .3em; }
-  .real { color: var(--ok); } .modelled { color: var(--q); }
-  #graph { height: 22rem; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
-  button { font: inherit; padding: .35rem .8rem; cursor: pointer; }
-  input { font: inherit; padding: .3rem .5rem; }
-  .freeze { color: var(--hold); font-weight: 600; }
-  #live-out { margin-left: .5rem; }
+  :root {
+    --g: #edefe9; --g2: #e3e6de; --paper: #f6f7f3; --ink: #0e1116; --mut: #555b53; --rule: #c4c9bf;
+    --hold: #d7261e; --q: #2c3fd6; --warn: #a35f00; --ok: #1f7a4d;
+    --sans: "Schibsted Grotesk", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  ::selection { background: var(--ink); color: var(--g); }
+  html { background: var(--g); scrollbar-color: var(--rule) var(--g); }
+  body { margin: 0; font: 15px/1.45 var(--sans); color: var(--ink); background: var(--g); }
+  .mono { font-family: var(--mono); font-size: .92em; }
+  .muted { color: var(--mut); }
+  .tag { display: inline-block; font: 700 10px var(--mono); text-transform: uppercase; padding: 1px 5px; border-radius: 2px; vertical-align: 1px; margin-left: 4px; white-space: nowrap; }
+  .tag.real { background: var(--ink); color: var(--g); }
+  .tag.modelled, .tag.sample { border: 1.5px dashed currentColor; }
+  :focus-visible { outline: 3px solid var(--q); outline-offset: 2px; }
+
+  header { border-bottom: 2px solid var(--ink); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding: 12px 28px; }
+  .brand { font-weight: 900; font-size: 18px; letter-spacing: -.02em; }
+  .brand i { font-style: normal; color: var(--hold); }
+  .bar h1 { font: 600 14px var(--sans); color: var(--mut); margin: 0; }
+  .bar .me { margin-left: auto; font: 500 13px var(--mono); }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 28px; border-top: 1px solid var(--rule); background: var(--ink); color: #c9cdc4; }
+  .tools .h { font: 800 10px var(--sans); text-transform: uppercase; letter-spacing: .12em; color: #8e948a; }
+  .tools button { border-color: #8e948a; color: var(--g); }
+  .tools button:hover { background: var(--g); color: var(--ink); }
+  #demo-status { font: 500 12px var(--mono); flex: 1 1 16rem; }
+  #live { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  #live label { font: 800 10px var(--sans); text-transform: uppercase; letter-spacing: .12em; color: #8e948a; }
+  #live input { background: #1d2128; color: var(--g); border-color: #8e948a; }
+  #live-out { font: 500 12px var(--mono); flex-basis: 100%; }
+  #live-out:empty { display: none; }
+
+  button { font: 700 14px var(--sans); padding: 8px 14px; border-radius: 4px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; transition: background .15s, color .15s, transform .12s; }
+  button:hover { background: var(--ink); color: var(--g); }
+  button:active { transform: translateY(1px); }
+  button.pri { background: var(--ink); color: var(--g); }
+  button.pri:hover { background: #2a2f37; }
+  button.danger { background: var(--hold); border-color: var(--hold); color: #fff; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  input, select, textarea { font: 500 14px var(--mono); padding: 8px 10px; border: 1.5px solid var(--ink); border-radius: 4px; background: #fff; color: var(--ink); }
+  textarea { font-family: var(--sans); width: 100%; resize: vertical; }
+  .linkb { border: 0; padding: 4px 0; text-decoration: underline; text-underline-offset: 3px; background: none; }
+  .linkb:hover { background: none; color: var(--q); }
+
+  main { padding: 20px 28px 48px; }
+  @media (max-width: 900px) { main, .bar, .tools { padding-left: 16px; padding-right: 16px; } }
+  h2 { font: 800 13px var(--sans); text-transform: uppercase; letter-spacing: .08em; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  h2 .muted { text-transform: none; letter-spacing: 0; font-weight: 400; }
+
+  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); border: 2px solid var(--ink); margin-bottom: 20px; background: var(--paper); }
+  .summary > div { padding: 12px 16px; border-right: 1px solid var(--rule); }
+  .summary > div:last-child { border-right: 0; }
+  .summary .k { font-size: 13px; color: var(--mut); }
+  .summary .v { font: 700 28px/1.15 var(--mono); letter-spacing: -.02em; }
+  .summary .s { font: 500 12px var(--mono); color: var(--mut); }
+  .summary .sample { background: var(--g2); }
+
+  .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--ink); margin-bottom: 0; overflow-x: auto; }
+  .tabs button { border: 0; border-radius: 0; padding: 10px 16px; font-weight: 800; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--g); }
+  .tabs .cut { color: var(--mut); font-weight: 600; cursor: default; }
+  .tabs .cut:hover { background: none; color: var(--mut); }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--paper); }
+  th { text-align: left; font: 600 11px var(--mono); color: var(--mut); padding: 10px 8px; border-bottom: 1px solid var(--ink); white-space: nowrap; }
+  td { padding: 12px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.mono { white-space: nowrap; }
+  td .sub { display: block; font: 500 12px var(--mono); color: var(--mut); }
+  tbody tr:hover td { background: var(--g2); }
+  tr.new td:first-child { box-shadow: inset 4px 0 0 var(--hold); }
+  .wait.amber { color: var(--warn); font-weight: 700; } .wait.red { color: var(--hold); font-weight: 800; }
+  .foot { font-size: 13px; color: var(--mut); margin: 10px 0 0; }
+
+  .casehead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin: 6px 0 18px; }
+  .casehead h3 { font: 900 28px/1.1 var(--sans); letter-spacing: -.025em; margin: 0; }
+  .casehead .lock { font: 700 12px var(--mono); padding: 2px 8px; border: 1.5px solid var(--ok); color: var(--ok); border-radius: 3px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px 32px; }
+  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+  section.block { margin-bottom: 24px; }
+  dl { display: grid; grid-template-columns: 11rem 1fr; gap: 0; margin: 0; }
+  dt, dd { padding: 8px 0; border-bottom: 1px solid var(--rule); margin: 0; }
+  dt { color: var(--mut); font-size: 14px; }
+  dd { font-size: 15px; }
+  dd .addr { font: 600 13px var(--mono); word-break: break-all; color: var(--hold); }
+  ul.reasons { list-style: none; margin: 0; padding: 0; }
+  ul.reasons li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 9px 0; border-bottom: 1px solid var(--rule); }
+  ul.reasons .src { font: 500 12px var(--mono); color: var(--mut); }
+  .said dt { font: 700 13px var(--mono); color: var(--ink); width: 2.5rem; }
+  .quote { font-size: 16px; }
+  .freeze { color: var(--hold); font-weight: 800; }
+  #graph { height: 18rem; background: var(--g2); border: 1px solid var(--rule); }
+  .check label { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); cursor: pointer; }
+  .check input { width: 18px; height: 18px; accent-color: var(--ink); margin-top: 2px; }
+  ol.log { list-style: none; margin: 0; padding: 0; font: 500 13px var(--mono); }
+  ol.log li { display: grid; grid-template-columns: 4.5rem 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--rule); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; position: sticky; bottom: 0; padding: 14px 0; background: var(--g); border-top: 2px solid var(--ink); }
+  .actions button { padding: 12px 20px; font-size: 15px; }
+
+  form.outcome { max-width: 760px; }
+  form.outcome fieldset { border: 0; margin: 0 0 20px; padding: 0; }
+  form.outcome legend { font: 800 15px var(--sans); margin-bottom: 8px; padding: 0; }
+  .radio { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border: 1.5px solid var(--rule); border-radius: 6px; margin-bottom: 8px; background: var(--paper); cursor: pointer; font-size: 15px; }
+  .radio:has(input:checked) { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .radio input { width: 18px; height: 18px; accent-color: var(--ink); margin-top: 2px; }
+  .changes { border: 2px solid var(--ink); padding: 14px 16px; background: var(--paper); margin-bottom: 20px; }
+  .changes h3 { margin: 0 0 8px; font: 800 13px var(--sans); text-transform: uppercase; letter-spacing: .08em; }
+  .changes p { margin: 4px 0; }
+  .err { color: var(--hold); font-weight: 700; }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
+<!--
+THESIS: A clearing-house ledger for call-backs: holds ranked by expected loss, each case a wallet file the officer works on the phone; refuses the grey admin grid with coloured badges.
+OWN-WORLD: Chain Ledger tokens, ink-ruled regions, mono figures and addresses, real tags solid and modelled/sample tags dashed; vermilion only for the flagged wallet.
+STORY: The officer sees what waits, claims the top case, reads what the customer said and why it was held, calls, and records an outcome that updates payee memory.
+FIRST VIEWPORT: Brand bar, dark demo strip, summary strip, tabs, ranked queue table with Claim.
+FORM: Chain Ledger, seed 5feb93dd, on the UI v2 officer wireframe.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+-->
 <header>
-  <h1>Fraud queue</h1>
-  <span>Demo:</span>
-  <button id="reset">Reset</button>
-  <button id="next">Next payment</button>
-  <button id="play">Play</button>
-  <span id="demo-status" class="muted"></span>
-  <form id="live" style="display:flex;gap:.4rem;align-items:center;margin-left:auto">
-    <label for="live-wallet">Live check</label>
-    <input id="live-wallet" placeholder="0x… any wallet" pattern="0x[0-9a-fA-F]{40}" required size="44" spellcheck="false">
-    <button>Score</button>
-    <span id="live-out" role="status"></span>
-  </form>
-</header>
-<main>
-  <div>
-    <h2>Held withdrawals <span class="muted">(largest expected loss first)</span></h2>
-    <table>
-      <thead><tr><th>Customer</th><th>Wallet</th><th class="num">USDT</th><th class="num">Exp. loss</th></tr></thead>
-      <tbody id="queue"><tr><td colspan="4" class="muted">Nothing held.</td></tr></tbody>
-    </table>
+  <div class="bar"><span class="brand">Score<i>/</i>Before You Sign</span><h1>Fraud operations console</h1><span class="me">Signed in as FO-20417 · Officer<span class="tag sample">demo login</span></span></div>
+  <div class="tools">
+    <span class="h">Demo mode</span>
+    <button id="reset">Reset</button>
+    <button id="next">Next payment</button>
+    <button id="play">Play</button>
+    <span id="demo-status"></span>
+    <form id="live">
+      <label for="live-wallet">Live check</label>
+      <input id="live-wallet" placeholder="0x… any wallet" pattern="0x[0-9a-fA-F]{40}" required size="30" spellcheck="false">
+      <button>Score</button>
+      <span id="live-out" role="status"></span>
+    </form>
   </div>
-  <div id="case"><p class="muted">Select a held withdrawal to see its why-card.</p></div>
+</header>
+
+<main>
+  <div id="v-queue">
+    <div class="summary" id="summary"></div>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-tab="open" aria-selected="true">Unclaimed</button>
+      <button role="tab" data-tab="mine" aria-selected="false">My cases</button>
+      <button role="tab" data-tab="closed" aria-selected="false">Closed today</button>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">RANK</th><th>REFERENCE</th><th>CUSTOMER</th><th>WALLET</th><th class="num">AMOUNT</th><th class="num">EXP. LOSS</th><th class="num">P(SCAM)</th><th>WHY IT IS HERE</th><th class="num">WAITING</th><th></th></tr></thead>
+        <tbody id="queue"></tbody>
+      </table>
+    </div>
+    <p class="foot">Sorted by expected loss, not by P(scam). A claimed case is locked to one officer. Amber: waiting 10 minutes or more. Red: past the 15-minute target <span class="tag sample">sample target</span>.</p>
+  </div>
+  <div id="v-case" hidden></div>
+  <div id="v-outcome" hidden></div>
 </main>
+
 <script>
+// ---- Phase 1: until A's backend (aanya/ui-v2-backend) lands, the queue, case and outcome views run on MOCK,
+// shaped exactly like docs/team/ui-v2.md's API contract. Phase 2 sets MOCK_MODE = false. The demo strip and the
+// live box always call the real server.
+const MOCK_MODE = true;
+const ME = "FO-20417";
+const now = () => Math.floor(Date.now() / 1000);
+const MOCK = (() => {
+  const t = now(), p = (name, masked, acct, phone) => ({ name, name_masked: masked, account_ending: acct, phone_masked: phone, language: "English", sample: true });
+  const tan = p("TAN SIEW LIAN", "TA* SI** LI**", "4821", "+65 **** 5678");
+  const W = "0x44ea04886b5b67f0f861a37254e43beee2f3b050";
+  const row = (id, persona, wallet, amount, p_scam, top, waiting) => ({ id, ref: "SBYS-" + String(id).padStart(4, "0"), customer: "c" + id, wallet, amount, time: t - waiting,
+    expected_loss: amount * p_scam, p_scam, persona, top_reason: top, status: "open", claimed_by: null, waiting_s: waiting });
+  const rows = [
+    row(412, tan, W, 12000, 0.5, { signal: "answer_confirms_script", detail: "Your answer matches a known scam pattern (government impersonation).", kind: "real" }, 660),
+    row(409, p("LIM WEI JIE", "LI* WE* JI*", "7702", "+65 **** 1180"), "0x9b1c52a7d3e0f4a1c6b8e2d9f7a3b5c0e10e44d1", 6500, 0.95, { signal: "memory_report", detail: "Another customer reported this wallet as a scam earlier today.", kind: "modelled" }, 480),
+    row(407, p("MUHAMMAD HAFIZ", "MU****** HA***", "1135", "+65 **** 9032"), "0x71d0c9be55a4e3f2d1c0b9a8f7e6d5c4b3a2915c", 3000, 0.95, { signal: "tether_freeze", detail: "Tether froze this wallet.", kind: "real" }, 360),
+    row(411, p("RAJ KUMAR", "RA* KU***", "3390", "+65 **** 4471"), "0xc3a88f10e2d4b6a8c0e2f4a6b8d0c2e4f65b7e02", 1200, 0.5, { signal: "answer_confirms_script", detail: "Your answer matches a known scam pattern (investment).", kind: "real" }, 240),
+  ];
+  const closed = [{ ...row(401, p("ONG BEE HOON", "ON* BE* HO**", "5521", "+65 **** 2290"), "0x2f6e19d4a0b1c2d3e4f5a6b7c8d9e0f1a2c80b33", 800, 0.5, { signal: "answer_confirms_script", detail: "Your answer matches a known scam pattern (job).", kind: "real" }, 3600), status: "closed", claimed_by: ME }];
+  const caseFor = (r) => ({
+    withdrawal: { customer: r.customer, wallet: r.wallet, amount: r.amount, time: r.time },
+    decision: { id: r.id, tier: "hold", p_scam: r.p_scam, expected_loss: r.expected_loss, engine_version: "c9-0.1", ref: r.ref, decide_ms: 1.4, host: "s390x", model_on: true,
+      reasons: [
+        { signal: r.top_reason.signal, source: "customer_answer", kind: r.top_reason.kind, detail: r.top_reason.detail },
+        { signal: "large_new_payee", source: "customer_history", kind: "real", detail: `This is a large payment (${r.amount.toLocaleString()} USDT) to a wallet you have never paid before.` },
+        { signal: "first_time_payee", source: "customer_history", kind: "real", detail: "You have never sent money to this wallet before." },
+        { signal: "p_signal", source: "config", kind: "modelled", detail: "Assumed scam probability 50% once 'answer_confirms_script' fires." }] },
+    answer: { why: "officer", how: "phone", asked: ["secret", "act_fast"], text: "A man from the police called, he says my account is used for money laundering and I must move my money to a safe wallet." },
+    status: r.status, claimed_by: r.claimed_by, persona: r.persona, known_bad: false, tether_froze_at: null,
+    prior_warnings: [{ signal: "customer_report", source: "customer_answer", kind: "modelled", detail: "1 earlier warning about this wallet." }],
+    payers: [{ customer: "c398", amount: 2100, time: t - 86400, tier: "warning" }, { customer: "c402", amount: 5400, time: t - 40000, tier: "warning" }, { customer: r.customer, amount: r.amount, time: r.time, tier: "hold" }],
+    wallet_facts: { first_seen_ts: t - 2 * 86400, n_payments_in: 9, n_senders_in: 9, n_senders_in_7d: 9, usdt_in: 21300, usdt_out: 20300, median_forward_h: 2.1,
+      out_flows: [{ to: "0x8c31a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d202aa", usdt: 14300, first_ts: t - 80000 }, { to: "0xa09fb1c3d5e7f9a1b3c5d7e9f1a3b5c7d9e177c1", usdt: 6000, first_ts: t - 30000 }], touched_known_bad: false, truncated: false },
+    events: [{ ts: r.time, what: "Payment held", who: "engine" }],
+  });
+  return { rows, closed, caseFor,
+    reasons: { confirmed_impersonation: "Confirmed scam: police or official impersonation", confirmed_investment_romance: "Confirmed scam: investment or romance",
+               unsure_cancelled: "Customer unsure, cancelled to be safe", genuine_known_recipient: "Genuine payment: customer knows the recipient",
+               genuine_own_wallet: "Genuine payment: customer's own wallet", other: "Other (note required)" },
+    questions: { start: "why", questions: {
+      why: { text: "Why are you sending this money?", options: [{ id: "known", text: "Paying someone I know and trust" }, { id: "own_platform", text: "Investing on a platform I chose myself" }, { id: "contacted", text: "Someone contacted me and told me to move my money" }, { id: "officer", text: "An officer from the government, a bank or the police asked me to" }, { id: "other", text: "Something else" }] },
+      how: { text: "How did this person contact you?", options: [{ id: "phone", text: "A phone call" }, { id: "text_whatsapp", text: "A text or WhatsApp message" }, { id: "social_dating", text: "Social media or a dating app" }, { id: "email", text: "An email" }, { id: "in_person", text: "In person" }, { id: "not_sure", text: "I'm not sure" }] },
+      asked: { text: "Did this person ask you to do any of these?", options: [{ id: "secret", text: "Keep this a secret from family or the bank" }, { id: "act_fast", text: "Act quickly or today" }, { id: "new_account", text: "Open a new crypto account" }, { id: "safe_wallet", text: "Move savings to a \"safe\" wallet" }, { id: "install_app", text: "Install an app or share your screen" }, { id: "none", text: "None of these" }] } } },
+  };
+})();
+const mockCases = new Map([...MOCK.rows, ...MOCK.closed].map((r) => [r.id, MOCK.caseFor(r)]));
+async function mockApi(path, body) {
+  await new Promise((r) => setTimeout(r, 40));
+  const all = [...MOCK.rows, ...MOCK.closed];
+  if (path === "/queue") {
+    for (const r of MOCK.rows) r.waiting_s += 3;
+    const open = all.filter((r) => r.status === "open" || r.status === "claimed");
+    return { rows: all.slice().sort((a, b) => b.expected_loss - a.expected_loss),
+             summary: { waiting: open.length, usdt_on_hold: open.reduce((s, r) => s + r.amount, 0), oldest_waiting_s: Math.max(0, ...open.map((r) => r.waiting_s)), closed_today: all.filter((r) => r.status === "closed").length } };
+  }
+  if (path === "/questions") return MOCK.questions;
+  if (path === "/outcome-codes") return MOCK.reasons;
+  const m = path.match(/^\/case\/(\d+)$/);
+  if (m) return mockCases.get(+m[1]);
+  if (path === "/claim") {
+    const r = all.find((r) => r.id === body.id), c = mockCases.get(body.id);
+    if (r.claimed_by && r.claimed_by !== body.officer) throw new Error(409);
+    r.status = c.status = "claimed"; r.claimed_by = c.claimed_by = body.officer;
+    c.events.push({ ts: now(), what: "Claimed", who: body.officer }, { ts: now(), what: "Customer name viewed", who: body.officer });
+    return c;
+  }
+  if (path === "/outcome") {
+    if (body.decision === "release" && body.reason.startsWith("confirmed")) throw new Error(422);
+    if (body.decision === "cancel" && body.reason.startsWith("genuine")) throw new Error(422);
+    const r = all.find((r) => r.id === body.id), c = mockCases.get(body.id);
+    if (body.decision !== "keep") r.status = c.status = "closed";
+    c.events.push({ ts: now(), what: `Outcome: ${body.decision} · ${body.reason}`, who: ME });
+    return { ok: true };
+  }
+  throw new Error(404);
+}
+async function realApi(path, body) {
+  const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+const api = (path, body) => (MOCK_MODE ? mockApi(path, body) : realApi(path, body));
+
+// ---- helpers
 const $ = (id) => document.getElementById(id);
 const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
 const date = (ts) => new Date(ts * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 const short = (a) => a.slice(0, 8) + "…" + a.slice(-6);
-const TIER_COLOR = { hold: "#b3261e", question: "#6a1b9a", warning: "#b26a00", release: "#2e7d32" };
-let selected = null, cy = null, playing = null;
+const usdt = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 0 }) + " USDT";
+const mins = (s) => (s < 60 ? "<1 min" : Math.floor(s / 60) + " min");
+const ago = (ts) => { const d = now() - ts; return d < 3600 ? mins(d) + " ago" : d < 86400 ? Math.round(d / 3600) + " h ago" : Math.round(d / 86400) + " days ago"; };
+const tag = (kind) => el("span", kind, "tag " + kind);
+const TIER_COLOR = { hold: "#d7261e", question: "#2c3fd6", warning: "#a35f00", release: "#1f7a4d" };
+let tab = "open", openCase = null, cy = null, playing = null, seen = null, QUESTIONS = null, REASONS = null;
 
-async function api(url, body) {
-  const r = await fetch(url, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
-  if (!r.ok) throw new Error(r.status);
-  return r.json();
-}
+function view(name) { for (const v of ["queue", "case", "outcome"]) $("v-" + v).hidden = v !== name; window.scrollTo(0, 0); }
 
+// ---- queue
+function cell(main, sub, cls) { const td = el("td", main, cls); if (sub) td.append(el("span", sub, "sub")); return td; }
 async function refresh() {
   const q = await api("/queue");
+  const s = q.summary, sm = $("summary");
+  const box = (k, v, sub, sample) => { const d = el("div", null, sample ? "sample" : ""); const kk = el("div", k, "k"); if (sample) kk.append(tag("sample")); d.append(kk, el("div", v, "v"), el("div", sub, "s")); return d; };
+  sm.replaceChildren(
+    box("Waiting for a call", String(s.waiting), usdt(s.usdt_on_hold) + " on hold"),
+    box("Oldest waiting", s.waiting ? mins(s.oldest_waiting_s) : "–", "target: call within 15 min"),
+    box("Closed today", String(s.closed_today), "cancelled or released"),
+    box("Officers on shift", "4", "1 free · 2 on a call · 1 break", true),
+    box("Calls per hour (team)", "9 of 12", "capacity", true));
+  const rows = q.rows.filter((r) => tab === "open" ? r.status === "open" : tab === "mine" ? r.status === "claimed" && r.claimed_by === ME : r.status === "closed" || r.status === "cancelled");
+  if (seen == null) seen = new Set(q.rows.map((r) => r.id));
   const tb = $("queue");
   tb.replaceChildren();
-  if (!q.length) { const tr = el("tr"); const td = el("td", "Nothing held.", "muted"); td.colSpan = 4; tr.append(td); tb.append(tr); }
-  for (const r of q) {
+  if (!rows.length) { const tr = el("tr"), td = el("td", tab === "open" ? "Nothing waiting." : "No cases here.", "muted"); td.colSpan = 10; tr.append(td); tb.append(tr); }
+  rows.forEach((r, i) => {
     const tr = el("tr");
-    if (r.id === selected) tr.className = "sel";
-    tr.append(el("td", r.customer), el("td", short(r.wallet), "mono"), el("td", r.amount.toLocaleString(), "num"), el("td", r.expected_loss.toLocaleString(undefined, { maximumFractionDigits: 0 }), "num"));
-    tr.addEventListener("click", () => { selected = r.id; refresh(); });
+    tr.dataset.id = r.id;
+    if (!seen.has(r.id)) tr.className = "new";
+    const why = el("td", r.top_reason?.detail || "–");
+    if (r.top_reason) why.append(tag(r.top_reason.kind));
+    const w = r.waiting_s ?? 0, wait = cell(mins(w), null, "num wait" + (r.status === "open" ? (w >= 900 ? " red" : w >= 600 ? " amber" : "") : ""));
+    const p = cell(r.p_scam != null ? r.p_scam.toFixed(2) : "–", null, "num");
+    const act = el("td");
+    if (r.status === "open") { const b = el("button", "Claim", "pri"); b.onclick = () => claim(r.id); act.append(b); }
+    else { const b = el("button", r.status === "claimed" && r.claimed_by !== ME ? "Claimed by " + r.claimed_by : "Open"); b.disabled = r.status === "claimed" && r.claimed_by !== ME; b.onclick = () => showCase(r.id); act.append(b); }
+    tr.append(el("td", String(i + 1), "num"), el("td", r.ref || "#" + r.id, "mono"),
+              cell(r.persona?.name_masked || r.customer, r.persona ? "Acct ending " + r.persona.account_ending : null),
+              el("td", short(r.wallet), "mono"), cell(usdt(r.amount), null, "num"), cell(usdt(r.expected_loss), null, "num"), p, why, wait, act);
     tb.append(tr);
-  }
-  if (selected == null && q.length) selected = q[0].id;
-  if (selected != null) await showCase(selected);
+  });
 }
+for (const b of document.querySelectorAll("[data-tab]")) b.onclick = () => {
+  tab = b.dataset.tab;
+  for (const x of document.querySelectorAll("[data-tab]")) x.setAttribute("aria-selected", String(x === b));
+  refresh();
+};
+
+async function claim(id) {
+  try { await api("/claim", { id, officer: ME }); seen.add(id); showCase(id); }
+  catch (e) { alert(String(e.message) === "409" ? "Another officer has claimed this case." : "Couldn't claim this case."); refresh(); }
+}
+
+// ---- case view
+function dl(pairs) { const d = el("dl"); for (const [k, v] of pairs) { d.append(el("dt", k)); const dd = el("dd"); dd.append(...[].concat(v).map((x) => (typeof x === "string" ? document.createTextNode(x) : x))); d.append(dd); } return d; }
+function block(title, ...kids) { const s = el("section", null, "block"); const h = el("h2"); h.append(...[].concat(title)); s.append(h, ...kids); return s; }
+const optText = (qid, id) => QUESTIONS?.questions[qid]?.options.find((o) => o.id === id)?.text || id;
 
 async function showCase(id) {
-  let c;
-  try { c = await api("/case/" + id); } catch { return; }
-  const w = c.withdrawal, d = c.decision, box = $("case");
-  box.replaceChildren();
+  if (!QUESTIONS) QUESTIONS = await api("/questions").catch(() => null);
+  const c = await api("/case/" + id);
+  openCase = { id, c };
+  const w = c.withdrawal, d = c.decision, p = c.persona || {}, mine = c.claimed_by === ME, box = $("v-case");
+  const back = el("button", "← Back to queue", "linkb"); back.onclick = () => { view("queue"); refresh(); };
+  const head = el("div", null, "casehead");
+  head.append(el("h3", "Case " + (d.ref || "#" + d.id)), el("span", "Opened " + ago(w.time), "muted"));
+  if (mine) head.append(el("span", "Claimed by you · lock held", "lock"));
 
-  const card = el("section", null, "card");
-  card.append(el("h2", `Why-card: ${w.customer} → ${short(w.wallet)}`));
-  card.append(el("p", `${w.amount.toLocaleString()} USDT at ${date(w.time)} · tier ${d.tier} · expected loss ${d.expected_loss.toLocaleString(undefined, { maximumFractionDigits: 0 })} · engine ${d.engine_version}`, "muted"));
-  card.append(el("div", w.wallet, "mono"));
+  const addr = el("span", w.wallet, "addr");
+  const pay = block("Payment on hold", dl([["Amount", usdt(w.amount)], ["To wallet", addr], ["Network", "Ethereum · USDT"], ["Held at", date(w.time)], ["Tier", d.tier]]));
+  const cust = block("Customer", dl([
+    ["Name", mine ? [p.name || w.customer, el("span", " shown because you claimed this case · logged", "muted")] : (p.name_masked || w.customer)],
+    ["Account", "Ending " + (p.account_ending || "–")], ["Phone on file", p.phone_masked || "–"], ["Language", p.language || "English"]]));
+  if (p.sample) cust.querySelector("h2").append(tag("sample"));
 
-  card.append(el("h2", "Signals that fired"));
-  const ul = el("ul");
-  for (const r of d.reasons) {
-    const li = el("li", r.detail + " ");
-    li.append(el("span", r.source, "muted"), el("span", r.kind, "tag " + r.kind));
-    ul.append(li);
+  const said = [];
+  if (c.answer && typeof c.answer === "object") {
+    if (c.answer.why) said.push(["Q1", optText("why", c.answer.why)]);
+    if (c.answer.how) said.push(["Q2", optText("how", c.answer.how)]);
+    if (c.answer.asked) said.push(["Q3", c.answer.asked.map((x) => optText("asked", x)).join("; ")]);
+    if (c.answer.text) said.push(["Text", el("span", "“" + c.answer.text + "”", "quote")]);
+  } else if (c.answer) said.push(["Text", el("span", "“" + c.answer + "”", "quote")]);
+  const told = block("What the customer told us", said.length ? dl(said) : el("p", "No question was asked.", "muted"));
+  told.querySelector("dl")?.classList.add("said");
+
+  const ul = el("ul", null, "reasons");
+  for (const r of d.reasons) { const li = el("li", r.detail); li.append(tag(r.kind), el("span", r.source.replace(/_/g, " "), "src")); ul.append(li); }
+  const whyTitle = ["Why this was held", el("span", null, "muted")];
+  whyTitle[1].append("P(scam) " + (d.p_scam != null ? d.p_scam.toFixed(2) : "–"), tag("modelled"));
+  const why = block(whyTitle, ul, el("p", "These reasons are for the call. The customer never sees them.", "foot"));
+
+  const f = c.wallet_facts;
+  const facts = [];
+  if (f) {
+    facts.push(["First seen on-chain", f.first_seen_ts ? ago(f.first_seen_ts) : "–"], ["Payments in", `${f.n_payments_in} (${f.n_senders_in} senders, ${f.n_senders_in_7d} in 7 days)`],
+               ["USDT in / out", `${usdt(f.usdt_in)} / ${usdt(f.usdt_out)}`], ["Forwarded on after", f.median_forward_h != null ? `median ${f.median_forward_h} h` : "–"]);
+    if (f.truncated) facts.push(["History", "truncated at 1,000 transfers"]);
   }
-  card.append(ul);
+  const others = (c.payers || []).filter((x) => x.customer !== w.customer);
+  facts.push(["Other customers who sent here", others.length ? String(new Set(others.map((x) => x.customer)).size) : "0 (new to us)"],
+             ["Tether freeze", c.tether_froze_at ? el("span", (c.tether_froze_at > w.time ? "Later froze it, on " : "Froze it on ") + date(c.tether_froze_at), "freeze") : "No"],
+             ["Known-bad list", c.known_bad || f?.touched_known_bad ? el("span", c.known_bad ? "Listed" : "Sent to or from a listed wallet", "freeze") : "Not listed"],
+             ["Payee memory", c.prior_warnings?.length ? c.prior_warnings.map((m) => m.detail).join(" ") : "No earlier warnings"]);
+  const rec = block(["Wallet record", tag("real")], dl(facts));
 
-  card.append(el("h2", "Customer's answer"));
-  if (c.answer) {
-    const p = el("p", "“" + c.answer + "”");
-    if (c.modelled_answer) p.append(el("span", "modelled (demo script)", "tag modelled"));
-    card.append(p);
-  } else card.append(el("p", "No question was asked.", "muted"));
+  const g = el("div"); g.id = "graph";
+  const flow = block(["Money flow", el("span", "who paid this wallet, and where it went next (dashed)", "muted")], g);
+  const chk = el("div", null, "check");
+  for (const t of ["Confirm identity with two details", "Ask who they are sending to, without prompting", "Ask if anyone told them to keep it secret or hurry",
+                   "Tell them real officers never ask them to move money", "Offer to cancel the payment"]) { const l = el("label"), i = el("input"); i.type = "checkbox"; l.append(i, el("span", t)); chk.append(l); }
+  const log = el("ol", null, "log");
+  for (const e of c.events || []) { const li = el("li"); li.append(el("span", new Date(e.ts * 1000).toISOString().slice(11, 16)), el("span", `${e.what} · ${e.who}`)); log.append(li); }
 
-  card.append(el("h2", "Earlier warnings on this wallet"));
-  if (c.prior_warnings.length) {
-    const pw = el("ul");
-    for (const m of c.prior_warnings) { const li = el("li", m.detail + " "); li.append(el("span", m.source.replace(/_/g, " "), "muted"), el("span", m.kind, "tag " + m.kind)); pw.append(li); }
-    card.append(pw);
-  } else card.append(el("p", "None before this withdrawal.", "muted"));
-
-  if (c.tether_froze_at) {
-    // The pitch is "the first warning is the last payment", not lead time: state the freeze, no day count.
-    card.append(el("p", c.tether_froze_at > w.time ? `Tether later froze this wallet, on ${date(c.tether_froze_at)}.`
-                                                   : `Tether froze this wallet on ${date(c.tether_froze_at)}.`, "freeze"));
-  }
-
-  const act = el("p");
-  const clear = el("button", "Mark wallet cleared"), conf = el("button", "Confirm scam");
-  clear.onclick = () => outcome(w.wallet, "cleared");
-  conf.onclick = () => outcome(w.wallet, "confirmed");
-  act.append(clear, " ", conf);
-  card.append(act);
-  box.append(card);
-
-  const g = el("section", null, "card");
-  g.append(el("h2", "Everyone who paid or tried to pay this wallet"), el("div", null));
-  g.lastChild.id = "graph";
-  box.append(g);
-  drawGraph(w.wallet, c.payers);
+  const acts = el("div", null, "actions");
+  const rec_b = el("button", "Record outcome", "pri"); rec_b.disabled = !mine && c.status !== "open"; rec_b.onclick = () => showOutcome();
+  if (!mine && c.status === "open") { const cl = el("button", "Claim this case"); cl.onclick = () => claim(id); acts.append(cl); rec_b.disabled = true; }
+  acts.append(rec_b);
+  const grid = el("div", null, "grid"), left = el("div"), right = el("div");
+  left.append(pay, cust, told, why);
+  right.append(rec, flow, block("Call checklist", chk), block("Activity log", log));
+  grid.append(left, right);
+  box.replaceChildren(back, head, grid, acts);
+  view("case");
+  drawGraph(w.wallet, c.payers || [], f?.out_flows || []);
 }
 
-function drawGraph(wallet, payers) {
+function drawGraph(wallet, payers, outs) {
   const els = [{ data: { id: wallet, label: short(wallet), wallet: 1 } }];
-  const last = new Map(payers.map((p) => [p.customer, p]));  // latest attempt per customer labels the node
-  for (const [c, p] of last) els.push({ data: { id: "c:" + c, label: `${c} · ${Math.round(p.amount)} USDT · ${p.tier}` } });
-  payers.forEach((p, i) => {
-    els.push({ data: { id: "e" + i, source: "c:" + p.customer, target: wallet, color: TIER_COLOR[p.tier] || "#888" } });
+  const last = new Map(payers.map((p) => [p.customer, p]));
+  for (const [cu, p] of last) els.push({ data: { id: "c:" + cu, label: `${cu} · ${Math.round(p.amount)} · ${p.tier}` } });
+  payers.forEach((p, i) => els.push({ data: { id: "e" + i, source: "c:" + p.customer, target: wallet, color: TIER_COLOR[p.tier] || "#555b53" } }));
+  outs.forEach((o, i) => {
+    els.push({ data: { id: "o:" + o.to, label: `${short(o.to)} · ${Math.round(o.usdt)}`, out: 1 } });
+    els.push({ data: { id: "f" + i, source: wallet, target: "o:" + o.to, color: "#555b53", out: 1 } });
   });
   if (cy) cy.destroy();
+  if (!window.cytoscape) { $("graph").textContent = "Graph library didn't load (offline)."; return; }
   cy = cytoscape({
     container: $("graph"), elements: els, userZoomingEnabled: false,
-    layout: { name: "concentric", concentric: (n) => (n.data("wallet") ? 2 : 1), levelWidth: () => 1, minNodeSpacing: 60 },
+    layout: { name: "breadthfirst", directed: true, spacingFactor: 1.1 },
     style: [
-      { selector: "node", style: { label: "data(label)", "font-size": 10, "background-color": "#607d8b", width: 18, height: 18 } },
-      { selector: "node[wallet]", style: { "background-color": "#b3261e", width: 30, height: 30, "font-weight": "bold", "text-valign": "bottom", "text-margin-y": 6 } },
+      { selector: "node", style: { label: "data(label)", "font-family": "JetBrains Mono, monospace", "font-size": 9, color: "#0e1116", "background-color": "#0e1116", width: 12, height: 12, "text-margin-y": -4 } },
+      { selector: "node[wallet]", style: { "background-color": "#d7261e", width: 28, height: 28, "font-size": 11, "font-weight": "bold" } },
+      { selector: "node[out]", style: { "background-color": "#edefe9", "border-width": 1.5, "border-style": "dashed", "border-color": "#555b53" } },
       { selector: "edge", style: { "line-color": "data(color)", "target-arrow-color": "data(color)", "target-arrow-shape": "triangle", "curve-style": "bezier", width: 2 } },
+      { selector: "edge[out]", style: { "line-style": "dashed" } },
     ],
   });
 }
 
-async function outcome(wallet, o) {
-  await api("/outcome", { wallet, outcome: o });
-  selected = null;
-  refresh();
+// ---- record outcome
+async function showOutcome() {
+  if (!REASONS) REASONS = await api("/outcome-codes");
+  const { id, c } = openCase, w = c.withdrawal, d = c.decision, box = $("v-outcome");
+  const back = el("button", "← Back to case", "linkb"); back.onclick = () => view("case");
+  const head = el("div", null, "casehead"); head.append(el("h3", "Record outcome · " + (d.ref || "#" + id)));
+  const sumry = dl([["Customer", c.persona?.name || w.customer], ["Amount", usdt(w.amount)], ["Wallet", el("span", short(w.wallet), "mono")]]);
+  const fm = el("form", null, "outcome");
+  const radios = (name, title, opts) => {
+    const fs = el("fieldset"); fs.append(el("legend", title));
+    for (const [v, t] of opts) { const l = el("label", null, "radio"), i = el("input"); i.type = "radio"; i.name = name; i.value = v; i.required = true; l.append(i, el("span", t)); fs.append(l); }
+    return fs;
+  };
+  fm.append(radios("call", "1 · What happened on the call", [["confirmed_identity", "Spoke to the customer, identity confirmed"], ["other_person", "Spoke to someone else, did not confirm identity"], ["no_answer", "No answer after 3 attempts"]]),
+            radios("decision", "2 · Decision on this payment", [["cancel", "Cancel the payment. Funds stay in the customer's account."], ["release", "Release the payment."], ["keep", "Keep on hold and call again."]]));
+  const rf = el("fieldset"), sel = el("select"); sel.name = "reason"; sel.required = true;
+  sel.append(new Option("Choose a reason…", ""));
+  for (const [k, v] of Object.entries(REASONS)) sel.append(new Option(v, k));
+  const note = el("textarea"); note.name = "note"; note.rows = 3; note.placeholder = "Note (required for Other)";
+  rf.append(el("legend", "3 · Reason"), sel, el("div"), note);
+  rf.children[2].style.height = "8px";
+  const changes = el("div", null, "changes");
+  const err = el("p", null, "err"); err.hidden = true; err.setAttribute("role", "alert");
+  const submitB = el("button", "Submit decision", "pri"); submitB.type = "submit";
+  const cancelB = el("button", "Back to case"); cancelB.type = "button"; cancelB.onclick = () => view("case");
+  const btns = el("div", null, "actions"); btns.append(cancelB, submitB);
+  fm.append(rf, changes, err, btns);
+  // Describes what payee_memory.outcome_for() does with each choice; the page decides nothing.
+  const explain = () => {
+    const dec = fm.decision.value, r = sel.value;
+    changes.replaceChildren(el("h3", "What this changes"));
+    const line = (t) => changes.append(el("p", t));
+    if (!dec) return line("Choose a decision to see what it changes.");
+    line(dec === "cancel" ? "This payment: cancelled and closed. The money stays in the customer's account." : dec === "release" ? "This payment: released and closed." : "This payment: stays on hold in your cases.");
+    if (dec === "cancel" && r.startsWith("confirmed")) line("This wallet: marked confirmed scam. It never fades, and the next customer who sends to it is held for a call-back straight away.");
+    else if (dec === "release" && r.startsWith("genuine")) line("This wallet: marked cleared. Holds on it stop.");
+    else if ((dec === "release" && r.startsWith("confirmed")) || (dec === "cancel" && r.startsWith("genuine"))) line("This decision and reason contradict each other and will be refused.");
+    else line("This wallet: payee memory is not changed.");
+  };
+  fm.addEventListener("change", explain);
+  explain();
+  fm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (sel.value === "other" && !note.value.trim()) { err.textContent = "Add a note for Other."; err.hidden = false; return; }
+    submitB.disabled = true; err.hidden = true;
+    try {
+      await api("/outcome", { id, wallet: w.wallet, call: fm.call.value, decision: fm.decision.value, reason: sel.value, note: note.value.trim() });
+      view("queue"); refresh();
+    } catch (ex) {
+      err.textContent = String(ex.message) === "422" ? "That decision and reason contradict each other." : "Couldn't save the outcome. Try again.";
+      err.hidden = false; submitB.disabled = false;
+    }
+  });
+  box.replaceChildren(back, head, sumry, el("div"), fm);
+  box.children[3].style.height = "20px";
+  view("outcome");
 }
 
+// ---- demo strip and live box: always the real server
 async function step() {
-  const s = await api("/demo/next", {});
+  const s = await realApi("/demo/next", {});
   if (s.done) { stop(); $("demo-status").textContent = `Replay finished. Tether froze the wallet on ${date(s.tether_froze_at)}.`; return; }
   $("demo-status").textContent = `Payment ${s.step}: ${s.withdrawal.customer}, ${Math.round(s.withdrawal.amount)} USDT, ${date(s.withdrawal.time)} → ${s.decision.tier}`;
   if (s.officer_confirmed) $("demo-status").textContent += ". The officer calls back and confirms the scam a day later (scripted, modelled): every later payment is held.";
-  if (s.decision.tier === "hold") selected = s.decision.id;
   await refresh();
 }
 function stop() { clearInterval(playing); playing = null; $("play").textContent = "Play"; }
-
-$("reset").onclick = async () => { stop(); const r = await api("/demo/reset", {}); selected = null; $("demo-status").textContent = `Demo wallet ${short(r.wallet)} reset.`; refresh(); };
+$("reset").onclick = async () => { stop(); const r = await realApi("/demo/reset", {}); seen = null; $("demo-status").textContent = `Demo wallet ${short(r.wallet)} reset.`; view("queue"); refresh(); };
 $("next").onclick = step;
 $("play").onclick = () => { if (playing) return stop(); $("play").textContent = "Pause"; playing = setInterval(step, 1500); step(); };
 $("live").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("live-out").textContent = "checking…";
   try {
-    const d = await api("/live", { wallet: $("live-wallet").value.trim() });
+    const d = await realApi("/live", { wallet: $("live-wallet").value.trim() });
     $("live-out").textContent = `${d.tier} (history: ${d.history_source}${d.live_status === "ok" ? "" : "; " + d.live_message}) · ${d.customer_reasons.join(" ")}`;
     refresh();
   } catch { $("live-out").textContent = "couldn't score that address"; }
 });
 
 refresh().catch(() => {});
-setInterval(() => { if (!playing) refresh().catch(() => {}); }, 3000);  // server restarts are fine
+setInterval(() => { if (!playing && !$("v-queue").hidden) refresh().catch(() => {}); }, 3000);
 </script>
 </body>
 </html>

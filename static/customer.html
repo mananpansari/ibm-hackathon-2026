@@ -3,101 +3,406 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Send crypto</title>
+<title>Withdraw crypto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  body { font: 16px/1.5 system-ui, sans-serif; max-width: 34rem; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; background: #fff; }
-  label { display: block; margin-top: 1rem; font-weight: 600; }
-  input, textarea { width: 100%; box-sizing: border-box; padding: .5rem; font: inherit; border: 1px solid #888; border-radius: 4px; }
-  button { margin-top: 1.25rem; padding: .6rem 1.2rem; font: inherit; cursor: pointer; }
-  #result { margin-top: 1.5rem; padding: 1rem; border-radius: 6px; }
+  :root {
+    --g: #edefe9; --g2: #e3e6de; --paper: #f6f7f3; --ink: #0e1116; --mut: #555b53; --rule: #c4c9bf;
+    --hold: #d7261e; --q: #2c3fd6; --warn: #a35f00; --ok: #1f7a4d;
+    --sans: "Schibsted Grotesk", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  ::selection { background: var(--ink); color: var(--g); }
+  html { background: var(--g2); }
+  body { margin: 0; font: 17px/1.45 var(--sans); color: var(--ink); background: var(--g2); }
+  .phone { max-width: 440px; margin: 0 auto; min-height: 100vh; background: var(--paper); display: flex; flex-direction: column; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); }
+  @media (max-width: 440px) { .phone { border: 0; } }
+
+  .top { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px; background: var(--ink); color: var(--g); }
+  .logo { font-weight: 900; font-size: 17px; letter-spacing: -.02em; }
+  .logo small { font: 500 11px var(--mono); color: #9aa096; margin-left: 6px; letter-spacing: 0; }
+  .lang { font: 500 12px var(--mono); color: #9aa096; }
+  .shield { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--g); border-bottom: 1px solid var(--rule); font-size: 14px; }
+  .shield b { font-weight: 900; } .shield b i { font-style: normal; color: var(--hold); }
+  .shield svg { flex: none; }
+  .sim { padding: 10px 16px; background: #fff7e6; border-bottom: 1px solid #e3c98f; font-size: 13px; line-height: 1.4; }
+  .sim b { font-weight: 800; }
+  .who { padding: 12px 16px; border-bottom: 1px solid var(--rule); }
+  .who .k { font-size: 13px; color: var(--mut); }
+  .who .v { font-size: 17px; font-weight: 800; }
+  .who details { margin-top: 4px; font-size: 13px; color: var(--mut); }
+  .who details summary { cursor: pointer; }
+  .who details input { margin-top: 6px; font-size: 15px; padding: 8px 10px; }
+
+  main { padding: 18px 16px 24px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+  h1 { margin: 0; font: 900 26px/1.15 var(--sans); letter-spacing: -.025em; text-wrap: balance; }
+  h2 { margin: 0; font: 900 22px/1.2 var(--sans); letter-spacing: -.02em; text-wrap: balance; }
+  label { display: block; font-size: 15px; font-weight: 600; color: var(--mut); margin-bottom: 6px; }
+  input, textarea { width: 100%; font: 600 17px/1.3 var(--mono); color: var(--ink); background: #fff; border: 1.5px solid var(--ink); border-radius: 6px; padding: 12px; }
+  textarea { font: 400 16px/1.5 var(--sans); resize: vertical; }
+  input::placeholder, textarea::placeholder { color: #747a71; }
+  :focus-visible { outline: 3px solid var(--q); outline-offset: 2px; }
+  .net { display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: var(--mut); }
+  .net b { font: 700 14px var(--mono); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 4px; padding: 4px 8px; }
+  .amt { position: relative; }
+  .amt input { font-size: 26px; font-weight: 700; padding-right: 68px; }
+  .amt em { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font: 700 14px var(--mono); font-style: normal; color: var(--mut); }
+  .sgd { font: 500 13px var(--mono); color: var(--mut); margin: 6px 0 0; }
+  .tag { display: inline-block; font: 700 10px var(--mono); text-transform: uppercase; padding: 1px 5px; border: 1.5px dashed currentColor; border-radius: 2px; vertical-align: 1px; margin-left: 4px; }
+
+  .btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  button { flex: 1 1 140px; min-height: 52px; font: 800 17px var(--sans); border-radius: 6px; cursor: pointer; border: 1.5px solid var(--ink); background: var(--ink); color: var(--paper); padding: 12px 16px; transition: transform .12s, background .15s; }
+  button.ghost { background: transparent; color: var(--ink); }
+  button:hover { background: #2a2f37; } button.ghost:hover { background: var(--g); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .link { background: none; border: 0; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; font: 600 15px var(--sans); padding: 8px 0; min-height: 0; flex: none; cursor: pointer; }
+  .link:hover { background: none; color: var(--q); }
+  .help { font-size: 15px; color: var(--mut); text-align: center; margin: 0; }
+
+  .checking { border: 1.5px solid var(--ink); border-radius: 8px; padding: 16px; background: #fff; }
+  .checking h2 { font-size: 18px; margin-bottom: 10px; }
+  .checking ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 15px; }
+  .checking li { display: flex; gap: 10px; align-items: center; color: var(--mut); }
+  .checking li::before { content: ""; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--rule); flex: none; }
+  .checking li.on { color: var(--ink); } .checking li.on::before { border-color: var(--ink); border-top-color: transparent; animation: spin .6s linear infinite; }
+  .checking li.done { color: var(--ink); } .checking li.done::before { background: var(--ink); border-color: var(--ink); animation: none; }
+  @keyframes spin { to { transform: rotate(1turn); } }
+  .checking p { margin: 10px 0 0; font-size: 13px; color: var(--mut); }
+
+  .pay { border: 1.5px solid var(--ink); border-radius: 8px; padding: 14px 16px; background: #fff; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; }
+  .pay .k { font-size: 13px; color: var(--mut); grid-column: 1 / -1; }
+  .pay .big { font: 700 26px/1.15 var(--mono); letter-spacing: -.02em; }
+  .pay .sub { font: 500 13px var(--mono); color: var(--mut); grid-column: 1 / -1; }
+  .pay .to { font: 600 14px var(--mono); grid-column: 1; margin-top: 6px; }
+  .pay .state { grid-row: 2; grid-column: 2; font: 800 11px var(--sans); text-transform: uppercase; letter-spacing: .08em; padding: 3px 8px; border-radius: 3px; border: 1.5px solid currentColor; }
+  .pay .state.paused { color: var(--q); border-style: dashed; } .pay .state.held { color: var(--hold); border-style: double; border-width: 3px; }
+  .pay .link { grid-column: 2; grid-row: 4; }
+
+  #result { display: flex; flex-direction: column; gap: 16px; animation: land .4s cubic-bezier(.16,1,.3,1); }
   #result[hidden] { display: none; }
-  .release { background: #e7f5ea; border: 1px solid #2e7d32; }
-  .warning { background: #fff6e0; border: 1px solid #b26a00; }
-  .question, .hold { background: #fdecea; border: 1px solid #b3261e; }
-  .error { background: #f2f2f2; border: 1px solid #666; }
-  #result h2 { margin: 0 0 .5rem; font-size: 1.15rem; }
-  #result ul { margin: 0; padding-left: 1.2rem; }
+  @keyframes land { from { opacity: 0; transform: translateY(8px); } }
+  @media (prefers-reduced-motion: reduce) { #result, .checking li.on::before { animation: none; } }
+  .stamp { align-self: flex-start; padding: 6px 12px 5px; font: 900 13px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; border: 2px solid currentColor; border-radius: 2px; }
+  .release .stamp { color: var(--paper); background: var(--ok); border-color: var(--ok); }
+  .sent .stamp { color: var(--paper); background: var(--ink); }
+  .warning .stamp { color: var(--warn); }
+  .question .stamp { color: var(--q); border-style: dashed; }
+  .hold .stamp { color: var(--hold); border: 4px double var(--hold); }
+  .cancelled .stamp, .error .stamp { color: var(--mut); border-style: dotted; }
+  .note { margin: 0; font-size: 16px; }
+  .note.small { font-size: 14px; color: var(--mut); }
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+  .steps li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; border-top: 1px solid var(--rule); padding: 12px 0; font-size: 17px; }
+  .steps li::before { content: counter(s, decimal-leading-zero); font: 600 13px var(--mono); color: var(--mut); padding-top: 3px; }
+  .steps li:first-child { font-weight: 800; }
+  .next { border: 1.5px solid var(--ink); border-radius: 8px; padding: 12px 16px; background: #fff; display: grid; gap: 6px; font-size: 15px; }
+  .next h3 { margin: 0; font: 800 13px var(--sans); text-transform: uppercase; letter-spacing: .08em; }
+  .next b { font-family: var(--mono); }
+
+  fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; }
+  legend { font: 900 20px/1.25 var(--sans); letter-spacing: -.015em; margin-bottom: 4px; padding: 0; }
+  .hint { font-size: 14px; color: var(--mut); margin: -2px 0 4px; }
+  .opt { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border: 1.5px solid var(--rule); border-radius: 8px; background: #fff; cursor: pointer; color: var(--ink); font-size: 16px; font-weight: 600; margin: 0; }
+  .opt input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--ink); }
+  .opt:has(input:checked) { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .intro { margin: 0; padding: 12px 14px; background: var(--g); border-radius: 6px; font-size: 15px; }
+  .qhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font: 600 13px var(--mono); color: var(--mut); }
+
+  .demo { margin-top: auto; padding: 10px 16px 14px; background: var(--ink); color: #c9cdc4; font: 500 12px/1.5 var(--mono); }
+  .demo b { color: var(--paper); font-weight: 700; }
+  .demo .h { font: 800 10px var(--sans); text-transform: uppercase; letter-spacing: .12em; color: #8e948a; }
+  .demo .tag { color: #8e948a; }
 </style>
 </head>
 <body>
-<h1>Send crypto</h1>
-<form id="f">
-  <label for="customer">Your customer ID</label>
-  <input id="customer" name="customer" value="mrs-tan" required maxlength="64">
-  <label for="wallet">Wallet you are sending to</label>
-  <input id="wallet" name="wallet" required pattern="0x[0-9a-fA-F]{40}" placeholder="0x…" autocomplete="off" spellcheck="false">
-  <label for="amount">Amount (USDT)</label>
-  <input id="amount" name="amount" type="number" min="0.01" step="0.01" required>
-  <button type="submit">Check and send</button>
-</form>
-<div id="result" role="status" aria-live="polite" hidden></div>
-<script>
-const HEADLINE = {
-  release: "Your payment can go ahead.",
-  warning: "Please check before you send.",
-  question: "We need to ask you one question.",
-  hold: "Your payment is on hold for a call-back.",
-};
-const HOLD_NEXT = [
-  "Your money has not been sent. It is safe in your account.",
-  "One of our fraud officers will call you on the phone number we have on file.",
-  "Please don't try to send this money another way while you wait.",
-  "If anyone is telling you to move money or keep this secret, you can hang up. Real officers will never ask you to do that.",
-];
-const f = document.getElementById("f"), out = document.getElementById("result");
-const el = (tag, text) => { const e = document.createElement(tag); if (text) e.textContent = text; return e; };
+<!--
+THESIS: The exchange's own withdrawal screen with one pre-sign check in it; refuses a separate scam-checker app.
+OWN-WORLD: Chain Ledger tokens (ledger grey, ink, mono addresses, stamped tier marks; vermilion only for a held payment) on the customer wireframe's single mobile column.
+STORY: Mrs Tan enters a wallet and amount, the check runs, and she sees go ahead, a warning, three plain questions, or a call-back hold with a reference.
+FIRST VIEWPORT: Exchange bar, "Protected by" strip, simulated-screen banner, signed-in customer, withdrawal form, Check button; demo strip at the foot.
+FORM: Chain Ledger, seed 5feb93dd, on the UI v2 wireframe.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+-->
+<div class="phone">
+  <header class="top"><span class="logo">Demo Exchange<small>logo placeholder</small></span><span class="lang" title="Demo: English only">English</span></header>
+  <div class="shield"><svg width="18" height="20" viewBox="0 0 18 20" aria-hidden="true"><path d="M9 1 2 4v5c0 4.4 3 8.4 7 10 4-1.6 7-5.6 7-10V4L9 1Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m5.8 10 2.3 2.3 4.2-4.6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span>Protected by <b>Score<i>/</i>Before You Sign</b></span></div>
+  <div class="sim"><b>Simulated exchange withdrawal screen.</b> In production this check runs inside the exchange's own withdrawal flow, just before signing.</div>
+  <div class="who">
+    <div class="k">Signed in as</div>
+    <div class="v" id="who">TAN SIEW LIAN · Account ending 4821</div>
+    <details><summary>Demo: switch customer</summary><label for="customer" class="note small">Customer ID</label><input id="customer" name="customer" value="mrs-tan" maxlength="64" form="f"></details>
+  </div>
 
-function show(cls, title, items, extra) {
-  out.className = cls;
-  out.replaceChildren();
-  const ul = el("ul");
-  for (const t of items) ul.append(el("li", t));
-  out.append(el("h2", title), ul);
-  if (extra) out.append(extra);
-  out.hidden = false;
-  out.scrollIntoView({ block: "nearest" });
+  <main>
+    <form id="f" novalidate>
+      <div style="display:grid;gap:16px">
+        <h1>Withdraw to an external wallet</h1>
+        <div class="net"><span>Network and token</span><b>Ethereum · USDT</b></div>
+        <div>
+          <label for="wallet">Wallet you are sending to</label>
+          <input id="wallet" name="wallet" required pattern="0x[0-9a-fA-F]{40}" placeholder="0x…" autocomplete="off" spellcheck="false">
+        </div>
+        <div>
+          <label for="amount">Amount</label>
+          <div class="amt"><input id="amount" name="amount" type="number" min="0.01" step="0.01" required inputmode="decimal"><em>USDT</em></div>
+          <p class="sgd" id="sgd">≈ S$0 <span class="tag">sample rate</span></p>
+        </div>
+        <p class="note small" id="form-err" role="alert" hidden></p>
+        <div class="btns"><button type="submit" id="check">Check payment</button></div>
+      </div>
+    </form>
+    <div id="checking" class="checking" role="status" hidden>
+      <h2>Checking this wallet…</h2>
+      <ol><li>Reading the wallet's history</li><li>Looking at recent activity</li><li>Making a decision</li></ol>
+      <p>Send unlocks when the check is done.</p>
+    </div>
+    <div id="result" role="status" aria-live="polite" hidden></div>
+  </main>
+
+  <footer class="demo" aria-label="Demo information">
+    <div class="h">Demo mode · hidden from customers</div>
+    <div id="demo-line">tier: pending</div>
+  </footer>
+</div>
+<script>
+// ---- Phase 1: until A's backend (aanya/ui-v2-backend) lands, the page runs on MOCK, shaped exactly like
+// docs/team/ui-v2.md's API contract. Phase 2 sets MOCK_MODE = false and nothing else changes.
+const MOCK_MODE = true;
+const MOCK = {
+  questions: {
+    start: "why",
+    questions: {
+      why: { text: "Why are you sending this money?", type: "single", free_text: true, options: [
+        { id: "known", text: "Paying someone I know and trust", next: null },
+        { id: "own_platform", text: "Investing on a platform I chose myself", next: null },
+        { id: "contacted", text: "Someone contacted me and told me to move my money", next: "how" },
+        { id: "officer", text: "An officer from the government, a bank or the police asked me to", next: "how" },
+        { id: "other", text: "Something else", next: null }] },
+      how: { text: "How did this person contact you?", type: "single", options: [
+        { id: "phone", text: "A phone call", next: "asked" },
+        { id: "text_whatsapp", text: "A text or WhatsApp message", next: "asked" },
+        { id: "social_dating", text: "Social media or a dating app", next: "asked" },
+        { id: "email", text: "An email", next: "asked" },
+        { id: "in_person", text: "In person", next: "asked" },
+        { id: "not_sure", text: "I'm not sure", next: "asked" }] },
+      asked: { text: "Did this person ask you to do any of these?", type: "multi", options: [
+        { id: "secret", text: "Keep this a secret from family or the bank", next: null },
+        { id: "act_fast", text: "Act quickly or today", next: null },
+        { id: "new_account", text: "Open a new crypto account", next: null },
+        { id: "safe_wallet", text: "Move savings to a \"safe\" wallet", next: null },
+        { id: "install_app", text: "Install an app or share your screen", next: null },
+        { id: "none", text: "None of these", next: null }] },
+    },
+  },
+  persona: { name: "TAN SIEW LIAN", name_masked: "TA* SI** LI**", account_ending: "4821", phone_masked: "+65 **** 5678", language: "English", sample: true },
+};
+// The mock's tiers imitate the engine only so every screen can be laid out; the real tier always comes from decide().
+const mockPaid = new Set(), mockCases = {};
+let mockId = 0;
+function mockDecision(w, tier, p) {
+  const id = ++mockId;
+  mockCases[id] = w;
+  const reason = { release: "You have paid this wallet before.", warning: "You have never sent money to this wallet before.",
+                   question: `This is a large payment (${w.amount.toLocaleString()} USDT) to a wallet you have never paid before.`,
+                   hold: "Your answer matches a known scam pattern (government impersonation)." }[tier];
+  return { id, tier, p_scam: p, expected_loss: w.amount * p, customer_reasons: [reason], question: tier === "question" ? MOCK.questions.questions.why.text : undefined,
+           ref: "SBYS-" + String(id).padStart(4, "0"), decide_ms: 1.4, host: "s390x", model_on: true, persona: MOCK.persona };
+}
+async function mockApi(path, body) {
+  await new Promise((r) => setTimeout(r, 60));
+  if (path === "/questions") return MOCK.questions;
+  if (path === "/score") {
+    const k = body.customer + body.wallet, seen = mockPaid.has(k);
+    mockPaid.add(k);
+    return seen && body.amount < 1000 ? mockDecision(body, "release", 0.01) : body.amount < 1000 ? mockDecision(body, "warning", 0.02) : mockDecision(body, "question", 0.05);
+  }
+  if (path === "/answer") {
+    const a = body.answer, bad = a.why === "officer" || (a.asked || []).some((x) => x !== "none");
+    return mockDecision(mockCases[body.id], bad ? "hold" : "release", bad ? 0.5 : 0.01);
+  }
+  if (path === "/cancel") return { id: body.id, status: "cancelled" };
+  throw new Error(404);
 }
 
-async function post(url, body) {
-  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+async function api(path, body) {
+  if (MOCK_MODE) return mockApi(path, body);
+  const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
   if (!r.ok) throw new Error(r.status);
   return r.json();
 }
 
-// The engine's customer_reasons: plain text meant for customers; officers see every reason on the why-card.
-const said = (d) => d.customer_reasons;
+// ---- page
+const USDT_SGD = 1.29;  // sample rate, labelled on screen
+const $ = (id) => document.getElementById(id);
+const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
+const f = $("f"), out = $("result");
+const short = (a) => a.slice(0, 10) + "…" + a.slice(-6);
+const sgd = (usdt) => "≈ S$" + Math.round(usdt * USDT_SGD).toLocaleString();
+let QUESTIONS = null, payment = null, decision = null;
+
+f.amount.addEventListener("input", () => { $("sgd").firstChild.textContent = sgd(Number(f.amount.value) || 0) + " "; });
+
+function showPersona(p) {
+  if (p) $("who").textContent = `${p.name} · Account ending ${p.account_ending}`;
+}
+showPersona(MOCK_MODE ? MOCK.persona : null);
+
+function demoLine(d) {
+  const line = $("demo-line");
+  line.replaceChildren();
+  if (!d) { line.textContent = "tier: pending"; return; }
+  const host = d.host === "s390x" ? "LinuxONE" : d.host || "?";
+  line.append("tier: ", el("b", d.tier), " · P(scam) ", el("b", d.p_scam != null ? d.p_scam.toFixed(2) : "–"), el("span", "modelled", "tag"),
+              " · ", el("b", d.decide_ms != null ? d.decide_ms + " ms" : "–"), " · ", el("b", host));
+  if (MOCK_MODE) line.append(el("span", "mock data", "tag"));
+}
+
+function paymentCard(state) {
+  const c = el("div", null, "pay");
+  c.append(el("span", state ? "Payment" : "Sending", "k"), el("span", payment.amount.toLocaleString() + " USDT", "big"));
+  if (state) c.append(el("span", state === "held" ? "Not sent" : "Paused", "state " + state));
+  c.append(el("span", sgd(payment.amount) + " · Ethereum", "sub"), el("span", "To " + short(payment.wallet), "to"));
+  if (!state) { const e = el("button", "Edit", "link"); e.type = "button"; e.onclick = edit; c.append(e); }
+  return c;
+}
+
+function screen(cls, stamp, parts) {
+  out.className = cls;
+  out.replaceChildren(el("div", stamp, "stamp"), ...parts);
+  out.hidden = false;
+  f.hidden = true;
+  out.scrollIntoView({ block: "start" });
+}
+function btn(text, onclick, ghost) { const b = el("button", text, ghost ? "ghost" : ""); b.type = "button"; b.onclick = onclick; return b; }
+function row(...bs) { const r = el("div", null, "btns"); r.append(...bs); return r; }
+const helpLine = () => el("p", "I need help now: call your bank's 24-hour hotline", "help");
+
+function edit() { out.hidden = true; f.hidden = false; decision = null; demoLine(null); f.wallet.focus(); }
+
+async function cancel() {
+  try { if (decision) await api("/cancel", { id: decision.id }); } catch { /* the payment is not sent either way */ }
+  screen("cancelled", "Cancelled", [el("h2", "Payment cancelled."), el("p", "Your money stays in your account. Nothing was sent.", "note"), row(btn("Start a new withdrawal", edit, true))]);
+}
+function sent() {
+  screen("sent", "Sent", [el("h2", "Payment sent."), el("p", "Simulated: in production the exchange signs and broadcasts it now.", "note small"), row(btn("Start a new withdrawal", edit, true))]);
+}
 
 function render(d) {
-  if (d.tier === "question") {
-    const form = el("form"), label = el("label", d.question), box = el("textarea"), btn = el("button", "Send my answer");
-    box.id = "answer"; box.required = true; box.maxLength = 2000; box.rows = 4;
-    label.htmlFor = "answer";
-    form.append(label, box, btn);
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      btn.disabled = true;
-      try { render(await post("/answer", { id: d.id, answer: box.value.trim() })); }
-      catch { show("error", "We couldn't send your answer.", ["Please try again in a moment."]); }
-    });
-    show("question", HEADLINE.question, ["Before this payment goes out, please tell us in your own words what it is for."], form);
-    box.focus();
+  decision = d;
+  showPersona(d.persona);
+  demoLine(d);
+  const why = (d.customer_reasons || []).join(" ");
+  if (d.tier === "release") {
+    screen("release", "Check complete", [el("h1", "Review your payment"), paymentCard(), el("h2", "You can send this payment."),
+      el("p", "If you change the wallet or amount, we will check again.", "note small"), row(btn("Check again", () => submit(), true), btn("Send", sent))]);
+  } else if (d.tier === "warning") {
+    screen("warning", "Please review", [el("h1", "Review your payment"), paymentCard(), el("h2", "Please review before sending."),
+      el("p", why + " Only continue if you personally know and trust its owner.", "note"),
+      el("p", "Scammers often pressure people to move money quickly. You are allowed to take your time.", "note"),
+      row(btn("Cancel this payment", cancel), btn("Continue anyway", sent, true)),
+      el("p", "The safer choice is the dark button. Continuing sends the payment as it is.", "note small"), helpLine()]);
+  } else if (d.tier === "question") {
+    askAll(d);
   } else if (d.tier === "hold") {
-    const why = el("p", "Why: " + said(d).join(" "));
-    show("hold", HEADLINE.hold, HOLD_NEXT, why);
+    const phone = d.persona?.phone_masked || "the number we have on file";
+    const steps = el("ol", null, "steps");
+    for (const t of ["Your money has not been sent. It is safe in your account.",
+                     `One of our fraud officers will call you on ${phone}, the number we have on file.`,
+                     "Please don't try to send this money another way while you wait.",
+                     "If anyone is telling you to move money or keep this secret, you can hang up. Real officers will never ask you to do that."]) steps.append(el("li", t));
+    const next = el("div", null, "next");
+    const ref = el("div", "Reference: "); ref.append(el("b", d.ref || "–"));
+    const eta = el("div", "Expected call-back: within 15 minutes"); eta.append(el("span", "modelled", "tag"));
+    next.append(el("h3", "What happens next"), ref, eta, el("div", "We will never ask for your OTP or password."));
+    screen("hold", "Held · call-back", [paymentCard("held"), el("h2", "Your payment is on hold for a call-back."), steps, next, row(btn("Cancel this payment", cancel, true)), helpLine()]);
   } else {
-    show(d.tier, HEADLINE[d.tier] || d.tier, said(d));
+    screen(d.tier, d.tier, [el("h2", "We checked this payment."), el("p", why, "note")]);
   }
 }
 
-f.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const body = { customer: f.customer.value.trim(), wallet: f.wallet.value.trim(), amount: Number(f.amount.value) };
-  try { render(await post("/score", body)); }
-  catch (err) {
-    if (String(err.message) === "422") show("error", "We couldn't check this payment.", ["Please check the wallet address and amount."]);
-    else show("error", "We couldn't reach the bank.", ["Please try again in a moment."]);
+// Q1 -> Q2 -> Q3 by the `next` pointers; the whole answer is posted once at the end.
+async function askAll(d) {
+  if (!QUESTIONS) QUESTIONS = await api("/questions");
+  const answers = {}, trail = [];
+  const show = (qid) => {
+    const q = QUESTIONS.questions[qid], n = trail.length + 1, parts = [];
+    parts.push(paymentCard("paused"));
+    const head = el("div", null, "qhead");
+    head.append(el("span", n === 1 ? "Security check before your payment is sent" : n === 2 ? "Additional details needed" : "Final security question"), el("span", `Question ${n}`));
+    parts.push(head);
+    if (n === 1) parts.push(el("p", "Real police, bank or government officers never ask you to move your savings to a \"safe\" wallet.", "intro"));
+    const fs = el("fieldset");
+    fs.append(el("legend", q.text));
+    if (q.type === "multi") fs.append(el("p", "Tick all that apply.", "hint"));
+    // Shuffle so the scam answers aren't always in the same place; "Something else" / "None of these" stay last.
+    const fixed = (o) => o.id === "other" || o.id === "none";
+    const opts = [...q.options.filter((o) => !fixed(o)).sort(() => Math.random() - .5), ...q.options.filter(fixed)];
+    for (const o of opts) {
+      const l = el("label", null, "opt"), i = el("input");
+      i.type = q.type === "multi" ? "checkbox" : "radio"; i.name = qid; i.value = o.id;
+      const prev = answers[qid];
+      i.checked = Array.isArray(prev) ? prev.includes(o.id) : prev === o.id;
+      if (q.type === "multi") i.addEventListener("change", () => {  // "None of these" can't sit with anything else
+        if (!i.checked) return;
+        for (const x of fs.querySelectorAll("input")) if ((o.id === "none") !== (x.value === "none")) x.checked = false;
+      });
+      l.append(i, el("span", o.text));
+      fs.append(l);
+    }
+    parts.push(fs);
+    let box = null;
+    if (q.free_text) {
+      const w = el("div"), lb = el("label", "Anything else you want to tell us? (optional)");
+      box = el("textarea"); box.id = "answer"; box.rows = 3; box.maxLength = 2000; box.value = answers.text || "";
+      lb.htmlFor = "answer"; w.append(lb, box); parts.push(w);
+    }
+    const err = el("p", "Please choose an answer.", "note small"); err.hidden = true; err.setAttribute("role", "alert");
+    const go = btn("Continue", async () => {
+      const picked = [...fs.querySelectorAll("input:checked")].map((x) => x.value);
+      if (!picked.length) { err.hidden = false; return; }
+      answers[qid] = q.type === "multi" ? picked : picked[0];
+      if (box) { if (box.value.trim()) answers.text = box.value.trim(); else delete answers.text; }
+      const nxt = q.type === "multi" ? null : q.options.find((o) => o.id === picked[0]).next;
+      if (nxt) { trail.push(qid); show(nxt); return; }
+      go.disabled = true;
+      try { render(await api("/answer", { id: d.id, answer: answers })); }
+      catch { go.disabled = false; err.textContent = "We couldn't send your answer. Please try again."; err.hidden = false; }
+    });
+    const nav = row();
+    if (trail.length) nav.append(btn("Back", () => { delete answers[qid]; show(trail.pop()); }, true));
+    nav.append(go);
+    parts.push(err, nav);
+    screen("question", "Paused", parts);
+    fs.querySelector("input").focus();
+  };
+  show(QUESTIONS.start);
+}
+
+async function submit() {
+  const err = $("form-err");
+  err.hidden = true;
+  if (!f.reportValidity()) return;
+  payment = { customer: f.customer.value.trim() || "mrs-tan", wallet: f.wallet.value.trim().toLowerCase(), amount: Number(f.amount.value) };
+  f.hidden = true; out.hidden = true;
+  const ck = $("checking"), steps = ck.querySelectorAll("li");
+  steps.forEach((s) => (s.className = ""));
+  ck.hidden = false;
+  // A short walk through the steps (under a second); the decision itself takes milliseconds.
+  const anim = (async () => { for (const s of steps) { s.className = "on"; await new Promise((r) => setTimeout(r, 280)); s.className = "done"; } })();
+  try {
+    const [d] = await Promise.all([api("/score", payment), anim]);
+    ck.hidden = true;
+    render(d);
+  } catch (e) {
+    ck.hidden = true; f.hidden = false;
+    err.textContent = String(e.message) === "422" ? "We couldn't check this payment. Please check the wallet address and amount." : "We couldn't reach the exchange. Please try again in a moment.";
+    err.hidden = false;
   }
-});
+}
+f.addEventListener("submit", (e) => { e.preventDefault(); submit(); });
 </script>
 </body>
 </html>
