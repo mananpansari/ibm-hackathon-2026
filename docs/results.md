@@ -2,7 +2,7 @@
 
 ## Result 2: payments held after the first warning
 
-Run on 17 Oct 2026. Reproduce with `python replay.py` (about 75 s on a laptop, no Blockscout calls). It writes `data/results/replay_*.csv` (one row per wallet) and `data/results/replay_summary.json`, which every number below comes from.
+Run on 17 Oct 2026. Reproduce with `python replay.py` (about 4 minutes on a laptop, no Blockscout calls). It writes `data/results/replay_*.csv` (one row per wallet) and `data/results/replay_summary.json`, which every number below comes from.
 
 ### What was replayed
 
@@ -73,7 +73,7 @@ The JSON also has r = 0.2, 0.4, 0.6 and 0.8 for this subset.
 
 **Sensitivity, answer arrives a day late (r = 0.5):** 1,581.8 ± 19.1 held, against 1,941.6 when the answer arrives at decision time. Payments often come in bursts, so a delay of one day costs about 360 holds.
 
-**Why held < after warning.** At r = 0.5, about 620 payments arrive after a warning exists but are released anyway. A single report fades below the hold threshold after one half-life (7 days). A held payment produces no new report, so memory can run dry on a wallet that collects for months. An officer's "confirmed" outcome pins the wallet with no decay, but the replay doesn't model officers.
+**Why held < after warning.** At r = 0.5, about 620 payments arrive after a warning exists but are released anyway. A single report fades below the hold threshold after one half-life (7 days). A held payment produces no new report, so memory can run dry on a wallet that collects for months. The officer step below closes most of this gap.
 
 **Legitimate holds from this source** are not replayed. r is the rate at which scam victims report. How often legitimate customers falsely report a payee is unknown, and no number is given.
 
@@ -81,14 +81,51 @@ The JSON also has r = 0.2, 0.4, 0.6 and 0.8 for this subset.
 
 **Not available.** `model.py` (`origin/b/5-weak-model-signal`) exposes `model.score()`, but the engine doesn't call it yet, so the replay can't use it through `decide()`. The column is marked `not available` in every CSV. Nothing is estimated in its place.
 
+### With call-back officers
+
+In the product, every hold is a call-back. Here the officer's outcome lands a day after the hold: **confirmed** pins the wallet with no decay, and **cleared** drops the evidence, so the next payment goes through. The officer is right with probability q, which is **modelled** and swept over 0.8, 0.9 and 1.0, with 20 seeds each. A wrong officer clears a scam wallet or confirms a legitimate one. An officer only acts on a hold, so the first warning still comes from the source alone, and the sources stay separate.
+
+Frozen wallets, customer answers at rate r (payments held, mean ± sd, out of 2,791):
+
+| r | No officer | q = 0.8 | q = 0.9 | q = 1.0 | Upper bound: after first warning |
+|---|---|---|---|---|---|
+| 0.1 | 1,194 ± 41 | 2,019 ± 50 | 2,067 ± 45 | 2,089 ± 37 | 2,183 ± 30 |
+| 0.2 | 1,519 ± 32 | 2,239 ± 45 | 2,272 ± 39 | 2,293 ± 35 | 2,382 ± 20 |
+| 0.3 | 1,713 ± 39 | 2,353 ± 35 | 2,384 ± 37 | 2,401 ± 34 | 2,478 ± 24 |
+| 0.4 | 1,847 ± 17 | 2,429 ± 20 | 2,458 ± 14 | 2,474 ± 13 | 2,535 ± 15 |
+| **0.5** | 1,942 ± 19 | 2,473 ± 21 | **2,493 ± 19** | 2,509 ± 19 | 2,565 ± 10 |
+| 0.6 | 2,024 ± 14 | 2,515 ± 17 | 2,536 ± 13 | 2,549 ± 10 | 2,596 ± 12 |
+| 0.7 | 2,084 ± 12 | 2,540 ± 12 | 2,559 ± 9 | 2,571 ± 7 | 2,616 ± 6 |
+| 0.8 | 2,138 ± 9 | 2,564 ± 8 | 2,580 ± 7 | 2,590 ± 5 | 2,634 ± 3 |
+| 0.9 | 2,182 ± 6 | 2,581 ± 8 | 2,596 ± 6 | 2,606 ± 2 | 2,645 ± 3 |
+
+- **Officers make the answer rate matter much less.** At r = 0.1 the held count rises from about 1,190 to about 2,070 (q = 0.9). One confirmed call-back protects the rest of the wallet's life.
+- The small remaining gap to the upper bound comes from a report that fades before the next payment arrives. With no hold, there's no call-back to confirm it.
+- **Real source with officers:** still 3 held on frozen wallets, at every q. Officers can't help when the first warning never comes.
+
+Legitimate holds from the real source, with officers (out of the same payments as above):
+
+| Comparison set | No officer | q = 0.8 | q = 0.9 | q = 1.0 |
+|---|---|---|---|---|
+| Random (`test_neg`, 10,705 payments) | 49 (0.46%) | 11.4 ± 18.8 | 11.4 ± 18.8 | 2 (0.02%) |
+| Volume-matched (`test_negv`, 141,148 payments) | 202 (0.14%) | 60.4 ± 70.8 | 33.9 ± 38.6 | 25 (0.02%) |
+
+- An officer who clears a wallet ends its holds after one call. The 25 that remain at q = 1.0 arrive in the day before the officer's outcome lands.
+- When an officer wrongly confirms a legitimate wallet, every later payment to it is held. That causes the wide spread at q < 1.
+- Only the 3 comparison wallets that had a hold were replayed again. Officers act only on holds, so every other wallet is unchanged.
+
 ### Headline wording
 
-- Modelled, r = 0.5: "In a replay of the 134 wallets Tether froze in Jul–Oct 2026, if half of customers who paid answered the question and confirmed the scam, the engine would have held about 1,940 of 2,791 payments (up to that many victims), a median of about 4 months before Tether's freeze." Always add: *customer answer rate modelled, swept 0.1–0.9.*
-- Real only: "Tether freezes alone would have held 3 payments, on 2 of 134 wallets." Say it, because it's the honest reason the customer's answer is the main signal.
+- **Main line** (modelled, r = 0.5, q = 0.9): "In a replay of the 134 wallets Tether froze in Jul–Oct 2026, if half of the customers who paid confirmed the scam when asked, and officers followed up each hold, the engine would have held about 2,490 of 2,791 payments (up to that many victims), a median of about 4 months before Tether's freeze." Always add: *customer answer rate and officer accuracy modelled; swept.*
+- **Conservative line** (r = 0.1): "Even if only 1 in 10 customers confirms the scam, about 2,000 payments are held once officers follow up (about 1,200 without officers)."
+- **Per wallet:** "The typical frozen wallet had about half of its later payments held, from answers alone (r = 0.5, no officers)." Use it so the total doesn't rest on the 10 busiest wallets.
+- **Real only:** "Tether freezes alone would have held 3 payments, on 2 of 134 wallets. Our detector also failed (feasibility report). So we ask the customer." Say it. It's the honest reason the customer's answer is the main signal.
+- **Timing:** the question is asked before signing, so the answer arrives at decision time. A one-day delay costs about 360 holds (r = 0.5, no officers).
 
 ### Honest limits
 
-- **The headline number is modelled.** Payment counts, amounts, timings and Tether freezes are real. Whether and when a customer confirms the scam is not. If the answer rate is 0.1 the number roughly halves, to about 1,190 held.
+- **The headline number is modelled.** Payment counts, amounts, timings and Tether freezes are real. Whether and when a customer confirms the scam is not, and neither is how accurate officers are. With no officers and an answer rate of 0.1, the number drops to about 1,190 held.
+- **Officers are simplified.** One call-back per wallet at a time, with the outcome a day later. Officer capacity isn't modelled here (C's #9). The officer's guess is independent of how many reports the wallet has.
 - **Payments are concentrated.** The 10 busiest frozen wallets received 1,801 of the 2,791 payments (65%), and the median wallet received 4. Some of the busiest may be exchange-like collection addresses. Per wallet, at r = 0.5 the median wallet has about half of its later payments held.
 - **Counterfactual only at the decision.** A held payment still appears in the on-chain history the engine reads afterwards (for counterparty links), because other institutions' customers would have paid it anyway.
 - **One institution sees every payment.** The replay treats every sender as a customer of one bank sharing one payee memory. In reality each bank sees only its own customers, so the shared-memory effect shrinks unless institutions share warnings.
