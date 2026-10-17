@@ -281,3 +281,28 @@ The structured questions decide most cases. Your NLP model reads only the option
 Report accuracy separately for real data (BothBosu test set, `data/sg_answers.csv`) and synthetic data. Label anything trained on synthetic data as *modelled* on the slides.
 
 If it's ready and merged by **03:00**, D switches `StructuredClassifier(granite)` to `StructuredClassifier(<your module>)`. If not, the keyword fallback stays and your model goes on the "next steps" slide with its accuracy numbers.
+
+## Round 2: team feedback on the merged pages (18 Oct, 02:15)
+
+The team reviewed the merged pages and found them disconnected from what we had agreed. A fixed them on `aanya/ui-v2-fixes`, in D's files (`app.py`, `static/*`) because of the time left; **D reviews the PR before it merges**.
+
+| Feedback | Fix | Status |
+|---|---|---|
+| No customer sign-in page | Demo sign-in screen first: customer ID (Mrs Tan pre-filled; `customer-2`…`customer-13` in a list), password and one-time code pre-filled, labelled "demo login"; Sign out returns to it | done |
+| Language option for users | Dropdown in the header with Singapore's four official languages: English, 中文, Bahasa Melayu, தமிழ். Every customer screen and Q1–Q3 are translated; the engine still receives option ids, so the decision never depends on the language. Remembered per browser | done (draft translations: **a native speaker should check zh/ms/ta before the video**) |
+| Currency converter too big; should be SGD; only 2 cryptos | Ticker, converter and 40-coin list removed. USDT or ETH only (Ethereum network, as the idea doc says); one small "≈ S$" line (CoinGecko live rate, or a labelled sample rate). ETH is scored at its USDT value, and the page says so | done |
+| Must fit laptops, not only phones | Exchange-style web layout: top bar and nav, the withdrawal card plus a side column ("This session's withdrawals", "About this check") on wide screens; one column on phones. Checked at 1366 px and 390 px, no horizontal scroll | done |
+| Officer page doesn't update when the customer page adds an entry | The queue only lists **holds**, and it only refreshed while the queue view was showing. Now there's an "Every check, live" table on the officer page (all tiers, from the new `GET /activity`), and a "New hold" banner appears even while an officer is inside a case | done |
+| Cleaner outcome screens, as in the wireframe | Outcome boxes as drawn: green "Check complete", amber "Please review before sending", red question box, red hold box with the bullet list and a "What happens next" card; the stamp labels are gone | done |
+| Product name | "Protected by Starlock"; officer console brand "Starlock"; references `SL-0001` | done |
+
+API additions (additive, in `app.py`): `WithdrawalIn` takes optional `asset` (`USDT`/`ETH`) and `qty` for display; `GET /activity`; `POST /sent` (the customer pressed Send after go-ahead or a warning). The demo spine is unchanged: 12 held, 120,228.96 USDT.
+
+### Still open (for an agent or a person, after the freeze or if time allows)
+
+1. **Native-speaker check of the zh, ms and ta strings** (`T` and `QT` in `static/customer.html`). Highest priority if the video shows another language.
+2. **Free-text answers in other languages:** the keyword classifier reads English only. B's NLP model could cover this; until then the structured answers carry the decision.
+3. **"Old features that vanished":** the team should list any specific earlier feature still missing. Everything from the first pages is still there: customer ID (now the sign-in), the officer's demo reset/next/play, the live address box, the why-card and the graph.
+4. **ETH wallet history:** the engine reads USDT transfers only, so an ETH payment is judged on the wallet's USDT history. Native ETH history is roadmap.
+5. **Officer console styling** still uses the earlier ledger look (different fonts from the customer page). It's fine for the demo; aligning both is optional.
+6. The customer page's Wallet and History tabs are decoration.

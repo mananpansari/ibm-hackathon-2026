@@ -4,137 +4,162 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fraud queue</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.2/dist/cytoscape.min.js" integrity="sha384-IWROdLKRsN1UuJywMlWl7/blXQ8GEooN2n7dzTxfEPd7ybYIKCUJ2Ol/1Gpf3YV4" crossorigin="anonymous"></script>
+<link rel="icon" href="data:,">
 <style>
+  /* The customer page's wireframe-grey system (static/customer.html), with the console's real/modelled tags kept. */
   :root {
-    --g: #edefe9; --g2: #e3e6de; --paper: #f6f7f3; --ink: #0e1116; --mut: #555b53; --rule: #c4c9bf;
-    --hold: #d7261e; --q: #2c3fd6; --warn: #a35f00; --ok: #1f7a4d;
-    --sans: "Schibsted Grotesk", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+    --bg: #f1f1f1; --card: #ffffff; --ink: #1a1a1a; --mut: #555555; --line: #9a9a9a; --soft: #dddddd; --bar: #e9e9e9;
+    --hold: #b3261e; --hold-bg: #fdeeee; --hold-ink: #7a1a14; --q: #2c3fd6; --warn: #b26a00; --warn-bg: #fff4e0; --warn-ink: #6b4200; --ok: #2e7d32;
+    --sans: system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif; --mono: ui-monospace, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
-  ::selection { background: var(--ink); color: var(--g); }
-  html { background: var(--g); scrollbar-color: var(--rule) var(--g); }
-  body { margin: 0; font: 15px/1.45 var(--sans); color: var(--ink); background: var(--g); }
-  .mono { font-family: var(--mono); font-size: .92em; }
+  html { background: var(--bg); }
+  body { margin: 0; font: 15px/1.4 var(--sans); color: var(--ink); background: var(--bg); min-width: 1000px; }
+  .mono { font-family: var(--mono); font-size: 13px; }
   .muted { color: var(--mut); }
-  .tag { display: inline-block; font: 700 10px var(--mono); text-transform: uppercase; padding: 1px 5px; border-radius: 2px; vertical-align: 1px; margin-left: 4px; white-space: nowrap; }
-  .tag.real { background: var(--ink); color: var(--g); }
+  .tag { display: inline-block; font: 700 10px var(--mono); text-transform: uppercase; padding: 1px 5px; border-radius: 3px; vertical-align: 1px; margin-left: 6px; white-space: nowrap; }
+  .tag.real { background: var(--ink); color: #fff; border: 1.5px solid var(--ink); }
   .tag.modelled, .tag.sample { border: 1.5px dashed currentColor; }
   :focus-visible { outline: 3px solid var(--q); outline-offset: 2px; }
 
-  header { border-bottom: 2px solid var(--ink); }
-  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding: 12px 28px; }
-  .brand { font-weight: 900; font-size: 18px; letter-spacing: -.02em; }
-  .brand i { font-style: normal; color: var(--hold); }
-  .bar h1 { font: 600 14px var(--sans); color: var(--mut); margin: 0; }
-  .bar .me { margin-left: auto; font: 500 13px var(--mono); }
-  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 28px; border-top: 1px solid var(--rule); background: var(--ink); color: #c9cdc4; }
-  .tools .h { font: 800 10px var(--sans); text-transform: uppercase; letter-spacing: .12em; color: #8e948a; }
-  .tools button { border-color: #8e948a; color: var(--g); }
-  .tools button:hover { background: var(--g); color: var(--ink); }
-  #demo-status { font: 500 12px var(--mono); flex: 1 1 16rem; }
+  header { background: var(--card); border-bottom: 1px solid #c4c4c4; }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; height: 60px; padding: 0 24px; }
+  .brand { font-weight: 800; font-size: 16px; }
+  .bar h1 { font: 400 16px var(--sans); margin: 0; }
+  .bar .me { margin-left: auto; font-size: 14px; }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 12px 24px 0; padding: 8px 12px; border: 1.5px dashed #6b6b6b; border-radius: 6px; background: #fafafa; font: 13px var(--mono); }
+  .tools .h { font-weight: 700; text-transform: uppercase; }
+  .tools button { height: 32px; padding: 0 12px; font-size: 13px; }
+  #demo-status { order: 9; flex-basis: 100%; }
+  #demo-status:empty { display: none; }
+  #live { margin-left: auto; }
   #live { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  #live label { font: 800 10px var(--sans); text-transform: uppercase; letter-spacing: .12em; color: #8e948a; }
-  #live input { background: #1d2128; color: var(--g); border-color: #8e948a; }
-  #live-out { font: 500 12px var(--mono); flex-basis: 100%; }
+  #live label { font-weight: 700; }
+  #live input { height: 32px; font-size: 13px; }
+  #live-out { flex-basis: 100%; }
   #live-out:empty { display: none; }
 
-  button { font: 700 14px var(--sans); padding: 8px 14px; border-radius: 4px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; transition: background .15s, color .15s, transform .12s; }
-  button:hover { background: var(--ink); color: var(--g); }
-  button:active { transform: translateY(1px); }
-  button.pri { background: var(--ink); color: var(--g); }
-  button.pri:hover { background: #2a2f37; }
-  button.danger { background: var(--hold); border-color: var(--hold); color: #fff; }
+  button { font: 600 14px var(--sans); height: 36px; padding: 0 14px; border-radius: 6px; border: 1.5px solid #777; background: var(--card); color: var(--ink); cursor: pointer; }
+  button:hover { border-color: var(--ink); background: var(--bar); }
+  button.pri { background: var(--ink); border-color: var(--ink); color: #fff; }
+  button.pri:hover { background: #333; }
   button:disabled { opacity: .45; cursor: not-allowed; }
-  input, select, textarea { font: 500 14px var(--mono); padding: 8px 10px; border: 1.5px solid var(--ink); border-radius: 4px; background: #fff; color: var(--ink); }
-  textarea { font-family: var(--sans); width: 100%; resize: vertical; }
-  .linkb { border: 0; padding: 4px 0; text-decoration: underline; text-underline-offset: 3px; background: none; }
+  input, select, textarea { font: 14px var(--sans); height: 40px; padding: 0 10px; border: 1.5px solid #777; border-radius: 6px; background: #fff; color: var(--ink); }
+  #live-wallet { font-family: var(--mono); }
+  textarea { width: 100%; height: auto; padding: 8px 10px; resize: vertical; }
+  .linkb { border: 0; height: auto; padding: 0; text-decoration: underline; text-underline-offset: 3px; background: none; font-weight: 400; }
   .linkb:hover { background: none; color: var(--q); }
 
-  main { padding: 20px 28px 48px; }
-  @media (max-width: 900px) { main, .bar, .tools { padding-left: 16px; padding-right: 16px; } }
-  h2 { font: 800 13px var(--sans); text-transform: uppercase; letter-spacing: .08em; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-  h2 .muted { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  main { padding: 16px 24px 48px; }
+  h2 { font: 700 16px var(--sans); margin: 0 0 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  h2 .muted { font-weight: 400; font-size: 13px; }
 
-  .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); border: 2px solid var(--ink); margin-bottom: 20px; background: var(--paper); }
-  .summary > div { padding: 12px 16px; border-right: 1px solid var(--rule); }
-  .summary > div:last-child { border-right: 0; }
+  .summary { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+  .summary > div { flex: 1; min-width: 150px; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); }
   .summary .k { font-size: 13px; color: var(--mut); }
-  .summary .v { font: 700 28px/1.15 var(--mono); letter-spacing: -.02em; }
-  .summary .s { font: 500 12px var(--mono); color: var(--mut); }
-  .summary .sample { background: var(--g2); }
+  .summary .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .summary .s { font-size: 13px; }
+  .summary .sample { border-style: dashed; background: #fafafa; }
+  .summary .amber { border-color: var(--warn); background: var(--warn-bg); color: var(--warn-ink); }
+  .summary .red { border-color: var(--hold); background: var(--hold-bg); color: var(--hold-ink); }
+  .summary .amber .k, .summary .red .k { color: inherit; }
 
-  .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--ink); margin-bottom: 0; overflow-x: auto; }
-  .tabs button { border: 0; border-radius: 0; padding: 10px 16px; font-weight: 800; }
-  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--g); }
-  .tabs .cut { color: var(--mut); font-weight: 600; cursor: default; }
-  .tabs .cut:hover { background: none; color: var(--mut); }
-  .scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--paper); }
-  th { text-align: left; font: 600 11px var(--mono); color: var(--mut); padding: 10px 8px; border-bottom: 1px solid var(--ink); white-space: nowrap; }
-  td { padding: 12px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tabrow { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .tabs { display: flex; gap: 8px; }
+  .tabs button[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  #updated { font: 12px var(--mono); color: var(--mut); }
+  #updated.paused { color: var(--warn-ink); font-weight: 700; }
+  .tablebox { border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-size: 13px; font-weight: 700; padding: 10px 10px; background: var(--bar); border-bottom: 1px solid #c4c4c4; white-space: nowrap; }
+  td { padding: 10px 10px; border-bottom: 1px solid var(--soft); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   td.mono { white-space: nowrap; }
-  td .sub { display: block; font: 500 12px var(--mono); color: var(--mut); }
-  tbody tr:hover td { background: var(--g2); }
+  td .sub { display: block; font-size: 12px; color: var(--mut); }
+  td.why { min-width: 11rem; max-width: 16rem; }
+  td.who { white-space: nowrap; }
+  @media (max-width: 1200px) { th, td { padding-left: 6px; padding-right: 6px; } td.why { min-width: 9rem; } .lang { display: none; } main, .bar { padding-left: 16px; padding-right: 16px; } .tools { margin-left: 16px; margin-right: 16px; } }
+  td.why b { font-weight: 600; }
+  tbody tr:hover td { background: #f7f7f7; }
+  tr.amber td { background: var(--warn-bg); } tr.red td { background: var(--hold-bg); }
   tr.new td:first-child { box-shadow: inset 4px 0 0 var(--hold); }
-  .wait.amber { color: var(--warn); font-weight: 700; } .wait.red { color: var(--hold); font-weight: 800; }
+  .wait.amber { color: var(--warn-ink); font-weight: 700; } .wait.red { color: var(--hold); font-weight: 800; }
   .foot { font-size: 13px; color: var(--mut); margin: 10px 0 0; }
+  .key { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; border: 1.5px solid var(--warn); background: var(--warn-bg); }
+  .key.red { border-color: var(--hold); background: var(--hold-bg); }
 
-  .casehead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin: 6px 0 18px; }
-  .casehead h3 { font: 900 28px/1.1 var(--sans); letter-spacing: -.025em; margin: 0; }
-  .casehead .lock { font: 700 12px var(--mono); padding: 2px 8px; border: 1.5px solid var(--ok); color: var(--ok); border-radius: 3px; }
-  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px 32px; }
-  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
-  section.block { margin-bottom: 24px; }
-  dl { display: grid; grid-template-columns: 11rem 1fr; gap: 0; margin: 0; }
-  dt, dd { padding: 8px 0; border-bottom: 1px solid var(--rule); margin: 0; }
+  .casehead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 10px 0 14px; }
+  .casehead h3 { font-size: 22px; font-weight: 700; margin: 0; }
+  .chip { padding: 5px 12px; border: 1.5px solid var(--ink); border-radius: 6px; background: var(--card); font-size: 14px; white-space: nowrap; }
+  .chip.amber { border-color: var(--warn); background: var(--warn-bg); color: var(--warn-ink); font-weight: 700; }
+  .chip.red { border-color: var(--hold); background: var(--hold-bg); color: var(--hold-ink); font-weight: 700; }
+  .chip.open { border-style: dashed; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+  .grid > div { display: flex; flex-direction: column; gap: 16px; }
+  section.block { border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); padding: 14px 16px; }
+  section.block.held { border-color: var(--hold); background: var(--hold-bg); }
+  section.block.held h2, section.block.held .foot { color: var(--hold-ink); }
+  dl { display: grid; grid-template-columns: 12rem 1fr; gap: 0; margin: 0; }
+  dt, dd { padding: 6px 0; border-bottom: 1px solid var(--soft); margin: 0; }
+  dl > :nth-last-child(-n+2) { border-bottom: 0; }
   dt { color: var(--mut); font-size: 14px; }
-  dd { font-size: 15px; }
-  dd .addr { font: 600 13px var(--mono); word-break: break-all; color: var(--hold); }
+  dd .addr { font: 600 13px var(--mono); word-break: break-all; }
   ul.reasons { list-style: none; margin: 0; padding: 0; }
-  ul.reasons li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 9px 0; border-bottom: 1px solid var(--rule); }
-  ul.reasons .src { font: 500 12px var(--mono); color: var(--mut); }
-  .said dt { font: 700 13px var(--mono); color: var(--ink); width: 2.5rem; }
-  .quote { font-size: 16px; }
-  .freeze { color: var(--hold); font-weight: 800; }
-  #graph { height: 18rem; background: var(--g2); border: 1px solid var(--rule); }
-  .check label { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--rule); cursor: pointer; }
-  .check input { width: 18px; height: 18px; accent-color: var(--ink); margin-top: 2px; }
-  ol.log { list-style: none; margin: 0; padding: 0; font: 500 13px var(--mono); }
-  ol.log li { display: grid; grid-template-columns: 4.5rem 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--rule); }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; position: sticky; bottom: 0; padding: 14px 0; background: var(--g); border-top: 2px solid var(--ink); }
-  .actions button { padding: 12px 20px; font-size: 15px; }
+  ul.reasons li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 8px 0; border-bottom: 1px solid #f0c9c6; }
+  ul.reasons li:last-child { border-bottom: 0; }
+  ul.reasons .src { font: 12px var(--mono); color: var(--mut); }
+  .said { display: flex; flex-direction: column; gap: 8px; }
+  .said div { padding: 8px 12px; border: 1px solid var(--soft); border-radius: 6px; }
+  .said div > span:first-child { color: var(--mut); margin-right: 8px; font-weight: 600; }
+  .said .free { border: 1.5px dashed #777; }
+  .said .free small { display: block; color: var(--mut); font-size: 12px; }
+  .freeze { color: var(--hold); font-weight: 700; }
+  .check label { display: flex; gap: 10px; align-items: center; padding: 6px 0; cursor: pointer; }
+  .check input, .radio input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink); flex: none; }
+  ol.log { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  ol.log li { display: grid; grid-template-columns: 3.5rem 1fr; gap: 10px; padding: 4px 0; }
+  ol.log li > span:first-child { font: 12px var(--mono); color: var(--mut); padding-top: 2px; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+  .casehead .actions { margin-left: auto; }
+  .actions button { height: 44px; padding: 0 22px; font-size: 15px; }
 
-  form.outcome { max-width: 760px; }
-  form.outcome fieldset { border: 0; margin: 0 0 20px; padding: 0; }
-  form.outcome legend { font: 800 15px var(--sans); margin-bottom: 8px; padding: 0; }
-  .radio { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border: 1.5px solid var(--rule); border-radius: 6px; margin-bottom: 8px; background: var(--paper); cursor: pointer; font-size: 15px; }
-  .radio:has(input:checked) { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
-  .radio input { width: 18px; height: 18px; accent-color: var(--ink); margin-top: 2px; }
-  .changes { border: 2px solid var(--ink); padding: 14px 16px; background: var(--paper); margin-bottom: 20px; }
-  .changes h3 { margin: 0 0 8px; font: 800 13px var(--sans); text-transform: uppercase; letter-spacing: .08em; }
+  .osum { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 10px 16px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); font-size: 14px; margin-bottom: 16px; }
+  .osum span > span { color: var(--mut); margin-right: 6px; }
+  form.outcome { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+  form.outcome .col { display: flex; flex-direction: column; gap: 16px; }
+  form.outcome .card { border: 1.5px solid var(--line); border-radius: 8px; background: var(--card); padding: 18px 20px; display: flex; flex-direction: column; gap: 20px; }
+  form.outcome fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  form.outcome legend { font-weight: 700; font-size: 16px; margin-bottom: 6px; padding: 0; }
+  form.outcome select { height: 44px; font-size: 15px; width: 100%; }
+  .radio { display: flex; gap: 12px; align-items: center; min-height: 44px; padding: 4px 12px; border: 1.5px solid #777; border-radius: 6px; cursor: pointer; }
+  .radio:has(input:checked) { border-color: var(--ink); background: var(--bg); }
+  .changes { border: 1.5px solid var(--line); border-radius: 8px; padding: 18px 20px; background: var(--card); font-size: 14px; }
+  .changes h3 { margin: 0 0 6px; font-size: 16px; }
   .changes p { margin: 4px 0; }
-  .err { color: var(--hold); font-weight: 700; }
+  form.outcome .actions { grid-column: 1 / -1; }
+  .err { color: var(--hold); font-weight: 700; margin: 0; }
   [hidden] { display: none !important; }
+  .newhold { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; padding: 10px 14px; border: 1.5px solid var(--hold); border-radius: 8px; background: var(--hold-bg); color: var(--hold-ink); font-weight: 700; }
+  .pill { font: 700 11px var(--mono); text-transform: uppercase; padding: 1px 6px; border: 1.5px solid currentColor; border-radius: 3px; white-space: nowrap; }
+  .pill.hold { color: var(--hold); } .pill.question { color: var(--q); } .pill.warning { color: var(--warn); } .pill.release { color: var(--ok); }
+  #feed-wrap { margin-top: 24px; }
 </style>
 </head>
 <body>
 <!--
 THESIS: A clearing-house ledger for call-backs: holds ranked by expected loss, each case a wallet file the officer works on the phone; refuses the grey admin grid with coloured badges.
-OWN-WORLD: Chain Ledger tokens, ink-ruled regions, mono figures and addresses, real tags solid and modelled/sample tags dashed; vermilion only for the flagged wallet.
+OWN-WORLD: the customer page's wireframe-grey system (system font, white cards, grey rules), mono figures and addresses, real tags solid and modelled/sample tags dashed; red only for holds and the flagged wallet.
 STORY: The officer sees what waits, claims the top case, reads what the customer said and why it was held, calls, and records an outcome that updates payee memory.
 FIRST VIEWPORT: Brand bar, dark demo strip, summary strip, tabs, ranked queue table with Claim.
 FORM: Chain Ledger, seed 5feb93dd, on the UI v2 officer wireframe.
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 -->
 <header>
-  <div class="bar"><span class="brand">Score<i>/</i>Before You Sign</span><h1>Fraud operations console</h1><span class="me">Signed in as FO-20417 · Officer<span class="tag sample">demo login</span></span></div>
+  <div class="bar"><span class="brand">Starlock</span><h1>· Fraud operations console</h1><span class="me">Signed in as <b>FO-20417</b> · Officer<span class="tag sample">demo login</span></span></div>
+</header>
   <div class="tools">
-    <span class="h">Demo mode</span>
+    <span class="h">Demo mode · hidden in production</span>
     <button id="reset">Reset</button>
     <button id="next">Next payment</button>
     <button id="play">Play</button>
@@ -146,23 +171,31 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       <span id="live-out" role="status"></span>
     </form>
   </div>
-</header>
 
 <main>
+  <div class="newhold" id="newhold" role="status" hidden><span id="newhold-t"></span><button class="pri" id="newhold-go">Back to queue</button></div>
   <div id="v-queue">
     <div class="summary" id="summary"></div>
-    <div class="tabs" role="tablist">
-      <button role="tab" data-tab="open" aria-selected="true">Unclaimed</button>
-      <button role="tab" data-tab="mine" aria-selected="false">My cases</button>
-      <button role="tab" data-tab="closed" aria-selected="false">Closed today</button>
+    <div class="tabrow">
+      <div class="tabs" role="tablist">
+        <button role="tab" data-tab="open" aria-selected="true">Unclaimed</button>
+        <button role="tab" data-tab="mine" aria-selected="false">My cases</button>
+        <button role="tab" data-tab="closed" aria-selected="false">Closed today</button>
+      </div>
+      <span id="updated" role="status"></span>
     </div>
-    <div class="scroll">
+    <div class="tablebox">
       <table>
-        <thead><tr><th class="num">RANK</th><th>REFERENCE</th><th>CUSTOMER</th><th>WALLET</th><th class="num">AMOUNT</th><th class="num">EXP. LOSS</th><th class="num">P(SCAM)</th><th>WHY IT IS HERE</th><th class="num">WAITING</th><th></th></tr></thead>
+        <thead><tr><th class="num">Rank</th><th>Reference</th><th>Customer</th><th>Wallet</th><th class="num">Amount</th><th class="num">Expected loss</th><th class="num">P(scam)</th><th>Why it is here</th><th class="lang">Language</th><th class="num">Waiting</th><th></th></tr></thead>
         <tbody id="queue"></tbody>
       </table>
     </div>
-    <p class="foot">Sorted by expected loss, not by P(scam). A claimed case is locked to one officer. Amber: waiting 10 minutes or more. Red: past the 15-minute target <span class="tag sample">sample target</span>.</p>
+    <p class="foot">Sorted by expected loss, not by P(scam). A claimed case is locked to one officer; others see it as "Claimed by FO-xxxxx".<br>
+      <span class="key"></span> Amber: waiting 10 minutes or more. <span class="key red"></span> Red: past the 15-minute target <span class="tag sample">sample target</span>.</p>
+    <section id="feed-wrap">
+      <h2>Every check, live <span class="muted">all tiers, newest first; only holds wait for a call-back</span></h2>
+      <div class="tablebox"><table><thead><tr><th>Time</th><th>Reference</th><th>Customer</th><th>Wallet</th><th class="num">Amount</th><th>Tier</th><th>Status</th></tr></thead><tbody id="feed"></tbody></table></div>
+    </section>
   </div>
   <div id="v-case" hidden></div>
   <div id="v-outcome" hidden></div>
@@ -179,7 +212,7 @@ const MOCK = (() => {
   const t = now(), p = (name, masked, acct, phone) => ({ name, name_masked: masked, account_ending: acct, phone_masked: phone, language: "English", sample: true });
   const tan = p("TAN SIEW LIAN", "TA* SI** LI**", "4821", "+65 **** 5678");
   const W = "0x44ea04886b5b67f0f861a37254e43beee2f3b050";
-  const row = (id, persona, wallet, amount, p_scam, top, waiting) => ({ id, ref: "SBYS-" + String(id).padStart(4, "0"), customer: "c" + id, wallet, amount, time: t - waiting,
+  const row = (id, persona, wallet, amount, p_scam, top, waiting) => ({ id, ref: "SL-" + String(id).padStart(4, "0"), customer: "c" + id, wallet, amount, time: t - waiting,
     expected_loss: amount * p_scam, p_scam, persona, top_reason: top, status: "open", claimed_by: null, waiting_s: waiting });
   const rows = [
     row(412, tan, W, 12000, 0.5, { signal: "answer_confirms_script", detail: "Your answer matches a known scam pattern (government impersonation).", kind: "real" }, 660),
@@ -258,48 +291,108 @@ const el = (tag, text, cls) => { const e = document.createElement(tag); if (text
 const date = (ts) => new Date(ts * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 const short = (a) => a.slice(0, 8) + "…" + a.slice(-6);
 const usdt = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 0 }) + " USDT";
+const sentAs = (r) => (r.asset && r.asset !== "USDT" && r.qty ? `sent as ${r.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${r.asset}` : null);
 const mins = (s) => (s < 60 ? "<1 min" : Math.floor(s / 60) + " min");
 const ago = (ts) => { const d = now() - ts; return d < 3600 ? mins(d) + " ago" : d < 86400 ? Math.round(d / 3600) + " h ago" : Math.round(d / 86400) + " days ago"; };
 const tag = (kind) => el("span", kind, "tag " + kind);
-const TIER_COLOR = { hold: "#d7261e", question: "#2c3fd6", warning: "#a35f00", release: "#1f7a4d" };
-let tab = "open", openCase = null, cy = null, playing = null, seen = null, QUESTIONS = null, REASONS = null;
+const waitCls = (s) => (s >= 900 ? "red" : s >= 600 ? "amber" : "");  // the wireframe: amber at 10 min, red past the 15-min target
+// The engine words customer-facing reasons to the customer ("Your answer…"); the officer reads them about the customer.
+const aboutCustomer = (t) => t.replace(/\bYour\b/g, "Their").replace(/\byour\b/g, "their").replace(/\bYou have\b/g, "They have").replace(/\byou have\b/g, "they have").replace(/\bYou\b/g, "They").replace(/\byou\b/g, "they");
+// Short names for the engine's signals, for the queue's "Why it is here" column (the full reason is in the case view).
+const SIGNAL = { answer_confirms_script: "Answer matches a scam script", officer_confirmed: "Officer confirmed this wallet", memory_hit: "Earlier warning on this wallet",
+  destination_freeze: "Tether froze this wallet", counterparty_freeze: "Paid by or to a frozen wallet", model_flag: "Model flag (weak)",
+  large_new_payee: "Large payment, first-time payee", first_time_payee: "First-time payee" };
+let tab = "open", openCase = null, playing = null, seen = null, QUESTIONS = null, REASONS = null, dirty = false;
 
-function view(name) { for (const v of ["queue", "case", "outcome"]) $("v-" + v).hidden = v !== name; window.scrollTo(0, 0); }
+function view(name) {
+  for (const v of ["queue", "case", "outcome"]) $("v-" + v).hidden = v !== name;
+  if (name !== "outcome") dirty = false;  // leaving the form drops its unsaved input
+  if (name === "queue") $("newhold").hidden = true;
+  window.scrollTo(0, 0); stamp();
+}
+let lastUpdate = null;
+function stamp(fresh) {  // the "updated hh:mm:ss" indicator; polling pauses while the outcome form has unsaved input
+  if (fresh) lastUpdate = new Date();
+  const u = $("updated");
+  u.textContent = (lastUpdate ? "Updated " + lastUpdate.toTimeString().slice(0, 8) : "") + (dirty ? " · paused while you record an outcome" : " · live, every 2 s");
+  u.classList.toggle("paused", dirty);
+}
 
 // ---- queue
 function cell(main, sub, cls) { const td = el("td", main, cls); if (sub) td.append(el("span", sub, "sub")); return td; }
 async function refresh() {
   const q = await api("/queue");
   const s = q.summary, sm = $("summary");
-  const box = (k, v, sub, sample) => { const d = el("div", null, sample ? "sample" : ""); const kk = el("div", k, "k"); if (sample) kk.append(tag("sample")); d.append(kk, el("div", v, "v"), el("div", sub, "s")); return d; };
+  const box = (k, v, sub, sample, cls) => { const d = el("div", null, sample ? "sample" : cls || ""); const kk = el("div", k, "k"); if (sample) kk.append(tag("sample")); d.append(kk, el("div", v, "v"), el("div", sub, "s")); return d; };
   sm.replaceChildren(
     box("Waiting for a call", String(s.waiting), usdt(s.usdt_on_hold) + " on hold"),
-    box("Oldest waiting", s.waiting ? mins(s.oldest_waiting_s) : "–", "target: call within 15 min"),
+    box("Oldest waiting", s.waiting ? mins(s.oldest_waiting_s) : "–", "target: call within 15 min", false, s.waiting ? waitCls(s.oldest_waiting_s) : ""),
     box("Closed today", String(s.closed_today), "cancelled or released"),
     box("Officers on shift", "4", "1 free · 2 on a call · 1 break", true),
     box("Calls per hour (team)", "9 of 12", "capacity", true));
-  const rows = q.rows.filter((r) => tab === "open" ? r.status === "open" : tab === "mine" ? r.status === "claimed" && r.claimed_by === ME : r.status === "closed" || r.status === "cancelled");
+  noteNewHolds(q.rows);
+  const count = { open: (r) => r.status === "open", mine: (r) => r.status === "claimed" && r.claimed_by === ME, closed: (r) => r.status === "closed" || r.status === "cancelled" };
+  for (const b of document.querySelectorAll("[data-tab]")) b.textContent = `${b.textContent.replace(/ \(\d+\)$/, "")} (${q.rows.filter(count[b.dataset.tab]).length})`;
+  stamp(true);
+  feed().catch(() => {});
+  const rows = q.rows.filter(count[tab]);
   if (seen == null) seen = new Set(q.rows.map((r) => r.id));
   const tb = $("queue");
   tb.replaceChildren();
-  if (!rows.length) { const tr = el("tr"), td = el("td", tab === "open" ? "Nothing waiting." : "No cases here.", "muted"); td.colSpan = 10; tr.append(td); tb.append(tr); }
+  if (!rows.length) { const tr = el("tr"), td = el("td", tab === "open" ? "Nothing waiting." : "No cases here.", "muted"); td.colSpan = 11; tr.append(td); tb.append(tr); }
   rows.forEach((r, i) => {
     const tr = el("tr");
     tr.dataset.id = r.id;
-    if (!seen.has(r.id)) tr.className = "new";
-    const why = el("td", r.top_reason?.detail || "–");
-    if (r.top_reason) why.append(tag(r.top_reason.kind));
-    const w = r.waiting_s ?? 0, wait = cell(mins(w), null, "num wait" + (r.status === "open" ? (w >= 900 ? " red" : w >= 600 ? " amber" : "") : ""));
+    const w = r.waiting_s ?? 0, wc = r.status === "open" ? waitCls(w) : "";
+    tr.className = [seen.has(r.id) ? "" : "new", wc].join(" ").trim();
+    const why = el("td", null, "why"), top = r.top_reason;
+    if (top) {  // short label; the scam type in brackets as a sub-line; the full sentence on hover and in the case view
+      const sub = SIGNAL[top.signal] && top.detail.match(/\(([^)]+)\)\.?$/);
+      why.append(el("b", SIGNAL[top.signal] || aboutCustomer(top.detail)), tag(top.kind));
+      if (sub) why.append(el("span", sub[1], "sub"));
+      why.title = aboutCustomer(top.detail);
+    }
+    else why.textContent = "–";
+    const wait = cell(mins(w), null, "num wait " + wc);
     const p = cell(r.p_scam != null ? r.p_scam.toFixed(2) : "–", null, "num");
     const act = el("td");
     if (r.status === "open") { const b = el("button", "Claim", "pri"); b.onclick = () => claim(r.id); act.append(b); }
     else { const b = el("button", r.status === "claimed" && r.claimed_by !== ME ? "Claimed by " + r.claimed_by : "Open"); b.disabled = r.status === "claimed" && r.claimed_by !== ME; b.onclick = () => showCase(r.id); act.append(b); }
     tr.append(el("td", String(i + 1), "num"), el("td", r.ref || "#" + r.id, "mono"),
-              cell(r.persona?.name_masked || r.customer, r.persona ? "Acct ending " + r.persona.account_ending : null),
-              el("td", short(r.wallet), "mono"), cell(usdt(r.amount), null, "num"), cell(usdt(r.expected_loss), null, "num"), p, why, wait, act);
+              cell(r.persona?.name_masked || r.customer, r.persona ? "Acct ending " + r.persona.account_ending : null, "who"),
+              el("td", short(r.wallet), "mono"), cell(usdt(r.amount), sentAs(r), "num"), cell(usdt(r.expected_loss), null, "num"), p, why,
+              el("td", r.persona?.language || "English", "lang"), wait, act);
     tb.append(tr);
   });
 }
+// Every check (all tiers), so a new customer-page entry shows up here even when it isn't a hold.
+async function feed() {
+  if (MOCK_MODE) return;
+  const rows = await api("/activity?limit=25"), tb = $("feed");
+  tb.replaceChildren();
+  if (!rows.length) { const tr = el("tr"), td = el("td", "No checks yet. Use the customer page or the demo controls.", "muted"); td.colSpan = 7; tr.append(td); tb.append(tr); return; }
+  for (const r of rows) {
+    const tr = el("tr"), tier = el("td");
+    tier.append(el("span", r.tier, "pill " + r.tier));
+    tr.append(el("td", new Date(r.at * 1000).toTimeString().slice(0, 8), "mono"), el("td", r.ref, "mono"),
+              el("td", r.persona?.name_masked || r.customer), el("td", short(r.wallet), "mono"), cell(usdt(r.amount), sentAs(r), "num"), tier,
+              el("td", r.answered ? r.status + " · answered" : r.status, "muted"));
+    tb.append(tr);
+  }
+}
+// A banner for holds that arrive while the officer is in a case, so nothing waits unseen.
+let known = null;
+function noteNewHolds(rows) {
+  const open = rows.filter((r) => r.status === "open");
+  if (known == null) { known = new Set(open.map((r) => r.id)); return; }
+  const fresh = open.filter((r) => !known.has(r.id));
+  for (const r of open) known.add(r.id);
+  if (fresh.length && $("v-queue").hidden) {
+    $("newhold-t").textContent = `New hold: ${fresh.map((r) => `${r.ref} · ${r.persona?.name_masked || r.customer} · ${usdt(r.amount)}`).join("; ")}`;
+    $("newhold").hidden = false;
+  }
+}
+$("newhold-go").onclick = () => { $("newhold").hidden = true; view("queue"); refresh(); };
 for (const b of document.querySelectorAll("[data-tab]")) b.onclick = () => {
   tab = b.dataset.tab;
   for (const x of document.querySelectorAll("[data-tab]")) x.setAttribute("aria-selected", String(x === b));
@@ -321,91 +414,75 @@ async function showCase(id) {
   const c = await api("/case/" + id);
   openCase = { id, c };
   const w = c.withdrawal, d = c.decision, p = c.persona || {}, mine = c.claimed_by === ME, box = $("v-case");
-  const back = el("button", "← Back to queue", "linkb"); back.onclick = () => { view("queue"); refresh(); };
+  const back = el("button", "← Back to queue", "linkb"); back.onclick = () => { view("queue"); refresh().catch(() => {}); };
   const head = el("div", null, "casehead");
-  head.append(el("h3", "Case " + (d.ref || "#" + d.id)), el("span", "Opened " + ago(c.held_at ?? w.time), "muted"));
-  if (mine) head.append(el("span", "Claimed by you · lock held", "lock"));
+  head.append(back, el("h3", "Case " + (d.ref || "#" + d.id)), el("span", "Opened " + ago(c.held_at ?? w.time), "muted"));
+  const live = c.status === "open" || c.status === "claimed", waited = now() - (c.held_at ?? w.time);
+  head.append(el("span", mine ? "Claimed by you · lock held" : c.claimed_by ? "Claimed by " + c.claimed_by : c.status === "open" ? "Unclaimed" : "Closed",
+                  "chip" + (c.status === "open" ? " open" : "")));
+  if (live) head.append(el("span", `Waiting ${mins(waited)} · target 15`, "chip " + waitCls(waited)));
 
   const addr = el("span", w.wallet, "addr");
-  const pay = block("Payment on hold", dl([["Amount", usdt(w.amount)], ["To wallet", addr], ["Network", "Ethereum · USDT"], ["Held at", date(w.time)], ["Tier", d.tier]]));
+  const pay = block("Payment on hold", dl([["Amount", sentAs(w) ? `${usdt(w.amount)} (${sentAs(w)})` : usdt(w.amount)], ["To wallet", addr], ["Network", "Ethereum · USDT"],
+    ["Payment time", date(w.time)], ["Decision", `${d.tier} · engine ${d.engine_version || ""}${d.decide_ms != null ? ` · ${d.decide_ms} ms on ${d.host === "s390x" ? "LinuxONE" : d.host}` : ""}`]]));
   const cust = block("Customer", dl([
     ["Name", mine ? [p.name || w.customer, el("span", " shown because you claimed this case · logged", "muted")] : (p.name_masked || w.customer)],
     ["Account", "Ending " + (p.account_ending || "–")], ["Phone on file", p.phone_masked || "–"], ["Language", p.language || "English"]]));
   if (p.sample) cust.querySelector("h2").append(tag("sample"));
 
-  const said = [];
+  const said = el("div", null, "said"), line = (q, t) => { const x = el("div"); x.append(el("span", q), t); said.append(x); };
+  const free = (t) => { const x = el("div", null, "free"); x.append(el("small", "Free text, in the customer's words"), "“" + t + "”"); said.append(x); };
   if (c.answer && typeof c.answer === "object") {
-    if (c.answer.why) said.push(["Q1", optText("why", c.answer.why)]);
-    if (c.answer.how) said.push(["Q2", optText("how", c.answer.how)]);
-    if (c.answer.asked) said.push(["Q3", c.answer.asked.map((x) => optText("asked", x)).join("; ")]);
-    if (c.answer.text) said.push(["Text", el("span", "“" + c.answer.text + "”", "quote")]);
-  } else if (c.answer) said.push(["Text", el("span", "“" + c.answer + "”", "quote")]);
-  const told = block("What the customer told us", said.length ? dl(said) : el("p", "No question was asked.", "muted"));
-  told.querySelector("dl")?.classList.add("said");
+    if (c.answer.why) line("Q1", optText("why", c.answer.why));
+    if (c.answer.how) line("Q2", optText("how", c.answer.how));
+    if (c.answer.asked) line("Q3", c.answer.asked.map((x) => optText("asked", x)).join("; "));
+    if (c.answer.text) free(c.answer.text);
+  } else if (c.answer) free(c.answer);
+  const told = block(["What the customer told us", c.modelled_answer ? el("span", "scripted demo answer", "tag modelled") : ""],
+                     said.children.length ? said : el("p", "No question was asked.", "muted"));
 
   const ul = el("ul", null, "reasons");
-  for (const r of d.reasons) { const li = el("li", r.detail); li.append(tag(r.kind), el("span", r.source.replace(/_/g, " "), "src")); ul.append(li); }
-  const whyTitle = ["Why this was held", el("span", null, "muted")];
+  for (const r of d.reasons) { const li = el("li", aboutCustomer(r.detail)); li.append(tag(r.kind), el("span", r.source.replace(/_/g, " "), "src")); ul.append(li); }
+  const whyTitle = [d.tier === "hold" ? "Why this was held" : "Why the engine flagged it", el("span")];
   whyTitle[1].append("P(scam) " + (d.p_scam != null ? d.p_scam.toFixed(2) : "–"), tag("modelled"));
-  const why = block(whyTitle, ul, el("p", "These reasons are for the call. The customer never sees them.", "foot"));
+  const why = block(whyTitle, ul, el("p", "The engine's own reasons, for the call. The customer never sees this list.", "foot"));
+  if (d.tier === "hold") why.classList.add("held");
 
   const f = c.wallet_facts;
   const facts = [];
   if (f) {
-    facts.push(["First seen on-chain", f.first_seen_ts ? ago(f.first_seen_ts) : "–"], ["Payments in", `${f.n_payments_in} (${f.n_senders_in} senders, ${f.n_senders_in_7d} in 7 days)`],
+    const before = (ts) => { const d = w.time - ts; return d < 3600 ? mins(d) : d < 86400 ? Math.round(d / 3600) + " h" : Math.round(d / 86400) + " days"; };  // point in time: as of this payment
+    facts.push(["First seen on-chain", f.first_seen_ts ? before(f.first_seen_ts) + " before this payment" : "–"],
+               ["Payments in", `${f.n_payments_in} (${f.n_senders_in} sender${f.n_senders_in === 1 ? "" : "s"}, ${f.n_senders_in_7d} in the 7 days before)`],
                ["USDT in / out", `${usdt(f.usdt_in)} / ${usdt(f.usdt_out)}`], ["Forwarded on after", f.median_forward_h != null ? `median ${f.median_forward_h} h` : "–"]);
     if (f.truncated) facts.push(["History", "truncated at 1,000 transfers"]);
   }
   const others = (c.payers || []).filter((x) => x.customer !== w.customer);
   facts.push(["Other customers who sent here", others.length ? String(new Set(others.map((x) => x.customer)).size) : "0 (new to us)"],
-             ["Tether freeze", c.tether_froze_at ? el("span", (c.tether_froze_at > w.time ? "Later froze it, on " : "Froze it on ") + date(c.tether_froze_at), "freeze") : "No"],
+             ["Tether freeze", !c.tether_froze_at ? "No" : c.tether_froze_at <= w.time ? el("span", "Froze it on " + date(c.tether_froze_at), "freeze")  // a later freeze is hindsight: not known at the payment
+               : ["Not at the time of this payment", el("span", ` (replay hindsight: Tether froze it on ${date(c.tether_froze_at).slice(0, 10)}; the engine never uses it)`, "muted")]],
              ["Known-bad list", c.known_bad || f?.touched_known_bad ? el("span", c.known_bad ? "Listed" : "Sent to or from a listed wallet", "freeze") : "Not listed"],
              ["Payee memory", c.prior_warnings?.length ? c.prior_warnings.map((m) => m.detail).join(" ") : "No earlier warnings"]);
   const rec = block(["Wallet record", tag("real")], dl(facts));
 
-  const g = el("div"); g.id = "graph";
-  const flow = block(["Money flow", el("span", "who paid this wallet, and where it went next (dashed)", "muted")], g);
   const chk = el("div", null, "check");
   for (const t of ["Confirm identity with two details", "Ask who they are sending to, without prompting", "Ask if anyone told them to keep it secret or hurry",
                    "Tell them real officers never ask them to move money", "Offer to cancel the payment"]) { const l = el("label"), i = el("input"); i.type = "checkbox"; l.append(i, el("span", t)); chk.append(l); }
   const log = el("ol", null, "log");
-  for (const e of c.events || []) { const li = el("li"); li.append(el("span", new Date(e.ts * 1000).toISOString().slice(11, 16)), el("span", `${e.what} · ${e.who}`)); log.append(li); }
+  for (const e of c.events || []) { const li = el("li"); li.append(el("span", new Date(e.ts * 1000).toTimeString().slice(0, 5)), el("span", `${e.what} · ${e.who}`)); log.append(li); }
 
   const acts = el("div", null, "actions");
-  const rec_b = el("button", "Record outcome", "pri"); rec_b.disabled = !mine && c.status !== "open"; rec_b.onclick = () => showOutcome();
-  if (!mine && c.status === "open") { const cl = el("button", "Claim this case"); cl.onclick = () => claim(id); acts.append(cl); rec_b.disabled = true; }
+  const rec_b = el("button", "Record outcome", "pri"); rec_b.disabled = !mine || !live; rec_b.onclick = () => showOutcome();
+  if (!mine && c.status === "open") { const cl = el("button", "Claim this case", "pri"); cl.onclick = () => claim(id); acts.append(cl); rec_b.className = ""; }
   acts.append(rec_b);
   const grid = el("div", null, "grid"), left = el("div"), right = el("div");
-  left.append(pay, cust, told, why);
-  right.append(rec, flow, block("Call checklist", chk), block("Activity log", log));
+  // as the wireframe: the story on the left (payment, customer, her answers), the evidence on the right
+  left.append(pay, cust, told, block("Activity log", log));
+  right.append(why, rec, block("Call checklist", chk));
   grid.append(left, right);
-  box.replaceChildren(back, head, grid, acts);
+  head.append(acts);  // in the header, so the next step is visible without scrolling
+  box.replaceChildren(head, grid);
   view("case");
-  drawGraph(w.wallet, c.payers || [], f?.out_flows || []);
-}
-
-function drawGraph(wallet, payers, outs) {
-  const els = [{ data: { id: wallet, label: short(wallet), wallet: 1 } }];
-  const last = new Map(payers.map((p) => [p.customer, p]));
-  for (const [cu, p] of last) els.push({ data: { id: "c:" + cu, label: `${cu} · ${Math.round(p.amount)} · ${p.tier}` } });
-  payers.forEach((p, i) => els.push({ data: { id: "e" + i, source: "c:" + p.customer, target: wallet, color: TIER_COLOR[p.tier] || "#555b53" } }));
-  outs.forEach((o, i) => {
-    els.push({ data: { id: "o:" + o.to, label: `${short(o.to)} · ${Math.round(o.usdt)}`, out: 1 } });
-    els.push({ data: { id: "f" + i, source: wallet, target: "o:" + o.to, color: "#555b53", out: 1 } });
-  });
-  if (cy) cy.destroy();
-  if (!window.cytoscape) { $("graph").textContent = "Graph library didn't load (offline)."; return; }
-  cy = cytoscape({
-    container: $("graph"), elements: els, userZoomingEnabled: false,
-    layout: { name: "breadthfirst", directed: true, spacingFactor: 1.1 },
-    style: [
-      { selector: "node", style: { label: "data(label)", "font-family": "JetBrains Mono, monospace", "font-size": 9, color: "#0e1116", "background-color": "#0e1116", width: 12, height: 12, "text-margin-y": -4 } },
-      { selector: "node[wallet]", style: { "background-color": "#d7261e", width: 28, height: 28, "font-size": 11, "font-weight": "bold" } },
-      { selector: "node[out]", style: { "background-color": "#edefe9", "border-width": 1.5, "border-style": "dashed", "border-color": "#555b53" } },
-      { selector: "edge", style: { "line-color": "data(color)", "target-arrow-color": "data(color)", "target-arrow-shape": "triangle", "curve-style": "bezier", width: 2 } },
-      { selector: "edge[out]", style: { "line-style": "dashed" } },
-    ],
-  });
 }
 
 // ---- record outcome
@@ -413,28 +490,32 @@ async function showOutcome() {
   if (!REASONS) REASONS = await api("/outcome-codes");
   const { id, c } = openCase, w = c.withdrawal, d = c.decision, box = $("v-outcome");
   const back = el("button", "← Back to case", "linkb"); back.onclick = () => view("case");
-  const head = el("div", null, "casehead"); head.append(el("h3", "Record outcome · " + (d.ref || "#" + id)));
-  const sumry = dl([["Customer", c.persona?.name || w.customer], ["Amount", usdt(w.amount)], ["Wallet", el("span", short(w.wallet), "mono")]]);
-  const fm = el("form", null, "outcome");
+  const head = el("div", null, "casehead"); head.append(back, el("h3", "Record outcome · " + (d.ref || "#" + id)));
+  const sumry = el("div", null, "osum"), kv = (k, v) => { const x = el("span"); x.append(el("span", k), v); sumry.append(x); };
+  kv("Customer", c.persona?.name || w.customer); kv("Amount", usdt(w.amount)); kv("Wallet", el("span", short(w.wallet), "mono"));
+  kv("P(scam)", d.p_scam != null ? d.p_scam.toFixed(2) : "–");
+  const fm = el("form", null, "outcome"), left = el("div", null, "card"), right = el("div", null, "col");
   const radios = (name, title, opts) => {
     const fs = el("fieldset"); fs.append(el("legend", title));
     for (const [v, t] of opts) { const l = el("label", null, "radio"), i = el("input"); i.type = "radio"; i.name = name; i.value = v; i.required = true; l.append(i, el("span", t)); fs.append(l); }
     return fs;
   };
-  fm.append(radios("call", "1 · What happened on the call", [["confirmed_identity", "Spoke to the customer, identity confirmed"], ["other_person", "Spoke to someone else, did not confirm identity"], ["no_answer", "No answer after 3 attempts"]]),
+  left.append(radios("call", "1 · What happened on the call", [["confirmed_identity", "Spoke to the customer, identity confirmed"], ["other_person", "Spoke to someone else, did not confirm identity"], ["no_answer", "No answer after 3 attempts"]]),
             radios("decision", "2 · Decision on this payment", [["cancel", "Cancel the payment. Funds stay in the customer's account."], ["release", "Release the payment."], ["keep", "Keep on hold and call again."]]));
   const rf = el("fieldset"), sel = el("select"); sel.name = "reason"; sel.required = true;
   sel.append(new Option("Choose a reason…", ""));
   for (const [k, v] of Object.entries(REASONS)) sel.append(new Option(v, k));
   const note = el("textarea"); note.name = "note"; note.rows = 3; note.placeholder = "Note (required for Other)";
-  rf.append(el("legend", "3 · Reason"), sel, el("div"), note);
-  rf.children[2].style.height = "8px";
+  rf.append(el("legend", "3 · Reason"), sel, note);
   const changes = el("div", null, "changes");
   const err = el("p", null, "err"); err.hidden = true; err.setAttribute("role", "alert");
   const submitB = el("button", "Submit decision", "pri"); submitB.type = "submit";
   const cancelB = el("button", "Back to case"); cancelB.type = "button"; cancelB.onclick = () => view("case");
-  const btns = el("div", null, "actions"); btns.append(cancelB, submitB);
-  fm.append(rf, changes, err, btns);
+  const btns = el("div", null, "actions"); btns.append(err, cancelB, submitB);
+  left.append(rf); right.append(changes);
+  fm.append(left, right, btns);
+  dirty = false;
+  fm.addEventListener("input", () => { dirty = true; stamp(); });
   // Describes what payee_memory.outcome_for() does with each choice; the page decides nothing.
   const explain = () => {
     const dec = fm.decision.value, r = sel.value;
@@ -442,27 +523,31 @@ async function showOutcome() {
     const line = (t) => changes.append(el("p", t));
     if (!dec) return line("Choose a decision to see what it changes.");
     line(dec === "cancel" ? "This payment: cancelled and closed. The money stays in the customer's account." : dec === "release" ? "This payment: released and closed." : "This payment: stays on hold in your cases.");
-    if (dec === "cancel" && r.startsWith("confirmed")) line("This wallet: marked confirmed scam. It never fades, and the next customer who sends to it is held for a call-back straight away.");
+    if (dec === "cancel" && r.startsWith("confirmed")) {
+      line("This wallet: marked confirmed scam. It never fades, and the next customer who sends to it is held for a call-back straight away.");
+      if (c.modelled_answer) line("Demo replay: this confirmation is modelled, recorded a day after her hold as in the replay.");
+    }
     else if (dec === "release" && r.startsWith("genuine")) line("This wallet: marked cleared. Holds on it stop.");
     else if ((dec === "release" && r.startsWith("confirmed")) || (dec === "cancel" && r.startsWith("genuine"))) line("This decision and reason contradict each other and will be refused.");
     else line("This wallet: payee memory is not changed.");
   };
-  fm.addEventListener("change", explain);
+  fm.addEventListener("change", () => { dirty = true; stamp(); explain(); });
   explain();
   fm.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (sel.value === "other" && !note.value.trim()) { err.textContent = "Add a note for Other."; err.hidden = false; return; }
     submitB.disabled = true; err.hidden = true;
     try {
-      await api("/outcome", { id, wallet: w.wallet, call: fm.call.value, decision: fm.decision.value, reason: sel.value, note: note.value.trim() });
+      const res = await api("/outcome", { id, wallet: w.wallet, call: fm.call.value, decision: fm.decision.value, reason: sel.value, note: note.value.trim() });
+      dirty = false;
+      if (res?.modelled) $("demo-status").textContent = "Officer confirmation modelled: recorded a day after her hold, as in the replay. This wallet is now confirmed in payee memory. Press Next payment.";
       view("queue"); refresh();
     } catch (ex) {
       err.textContent = String(ex.message) === "422" ? "That decision and reason contradict each other." : "Couldn't save the outcome. Try again.";
       err.hidden = false; submitB.disabled = false;
     }
   });
-  box.replaceChildren(back, head, sumry, el("div"), fm);
-  box.children[3].style.height = "20px";
+  box.replaceChildren(head, sumry, fm);
   view("outcome");
 }
 
@@ -472,11 +557,12 @@ async function step() {
   if (s.done) { stop(); $("demo-status").textContent = `Replay finished. Tether froze the wallet on ${date(s.tether_froze_at)}.`; return; }
   $("demo-status").textContent = `Payment ${s.step}: ${s.withdrawal.customer}, ${Math.round(s.withdrawal.amount)} USDT, ${date(s.withdrawal.time)} → ${s.decision.tier}`;
   if (s.asked) $("demo-status").textContent += " (the engine asked first; her answer, scripted and modelled, held it)";
-  if (s.officer_confirmed) $("demo-status").textContent += ". The officer calls back and confirms the scam a day later (scripted, modelled): every later payment is held.";
+  if (s.awaiting_officer) $("demo-status").textContent += ". Her case is in the queue: claim it and record the outcome.";
+  if (s.officer_confirmed) $("demo-status").textContent += ". Nobody recorded Mrs Tan's outcome, so the script did: the officer confirms the scam a day after her hold (officer confirmation modelled).";
   await refresh();
 }
 function stop() { clearInterval(playing); playing = null; $("play").textContent = "Play"; }
-$("reset").onclick = async () => { stop(); const r = await realApi("/demo/reset", {}); seen = null; $("demo-status").textContent = `Demo wallet ${short(r.wallet)} reset.`; view("queue"); refresh(); };
+$("reset").onclick = async () => { stop(); const r = await realApi("/demo/reset", {}); seen = null; known = null; dirty = false; $("newhold").hidden = true; $("demo-status").textContent = `Demo wallet ${short(r.wallet)} reset.`; view("queue"); refresh(); };
 $("next").onclick = step;
 $("play").onclick = () => { if (playing) return stop(); $("play").textContent = "Pause"; playing = setInterval(step, 1500); step(); };
 $("live").addEventListener("submit", async (e) => {
@@ -490,7 +576,12 @@ $("live").addEventListener("submit", async (e) => {
 });
 
 refresh().catch(() => {});
-setInterval(() => { if (!playing && !$("v-queue").hidden) refresh().catch(() => {}); }, 3000);
+// Every 2 s: the queue view redraws; in a case only the new-hold banner updates; nothing while the outcome form has unsaved input.
+setInterval(() => {
+  if (playing || dirty) return;
+  if (!$("v-queue").hidden) refresh().catch(() => {});
+  else api("/queue").then((q) => { noteNewHolds(q.rows); stamp(true); }).catch(() => {});
+}, 2000);
 </script>
 </body>
 </html>
