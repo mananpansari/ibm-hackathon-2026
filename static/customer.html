@@ -64,6 +64,9 @@ async function post(url, body) {
   return r.json();
 }
 
+// Customers see the evidence, not the engine's modelled assumptions (source "config"); officers see both.
+const said = (d) => d.reasons.filter((x) => x.source !== "config").map((x) => x.detail);
+
 function render(d) {
   if (d.tier === "question") {
     const form = el("form"), label = el("label", d.question), box = el("textarea"), btn = el("button", "Send my answer");
@@ -79,10 +82,10 @@ function render(d) {
     show("question", HEADLINE.question, ["Before this payment goes out, please tell us in your own words what it is for."], form);
     box.focus();
   } else if (d.tier === "hold") {
-    const why = el("p", "Why: " + d.reasons.map((x) => x.detail).join(" "));
+    const why = el("p", "Why: " + said(d).join(" "));
     show("hold", HEADLINE.hold, HOLD_NEXT, why);
   } else {
-    show(d.tier, HEADLINE[d.tier] || d.tier, d.reasons.map((x) => x.detail));
+    show(d.tier, HEADLINE[d.tier] || d.tier, said(d));
   }
 }
 

@@ -26,7 +26,7 @@ from pydantic import BaseModel, Field
 import granite
 from decision_log import DecisionLog
 from engine import Engine, RecordedHistories, Withdrawal, to_dict
-from payee_memory import OfficerOutcome, PayeeMemory, Report, load_freezes
+from payee_memory import OfficerOutcome, PayeeMemory, load_freezes
 
 try:
     from model import score as model_score  # B's weak signal (#5); warns at most, never holds
@@ -61,7 +61,8 @@ def history(wallet, as_of):
 def new_engine():
     memory = PayeeMemory()
     memory.add_freezes(FREEZES)
-    return Engine(history, memory, lambda: clock["now"], LOG, model=model_score, known_bad=BAD)
+    return Engine(history, memory, lambda: clock["now"], LOG, model=model_score, known_bad=BAD,
+                  classifier=granite)
 
 
 engine = new_engine()
@@ -91,23 +92,17 @@ class Live(BaseModel):
     amount: float = Field(default=1000, gt=0, le=1e9)
 
 
-def decide(w, answer=None):
+def decide(w, answer=None, answer_kind=None):
     clock["now"] = w["time"]
-    d = to_dict(engine.decide(Withdrawal(w["customer"], w["wallet"], w["amount"], w["time"]), answer))
+    d = to_dict(engine.decide(Withdrawal(w["customer"], w["wallet"], w["amount"], w["time"]), answer, answer_kind))
     d["id"] = next(ids)
     cases[d["id"]] = {"decision": d, "withdrawal": w, "answer": answer, "status": "open"}
     return d
 
 
-def answered(w, answer, kind="real"):
-    """Bridge until #7 puts the question tier in the engine: a confirming answer becomes a
-    payee-memory report (what #7 will do inside decide), then the withdrawal is re-decided."""
-    cls = granite.classify(answer)
-    if cls["confirms_script"]:
-        engine.record(Report(w["wallet"], w["time"], source="customer_answer", kind=kind,
-                             actor=w["customer"], note=cls["scam_type"]))
-        w = {**w, "time": w["time"] + 1}  # memory only counts reports from before now
-    return decide(w, answer)
+def answered(w, answer, kind=None):
+    """The engine (#7) classifies the answer through granite, holds and writes the payee-memory report."""
+    return decide(w, answer, kind)
 
 
 @app.post("/score")
@@ -154,7 +149,7 @@ async def case(id: int):
     payers = [{"customer": o["withdrawal"]["customer"], "amount": o["withdrawal"]["amount"],
                "time": o["withdrawal"]["time"], "tier": o["decision"]["tier"]}
               for o in cases.values() if o["withdrawal"]["wallet"] == w["wallet"]]
-    prior = [asdict(e) for e in engine.memory.evidence(w["wallet"], w["time"])]
+    prior = [asdict(e) for e in engine.memory.evidence(w["wallet"], w["time"] + 1)]  # +1: include what this decision recorded
     if w["wallet"] == demo["confirmed"]:  # ponytail: OfficerOutcome has no kind yet (asked C); the demo's is scripted
         for r in prior + c["decision"]["reasons"]:
             if r["signal"] == "officer_confirmed":
