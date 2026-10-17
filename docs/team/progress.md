@@ -18,9 +18,9 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
-| [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | doing | 17 Oct | Models trained + saved (models/, val AUC 0.87 by wallet; out-of-time 0.57 vs matched). `model.score(features) -> float or None`, 1.5 ms on TF 2.21. Engine wiring waits on #3. Branch b/5-weak-model-signal |
-| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | done | 17 Oct | Running on VM bob1 from the lab image (127.0.0.1:8000, stub engine); verified via SSH tunnel with 5 test cases. Not public: port not opened. Branch b/11-deploy-linuxone (merge after #4) |
-| [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | blocked |  |  |
+| [#5](https://github.com/mananpansari/ibm-hackathon-2026/issues/5) | Weak model signal | #3 | done | 17 Oct | On main and closed: XGBoost + MLP (val AUC 0.87 by wallet; out-of-time 0.57 vs matched), trained in the lab image so they load on s390x; MLP in tf.function so it runs on NNPA; engine uses it as a weak signal (asks, never holds) |
+| [#11](https://github.com/mananpansari/ibm-hackathon-2026/issues/11) | Deploy on LinuxONE | #4 | done | 17 Oct | On main (PR #23). Container from the lab image on VM bob1 (127.0.0.1:8000, SSH tunnel). Not public: port not opened |
+| [#15](https://github.com/mananpansari/ibm-hackathon-2026/issues/15) | NNPA benchmark (Result 4) | #5, #11 | review | 17 Oct | decide() p50 about 1.3 ms, about 600–750 withdrawals/s; MLP verified on NNPA but no speed-up, and 2/2,000 tiers shift (DLFLOAT16). docs/nnpa-benchmark.md |
 
 ## C: Router and simulation
 
