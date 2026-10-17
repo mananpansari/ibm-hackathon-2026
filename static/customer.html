@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Send crypto</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 34rem; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; background: #fff; }
+  label { display: block; margin-top: 1rem; font-weight: 600; }
+  input, textarea { width: 100%; box-sizing: border-box; padding: .5rem; font: inherit; border: 1px solid #888; border-radius: 4px; }
+  button { margin-top: 1.25rem; padding: .6rem 1.2rem; font: inherit; cursor: pointer; }
+  #result { margin-top: 1.5rem; padding: 1rem; border-radius: 6px; }
+  #result[hidden] { display: none; }
+  .release { background: #e7f5ea; border: 1px solid #2e7d32; }
+  .warning { background: #fff6e0; border: 1px solid #b26a00; }
+  .question, .hold { background: #fdecea; border: 1px solid #b3261e; }
+  .error { background: #f2f2f2; border: 1px solid #666; }
+  #result h2 { margin: 0 0 .5rem; font-size: 1.15rem; }
+  #result ul { margin: 0; padding-left: 1.2rem; }
+</style>
+</head>
+<body>
+<h1>Send crypto</h1>
+<form id="f">
+  <label for="customer">Your customer ID</label>
+  <input id="customer" name="customer" value="mrs-tan" required maxlength="64">
+  <label for="wallet">Wallet you are sending to</label>
+  <input id="wallet" name="wallet" required pattern="0x[0-9a-fA-F]{40}" placeholder="0x…" autocomplete="off" spellcheck="false">
+  <label for="amount">Amount (USDT)</label>
+  <input id="amount" name="amount" type="number" min="0.01" step="0.01" required>
+  <button type="submit">Check and send</button>
+</form>
+<div id="result" role="status" aria-live="polite" hidden></div>
+<script>
+const HEADLINE = {
+  release: "Your payment can go ahead.",
+  warning: "Please check before you send.",
+  question: "We need to ask you one question.",
+  hold: "Your payment is on hold for a call-back.",
+};
+const HOLD_NEXT = [
+  "Your money has not been sent. It is safe in your account.",
+  "One of our fraud officers will call you on the phone number we have on file.",
+  "Please don't try to send this money another way while you wait.",
+  "If anyone is telling you to move money or keep this secret, you can hang up. Real officers will never ask you to do that.",
+];
+const f = document.getElementById("f"), out = document.getElementById("result");
+const el = (tag, text) => { const e = document.createElement(tag); if (text) e.textContent = text; return e; };
+
+function show(cls, title, items, extra) {
+  out.className = cls;
+  out.replaceChildren();
+  const ul = el("ul");
+  for (const t of items) ul.append(el("li", t));
+  out.append(el("h2", title), ul);
+  if (extra) out.append(extra);
+  out.hidden = false;
+  out.scrollIntoView({ block: "nearest" });
+}
+
+async function post(url, body) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+// Customers see the evidence, not the engine's modelled assumptions (source "config"); officers see both.
+const said = (d) => d.reasons.filter((x) => x.source !== "config").map((x) => x.detail);
+
+function render(d) {
+  if (d.tier === "question") {
+    const form = el("form"), label = el("label", d.question), box = el("textarea"), btn = el("button", "Send my answer");
+    box.id = "answer"; box.required = true; box.maxLength = 2000; box.rows = 4;
+    label.htmlFor = "answer";
+    form.append(label, box, btn);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      try { render(await post("/answer", { id: d.id, answer: box.value.trim() })); }
+      catch { show("error", "We couldn't send your answer.", ["Please try again in a moment."]); }
+    });
+    show("question", HEADLINE.question, ["Before this payment goes out, please tell us in your own words what it is for."], form);
+    box.focus();
+  } else if (d.tier === "hold") {
+    const why = el("p", "Why: " + said(d).join(" "));
+    show("hold", HEADLINE.hold, HOLD_NEXT, why);
+  } else {
+    show(d.tier, HEADLINE[d.tier] || d.tier, said(d));
+  }
+}
+
+f.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const body = { customer: f.customer.value.trim(), wallet: f.wallet.value.trim(), amount: Number(f.amount.value) };
+  try { render(await post("/score", body)); }
+  catch (err) {
+    if (String(err.message) === "422") show("error", "We couldn't check this payment.", ["Please check the wallet address and amount."]);
+    else show("error", "We couldn't reach the bank.", ["Please try again in a moment."]);
+  }
+});
+</script>
+</body>
+</html>
