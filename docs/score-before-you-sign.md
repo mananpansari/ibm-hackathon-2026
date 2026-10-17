@@ -30,10 +30,10 @@ In the withdrawal path of a regulated bank, custodian or exchange, **before the 
 2. **Payee memory (one victim protects the next).** Any warning about a destination wallet goes into a memory shared across customers: an answer that confirms a scam script, a customer report, a Tether freeze of that wallet or of a wallet it has dealt with (only freezes before now), an officer's outcome, or a weak model flag. Unconfirmed warnings decay (configurable half-life); "scam-confirmed" never decays, and "cleared" stops future holds.
 3. **Hold for a call-back.** A confirmed script, a memory hit or a counterparty freeze holds the withdrawal for a human call-back, from any customer, not just the one who raised the warning.
 4. **Ration the call-backs (the response ladder).** *release → warning → question → call-back hold.* Holds are ranked by expected loss (amount × signal-derived probability) under the team's daily call-back capacity; anything over capacity drops to the question tier.
-5. **Two user screens.** The customer's withdrawal screen, with the question shown in the app. The officer's call-back queue, with a "why" card (the signals, the customer's answer, prior warnings on the wallet) and a live graph of the payments into the wallet, visible to officers only.
+5. **Two user screens.** The customer's withdrawal screen, with the questions shown in the app. Our customer page is a simulated stand-in for an exchange's withdrawal screen: we built it standalone only because the L1CC VM has no HSM and we can't connect to a real exchange. The officer's call-back queue, with a "why" card (the signals, the customer's answer, prior warnings on the wallet) and a live graph of the payments into the wallet, visible to officers only.
 6. **Tamper-evident.** Every decision goes into an append-only, hash-chained log (inputs, tier, reasons, engine version), with a verify step.
 
-A bank cannot see an on-chain withdrawal it didn't originate, so this runs where the money leaves: at the institution, before the signature.
+A bank cannot see an on-chain withdrawal it didn't originate, so this runs where the money leaves: at the institution, before the signature. In production it is not a standalone app: it is embedded in the exchange's, custodian's or wallet app's own withdrawal flow, as one call just before the payment is signed.
 
 ## Why IBM Z / LinuxONE
 
@@ -107,7 +107,7 @@ A bank cannot see an on-chain withdrawal it didn't originate, so this runs where
 ## Honest limits
 
 - Ethereum and ERC-20 USDT only; Bitcoin and Tron-USDT are on the roadmap.
-- No HSM on L1CC, so signing integration is described as the production path.
+- No HSM on L1CC and no connection to a real exchange, so signing integration is described as the production path and the customer page is a simulated exchange withdrawal screen. The video says so.
 - The wallet model is weak (AUC 0.57 against volume-matched wallets); it is one signal, not the product.
 - Tether freezes include hacks and other cases besides scams; we remove OFAC addresses and report the set as "wallets Tether froze".
 - Payments are counted, not people: victims paying through the same exchange look alike on-chain.
@@ -140,7 +140,7 @@ Better wallet signals (sender-overlap graphs) → Bitcoin and Tron-USDT → PayN
 - Two user screens, the why-card and the payment graph.
 - Docker on the VM; code freeze 05:00 Sun.
 - Hash-chained decision log: yes. Db2: skipped (SQLite).
-- Video: a 3-minute screen recording of the demo with a voice-over, opening with Mrs Tan.
+- Video: a 3-minute screen recording of the demo with a voice-over, opening with Mrs Tan; it says plainly that the check is embedded in the exchange's withdrawal flow and our customer page is a stand-in (script: `docs/demo-script.md`).
 - The signals-fixed vs policy-varied chart is the main Result 3 chart.
 
 **Still open:**

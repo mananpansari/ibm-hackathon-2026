@@ -1,0 +1,131 @@
+{
+ "note": "Fictional demo customers (sample data), English only. customer-1 (TAN SIEW LIAN) is Mrs Tan, the demo's payment 2 (docs/demo-script.md); the app assigns the others to the other demo payments in order.",
+ "customers": [
+  {
+   "customer": "customer-1",
+   "name": "TAN SIEW LIAN",
+   "name_masked": "TA* SI** LI**",
+   "account_ending": "4821",
+   "phone_masked": "+65 **** 5678",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-2",
+   "name": "LIM WEI JIE",
+   "name_masked": "LI* WE* JI*",
+   "account_ending": "6200",
+   "phone_masked": "+65 **** 6589",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-3",
+   "name": "MUHAMMAD HAFIZ BIN AHMAD",
+   "name_masked": "MU****** HA*** BI* AH***",
+   "account_ending": "7579",
+   "phone_masked": "+65 **** 7500",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-4",
+   "name": "RAJ KUMAR MENON",
+   "name_masked": "RA* KU*** ME***",
+   "account_ending": "8958",
+   "phone_masked": "+65 **** 8411",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-5",
+   "name": "CHONG WEI LONG",
+   "name_masked": "CH*** WE* LO**",
+   "account_ending": "0337",
+   "phone_masked": "+65 **** 9322",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-6",
+   "name": "NG MEI LING",
+   "name_masked": "NG* ME* LI**",
+   "account_ending": "1716",
+   "phone_masked": "+65 **** 0233",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-7",
+   "name": "SITI NURHALIZA BINTE OMAR",
+   "name_masked": "SI** NU******* BI*** OM**",
+   "account_ending": "3095",
+   "phone_masked": "+65 **** 1144",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-8",
+   "name": "PRIYA DEVI RAMAN",
+   "name_masked": "PR*** DE** RA***",
+   "account_ending": "4474",
+   "phone_masked": "+65 **** 2055",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-9",
+   "name": "GOH KAH WAI",
+   "name_masked": "GO* KA* WA*",
+   "account_ending": "5853",
+   "phone_masked": "+65 **** 2966",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-10",
+   "name": "WONG LAI FONG",
+   "name_masked": "WO** LA* FO**",
+   "account_ending": "7232",
+   "phone_masked": "+65 **** 3877",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-11",
+   "name": "ABDUL RAHMAN BIN YUSOF",
+   "name_masked": "AB*** RA**** BI* YU***",
+   "account_ending": "8611",
+   "phone_masked": "+65 **** 4788",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-12",
+   "name": "LEE HUI MIN",
+   "name_masked": "LE* HU* MI*",
+   "account_ending": "9990",
+   "phone_masked": "+65 **** 5699",
+   "language": "English",
+   "sample": true
+  },
+  {
+   "customer": "customer-13",
+   "name": "KAVITHA SUBRAMANIAM",
+   "name_masked": "KA***** SU*********",
+   "account_ending": "1369",
+   "phone_masked": "+65 **** 6610",
+   "language": "English",
+   "sample": true
+  }
+ ],
+ "default": {
+  "customer": "default",
+  "name": "DEMO CUSTOMER",
+  "name_masked": "DE** CU******",
+  "account_ending": "0000",
+  "phone_masked": "+65 **** 0000",
+  "language": "English",
+  "sample": true
+ }
+}
