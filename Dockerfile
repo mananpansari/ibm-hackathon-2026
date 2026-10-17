@@ -6,8 +6,8 @@ ARG BASE=python:3.12-slim
 FROM ${BASE}
 
 WORKDIR /app
-# --user: the lab image runs as non-root ibm-user; harmless on the default base
-RUN pip install --no-cache-dir --user fastapi==0.115.6 uvicorn==0.32.1
+# The lab image's Python is a venv at /opt/venv owned by its non-root ibm-user, so a plain install works there too
+RUN pip install --no-cache-dir fastapi==0.115.6 uvicorn==0.32.1
 COPY *.py ./
 COPY static/ static/
 # data/ is a volume (snapshot + payee memory), and the key arrives via --env-file: neither is baked in.
