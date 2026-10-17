@@ -122,6 +122,9 @@ class PayeeMemory:
             out.append(Evidence("officer_confirmed", "officer", "real",
                                 "A fraud officer confirmed this wallet as a scam.", 1.0))
         since = last[0] if last and last[1] == "cleared" else -1
+        # Reports older than 20 half-lives weigh < 1e-6 each, so they can't decide a hold; skipping them
+        # keeps busy wallets (one renewal per held attempt) fast.
+        since = max(since, now - 20 * self.half_life_s)
         rows = self.db.execute("SELECT ts, source, kind FROM reports WHERE wallet = ? AND ts < ? AND ts > ?",
                                (wallet, now, since)).fetchall()
         for kind in ("real", "modelled"):  # never mix real and modelled evidence in one reason
