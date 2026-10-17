@@ -6,7 +6,8 @@
     "payments_after_warning": "payments decided after the first warning existed (real: from that payment on, it is decided after the signal)",
     "payments_held": "payments the engine put in the hold tier (call-back); reports decay with a 7-day half-life, freezes do not",
     "lead_days": "freeze_ts - first warning ts, in days; median over wallets with a warning",
-    "legit_hold_rate": "held payments / payments on comparison wallets Tether never froze (real pass only)"
+    "legit_hold_rate": "held payments / payments on comparison wallets Tether never froze (real pass only)",
+    "officer": "each hold starts a call-back; a day later the officer records confirmed (no decay) or cleared; right with probability q (modelled)"
   },
   "model_flag": "not available",
   "positives": {
@@ -590,6 +591,873 @@
       "wallets_with_any_hold": 1,
       "wallet_hold_rate": 0.0018,
       "modelled": "not replayed: r is the rate at which scam victims report; the false-report rate of legitimate customers is unknown, so no modelled number is given"
+    }
+  },
+  "officer": {
+    "q": [
+      0.8,
+      0.9,
+      1.0
+    ],
+    "officer_delay_s": 86400,
+    "seeds": 20,
+    "positives_modelled": {
+      "all": {
+        "0.8": {
+          "0.1": {
+            "payments_after_warning": {
+              "mean": 2182.9,
+              "sd": 30.4,
+              "min": 2130,
+              "max": 2251
+            },
+            "payments_held": {
+              "mean": 2019,
+              "sd": 50.5,
+              "min": 1935,
+              "max": 2156
+            }
+          },
+          "0.2": {
+            "payments_after_warning": {
+              "mean": 2382.5,
+              "sd": 20.2,
+              "min": 2349,
+              "max": 2415
+            },
+            "payments_held": {
+              "mean": 2239.1,
+              "sd": 45.3,
+              "min": 2173,
+              "max": 2322
+            }
+          },
+          "0.3": {
+            "payments_after_warning": {
+              "mean": 2477.9,
+              "sd": 23.8,
+              "min": 2440,
+              "max": 2528
+            },
+            "payments_held": {
+              "mean": 2353.2,
+              "sd": 35.1,
+              "min": 2287,
+              "max": 2406
+            }
+          },
+          "0.4": {
+            "payments_after_warning": {
+              "mean": 2534.7,
+              "sd": 15.4,
+              "min": 2502,
+              "max": 2559
+            },
+            "payments_held": {
+              "mean": 2428.7,
+              "sd": 20.0,
+              "min": 2393,
+              "max": 2464
+            }
+          },
+          "0.5": {
+            "payments_after_warning": {
+              "mean": 2565.2,
+              "sd": 9.6,
+              "min": 2551,
+              "max": 2591
+            },
+            "payments_held": {
+              "mean": 2472.6,
+              "sd": 20.9,
+              "min": 2436,
+              "max": 2507
+            }
+          },
+          "0.6": {
+            "payments_after_warning": {
+              "mean": 2596.3,
+              "sd": 12.3,
+              "min": 2576,
+              "max": 2616
+            },
+            "payments_held": {
+              "mean": 2514.8,
+              "sd": 16.9,
+              "min": 2476,
+              "max": 2544
+            }
+          },
+          "0.7": {
+            "payments_after_warning": {
+              "mean": 2616.4,
+              "sd": 5.6,
+              "min": 2604,
+              "max": 2626
+            },
+            "payments_held": {
+              "mean": 2540.5,
+              "sd": 12.1,
+              "min": 2520,
+              "max": 2560
+            }
+          },
+          "0.8": {
+            "payments_after_warning": {
+              "mean": 2633.6,
+              "sd": 2.7,
+              "min": 2628,
+              "max": 2638
+            },
+            "payments_held": {
+              "mean": 2563.7,
+              "sd": 8.3,
+              "min": 2545,
+              "max": 2578
+            }
+          },
+          "0.9": {
+            "payments_after_warning": {
+              "mean": 2645.4,
+              "sd": 2.7,
+              "min": 2639,
+              "max": 2650
+            },
+            "payments_held": {
+              "mean": 2581.2,
+              "sd": 7.9,
+              "min": 2563,
+              "max": 2592
+            }
+          }
+        },
+        "0.9": {
+          "0.1": {
+            "payments_after_warning": {
+              "mean": 2182.9,
+              "sd": 30.4,
+              "min": 2130,
+              "max": 2251
+            },
+            "payments_held": {
+              "mean": 2066.8,
+              "sd": 44.8,
+              "min": 1957,
+              "max": 2180
+            }
+          },
+          "0.2": {
+            "payments_after_warning": {
+              "mean": 2382.5,
+              "sd": 20.2,
+              "min": 2349,
+              "max": 2415
+            },
+            "payments_held": {
+              "mean": 2272,
+              "sd": 38.6,
+              "min": 2198,
+              "max": 2341
+            }
+          },
+          "0.3": {
+            "payments_after_warning": {
+              "mean": 2477.9,
+              "sd": 23.8,
+              "min": 2440,
+              "max": 2528
+            },
+            "payments_held": {
+              "mean": 2384.3,
+              "sd": 37.4,
+              "min": 2291,
+              "max": 2444
+            }
+          },
+          "0.4": {
+            "payments_after_warning": {
+              "mean": 2534.7,
+              "sd": 15.4,
+              "min": 2502,
+              "max": 2559
+            },
+            "payments_held": {
+              "mean": 2457.8,
+              "sd": 14.0,
+              "min": 2427,
+              "max": 2482
+            }
+          },
+          "0.5": {
+            "payments_after_warning": {
+              "mean": 2565.2,
+              "sd": 9.6,
+              "min": 2551,
+              "max": 2591
+            },
+            "payments_held": {
+              "mean": 2493.4,
+              "sd": 19.3,
+              "min": 2444,
+              "max": 2524
+            }
+          },
+          "0.6": {
+            "payments_after_warning": {
+              "mean": 2596.3,
+              "sd": 12.3,
+              "min": 2576,
+              "max": 2616
+            },
+            "payments_held": {
+              "mean": 2536,
+              "sd": 13.0,
+              "min": 2508,
+              "max": 2558
+            }
+          },
+          "0.7": {
+            "payments_after_warning": {
+              "mean": 2616.4,
+              "sd": 5.6,
+              "min": 2604,
+              "max": 2626
+            },
+            "payments_held": {
+              "mean": 2559.1,
+              "sd": 9.3,
+              "min": 2543,
+              "max": 2581
+            }
+          },
+          "0.8": {
+            "payments_after_warning": {
+              "mean": 2633.6,
+              "sd": 2.7,
+              "min": 2628,
+              "max": 2638
+            },
+            "payments_held": {
+              "mean": 2579.8,
+              "sd": 7.1,
+              "min": 2562,
+              "max": 2589
+            }
+          },
+          "0.9": {
+            "payments_after_warning": {
+              "mean": 2645.4,
+              "sd": 2.7,
+              "min": 2639,
+              "max": 2650
+            },
+            "payments_held": {
+              "mean": 2595.8,
+              "sd": 6.2,
+              "min": 2582,
+              "max": 2607
+            }
+          }
+        },
+        "1.0": {
+          "0.1": {
+            "payments_after_warning": {
+              "mean": 2182.9,
+              "sd": 30.4,
+              "min": 2130,
+              "max": 2251
+            },
+            "payments_held": {
+              "mean": 2089.1,
+              "sd": 37.1,
+              "min": 2033,
+              "max": 2186
+            }
+          },
+          "0.2": {
+            "payments_after_warning": {
+              "mean": 2382.5,
+              "sd": 20.2,
+              "min": 2349,
+              "max": 2415
+            },
+            "payments_held": {
+              "mean": 2293.2,
+              "sd": 34.6,
+              "min": 2222,
+              "max": 2351
+            }
+          },
+          "0.3": {
+            "payments_after_warning": {
+              "mean": 2477.9,
+              "sd": 23.8,
+              "min": 2440,
+              "max": 2528
+            },
+            "payments_held": {
+              "mean": 2401.3,
+              "sd": 34.0,
+              "min": 2324,
+              "max": 2463
+            }
+          },
+          "0.4": {
+            "payments_after_warning": {
+              "mean": 2534.7,
+              "sd": 15.4,
+              "min": 2502,
+              "max": 2559
+            },
+            "payments_held": {
+              "mean": 2473.9,
+              "sd": 13.4,
+              "min": 2446,
+              "max": 2505
+            }
+          },
+          "0.5": {
+            "payments_after_warning": {
+              "mean": 2565.2,
+              "sd": 9.6,
+              "min": 2551,
+              "max": 2591
+            },
+            "payments_held": {
+              "mean": 2508.6,
+              "sd": 19.0,
+              "min": 2467,
+              "max": 2536
+            }
+          },
+          "0.6": {
+            "payments_after_warning": {
+              "mean": 2596.3,
+              "sd": 12.3,
+              "min": 2576,
+              "max": 2616
+            },
+            "payments_held": {
+              "mean": 2549.4,
+              "sd": 9.9,
+              "min": 2534,
+              "max": 2566
+            }
+          },
+          "0.7": {
+            "payments_after_warning": {
+              "mean": 2616.4,
+              "sd": 5.6,
+              "min": 2604,
+              "max": 2626
+            },
+            "payments_held": {
+              "mean": 2571.2,
+              "sd": 7.3,
+              "min": 2554,
+              "max": 2584
+            }
+          },
+          "0.8": {
+            "payments_after_warning": {
+              "mean": 2633.6,
+              "sd": 2.7,
+              "min": 2628,
+              "max": 2638
+            },
+            "payments_held": {
+              "mean": 2590.2,
+              "sd": 4.8,
+              "min": 2581,
+              "max": 2598
+            }
+          },
+          "0.9": {
+            "payments_after_warning": {
+              "mean": 2645.4,
+              "sd": 2.7,
+              "min": 2639,
+              "max": 2650
+            },
+            "payments_held": {
+              "mean": 2605.7,
+              "sd": 2.5,
+              "min": 2601,
+              "max": 2611
+            }
+          }
+        }
+      },
+      "2plus": {
+        "0.8": {
+          "0.1": {
+            "payments_after_warning": {
+              "mean": 2182.9,
+              "sd": 30.4,
+              "min": 2130,
+              "max": 2251
+            },
+            "payments_held": {
+              "mean": 2019,
+              "sd": 50.5,
+              "min": 1935,
+              "max": 2156
+            }
+          },
+          "0.2": {
+            "payments_after_warning": {
+              "mean": 2382.5,
+              "sd": 20.2,
+              "min": 2349,
+              "max": 2415
+            },
+            "payments_held": {
+              "mean": 2239.1,
+              "sd": 45.3,
+              "min": 2173,
+              "max": 2322
+            }
+          },
+          "0.3": {
+            "payments_after_warning": {
+              "mean": 2477.9,
+              "sd": 23.8,
+              "min": 2440,
+              "max": 2528
+            },
+            "payments_held": {
+              "mean": 2353.2,
+              "sd": 35.1,
+              "min": 2287,
+              "max": 2406
+            }
+          },
+          "0.4": {
+            "payments_after_warning": {
+              "mean": 2534.7,
+              "sd": 15.4,
+              "min": 2502,
+              "max": 2559
+            },
+            "payments_held": {
+              "mean": 2428.7,
+              "sd": 20.0,
+              "min": 2393,
+              "max": 2464
+            }
+          },
+          "0.5": {
+            "payments_after_warning": {
+              "mean": 2565.2,
+              "sd": 9.6,
+              "min": 2551,
+              "max": 2591
+            },
+            "payments_held": {
+              "mean": 2472.6,
+              "sd": 20.9,
+              "min": 2436,
+              "max": 2507
+            }
+          },
+          "0.6": {
+            "payments_after_warning": {
+              "mean": 2596.3,
+              "sd": 12.3,
+              "min": 2576,
+              "max": 2616
+            },
+            "payments_held": {
+              "mean": 2514.8,
+              "sd": 16.9,
+              "min": 2476,
+              "max": 2544
+            }
+          },
+          "0.7": {
+            "payments_after_warning": {
+              "mean": 2616.4,
+              "sd": 5.6,
+              "min": 2604,
+              "max": 2626
+            },
+            "payments_held": {
+              "mean": 2540.5,
+              "sd": 12.1,
+              "min": 2520,
+              "max": 2560
+            }
+          },
+          "0.8": {
+            "payments_after_warning": {
+              "mean": 2633.6,
+              "sd": 2.7,
+              "min": 2628,
+              "max": 2638
+            },
+            "payments_held": {
+              "mean": 2563.7,
+              "sd": 8.3,
+              "min": 2545,
+              "max": 2578
+            }
+          },
+          "0.9": {
+            "payments_after_warning": {
+              "mean": 2645.4,
+              "sd": 2.7,
+              "min": 2639,
+              "max": 2650
+            },
+            "payments_held": {
+              "mean": 2581.2,
+              "sd": 7.9,
+              "min": 2563,
+              "max": 2592
+            }
+          }
+        },
+        "0.9": {
+          "0.1": {
+            "payments_after_warning": {
+              "mean": 2182.9,
+              "sd": 30.4,
+              "min": 2130,
+              "max": 2251
+            },
+            "payments_held": {
+              "mean": 2066.8,
+              "sd": 44.8,
+              "min": 1957,
+              "max": 2180
+            }
+          },
+          "0.2": {
+            "payments_after_warning": {
+              "mean": 2382.5,
+              "sd": 20.2,
+              "min": 2349,
+              "max": 2415
+            },
+            "payments_held": {
+              "mean": 2272,
+              "sd": 38.6,
+              "min": 2198,
+              "max": 2341
+            }
+          },
+          "0.3": {
+            "payments_after_warning": {
+              "mean": 2477.9,
+              "sd": 23.8,
+              "min": 2440,
+              "max": 2528
+            },
+            "payments_held": {
+              "mean": 2384.3,
+              "sd": 37.4,
+              "min": 2291,
+              "max": 2444
+            }
+          },
+          "0.4": {
+            "payments_after_warning": {
+              "mean": 2534.7,
+              "sd": 15.4,
+              "min": 2502,
+              "max": 2559
+            },
+            "payments_held": {
+              "mean": 2457.8,
+              "sd": 14.0,
+              "min": 2427,
+              "max": 2482
+            }
+          },
+          "0.5": {
+            "payments_after_warning": {
+              "mean": 2565.2,
+              "sd": 9.6,
+              "min": 2551,
+              "max": 2591
+            },
+            "payments_held": {
+              "mean": 2493.4,
+              "sd": 19.3,
+              "min": 2444,
+              "max": 2524
+            }
+          },
+          "0.6": {
+            "payments_after_warning": {
+              "mean": 2596.3,
+              "sd": 12.3,
+              "min": 2576,
+              "max": 2616
+            },
+            "payments_held": {
+              "mean": 2536,
+              "sd": 13.0,
+              "min": 2508,
+              "max": 2558
+            }
+          },
+          "0.7": {
+            "payments_after_warning": {
+              "mean": 2616.4,
+              "sd": 5.6,
+              "min": 2604,
+              "max": 2626
+            },
+            "payments_held": {
+              "mean": 2559.1,
+              "sd": 9.3,
+              "min": 2543,
+              "max": 2581
+            }
+          },
+          "0.8": {
+            "payments_after_warning": {
+              "mean": 2633.6,
+              "sd": 2.7,
+              "min": 2628,
+              "max": 2638
+            },
+            "payments_held": {
+              "mean": 2579.8,
+              "sd": 7.1,
+              "min": 2562,
+              "max": 2589
+            }
+          },
+          "0.9": {
+            "payments_after_warning": {
+              "mean": 2645.4,
+              "sd": 2.7,
+              "min": 2639,
+              "max": 2650
+            },
+            "payments_held": {
+              "mean": 2595.8,
+              "sd": 6.2,
+              "min": 2582,
+              "max": 2607
+            }
+          }
+        },
+        "1.0": {
+          "0.1": {
+            "payments_after_warning": {
+              "mean": 2182.9,
+              "sd": 30.4,
+              "min": 2130,
+              "max": 2251
+            },
+            "payments_held": {
+              "mean": 2089.1,
+              "sd": 37.1,
+              "min": 2033,
+              "max": 2186
+            }
+          },
+          "0.2": {
+            "payments_after_warning": {
+              "mean": 2382.5,
+              "sd": 20.2,
+              "min": 2349,
+              "max": 2415
+            },
+            "payments_held": {
+              "mean": 2293.2,
+              "sd": 34.6,
+              "min": 2222,
+              "max": 2351
+            }
+          },
+          "0.3": {
+            "payments_after_warning": {
+              "mean": 2477.9,
+              "sd": 23.8,
+              "min": 2440,
+              "max": 2528
+            },
+            "payments_held": {
+              "mean": 2401.3,
+              "sd": 34.0,
+              "min": 2324,
+              "max": 2463
+            }
+          },
+          "0.4": {
+            "payments_after_warning": {
+              "mean": 2534.7,
+              "sd": 15.4,
+              "min": 2502,
+              "max": 2559
+            },
+            "payments_held": {
+              "mean": 2473.9,
+              "sd": 13.4,
+              "min": 2446,
+              "max": 2505
+            }
+          },
+          "0.5": {
+            "payments_after_warning": {
+              "mean": 2565.2,
+              "sd": 9.6,
+              "min": 2551,
+              "max": 2591
+            },
+            "payments_held": {
+              "mean": 2508.6,
+              "sd": 19.0,
+              "min": 2467,
+              "max": 2536
+            }
+          },
+          "0.6": {
+            "payments_after_warning": {
+              "mean": 2596.3,
+              "sd": 12.3,
+              "min": 2576,
+              "max": 2616
+            },
+            "payments_held": {
+              "mean": 2549.4,
+              "sd": 9.9,
+              "min": 2534,
+              "max": 2566
+            }
+          },
+          "0.7": {
+            "payments_after_warning": {
+              "mean": 2616.4,
+              "sd": 5.6,
+              "min": 2604,
+              "max": 2626
+            },
+            "payments_held": {
+              "mean": 2571.2,
+              "sd": 7.3,
+              "min": 2554,
+              "max": 2584
+            }
+          },
+          "0.8": {
+            "payments_after_warning": {
+              "mean": 2633.6,
+              "sd": 2.7,
+              "min": 2628,
+              "max": 2638
+            },
+            "payments_held": {
+              "mean": 2590.2,
+              "sd": 4.8,
+              "min": 2581,
+              "max": 2598
+            }
+          },
+          "0.9": {
+            "payments_after_warning": {
+              "mean": 2645.4,
+              "sd": 2.7,
+              "min": 2639,
+              "max": 2650
+            },
+            "payments_held": {
+              "mean": 2605.7,
+              "sd": 2.5,
+              "min": 2601,
+              "max": 2611
+            }
+          }
+        }
+      }
+    },
+    "positives_real": {
+      "0.8": {
+        "mean": 3,
+        "sd": 0.0,
+        "min": 3,
+        "max": 3
+      },
+      "0.9": {
+        "mean": 3,
+        "sd": 0.0,
+        "min": 3,
+        "max": 3
+      },
+      "1.0": {
+        "mean": 3,
+        "sd": 0.0,
+        "min": 3,
+        "max": 3
+      }
+    },
+    "legitimate_holds": {
+      "test_neg": {
+        "payments": 10705,
+        "wallets_replayed": 2,
+        "0.8": {
+          "payments_held": {
+            "mean": 11.4,
+            "sd": 18.8,
+            "min": 2,
+            "max": 49
+          },
+          "payment_hold_rate_mean": 0.001065
+        },
+        "0.9": {
+          "payments_held": {
+            "mean": 11.4,
+            "sd": 18.8,
+            "min": 2,
+            "max": 49
+          },
+          "payment_hold_rate_mean": 0.001065
+        },
+        "1.0": {
+          "payments_held": {
+            "mean": 2,
+            "sd": 0.0,
+            "min": 2,
+            "max": 2
+          },
+          "payment_hold_rate_mean": 0.000187
+        }
+      },
+      "test_negv": {
+        "payments": 141148,
+        "wallets_replayed": 1,
+        "0.8": {
+          "payments_held": {
+            "mean": 60.4,
+            "sd": 70.8,
+            "min": 25,
+            "max": 202
+          },
+          "payment_hold_rate_mean": 0.000428
+        },
+        "0.9": {
+          "payments_held": {
+            "mean": 33.9,
+            "sd": 38.6,
+            "min": 25,
+            "max": 202
+          },
+          "payment_hold_rate_mean": 0.00024
+        },
+        "1.0": {
+          "payments_held": {
+            "mean": 25,
+            "sd": 0.0,
+            "min": 25,
+            "max": 25
+          },
+          "payment_hold_rate_mean": 0.000177
+        }
+      }
     }
   }
 }
