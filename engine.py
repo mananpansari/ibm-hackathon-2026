@@ -51,7 +51,8 @@ class Reason:
     signal: str  # e.g. "first_time_payee", "memory_hit", "counterparty_freeze"
     source: str  # where the evidence came from
     kind: str  # "real" or "modelled"
-    detail: str  # plain English, safe to show the customer or officer
+    detail: str  # plain English
+    audience: str = "customer"  # "customer": fine to show the customer; "officer": why-card only
 
 
 @dataclass(frozen=True)
@@ -74,21 +75,26 @@ class Config:
     known_payee_mult: float = 0.1  # repeat payees much less so
     # P(scam) once a signal has fired; the strongest signal wins.
     p_signal: dict = None
-    model_flag: float = 0.9  # B's model.score() at or above this escalates; set from the 1% false-alarm cut
+    # B's model.score() at or above this asks a question. 0.78 flags 1% of payments to comparison wallets
+    # and 16.8% of payments to frozen ones (24,522 test payments, scored in the LinuxONE lab container).
+    model_flag: float = 0.78
     large_usdt: float = 1000  # a first-time payee at or above this gets a question, not a warning
 
     def __post_init__(self):
-        self.p_signal = self.p_signal or {
-            # hold signals
-            "officer_confirmed": 0.95,
-            "destination_freeze": 0.6,
-            "answer_confirms_script": 0.5,
-            "memory_hit": 0.3,
-            # question signals: ask, never hold on their own
-            "counterparty_freeze": 0.02,
-            "model_flag": 0.02,
-            "large_new_payee": 0.02,
-        }
+        self.p_signal = {**DEFAULT_P_SIGNAL, **(self.p_signal or {})}  # override some, keep the rest
+
+
+DEFAULT_P_SIGNAL = {
+    # hold signals
+    "officer_confirmed": 0.95,
+    "destination_freeze": 0.6,
+    "answer_confirms_script": 0.5,
+    "memory_hit": 0.3,
+    # question signals: ask, never hold on their own
+    "counterparty_freeze": 0.02,
+    "model_flag": 0.02,
+    "large_new_payee": 0.02,
+}
 
 
 class RecordedHistories:
@@ -166,11 +172,11 @@ class Engine:
             tier, top = ("release" if known else "warning"), None
         if top is not None:
             p = c.p_signal[top.signal]
-            prior = Reason("p_signal", "config", "modelled", f"Assumed scam probability {p:.0%} once '{top.signal}' fires.")
+            prior = Reason("p_signal", "config", "modelled", f"Assumed scam probability {p:.0%} once '{top.signal}' fires.", "officer")
         else:
             mult = c.known_payee_mult if known else c.first_time_mult
             p = min(1.0, c.base_rate * mult)
-            prior = Reason("base_rate", "config", "modelled", f"Assumed scam rate {c.base_rate:.1%} x {mult:g} for this payee type.")
+            prior = Reason("base_rate", "config", "modelled", f"Assumed scam rate {c.base_rate:.1%} x {mult:g} for this payee type.", "officer")
         reasons = holds + weak + [payee] + info + [prior]
         if tier == "question":
             question = self._ask(w, reasons)
@@ -198,7 +204,7 @@ class Engine:
             try:
                 q = self.classifier.ask({"customer": w.customer_id, "wallet": w.wallet, "amount": w.amount_usdt, "time": w.ts},
                                         [{"signal": r.signal, "text": r.detail, "source": r.source, "kind": r.kind}
-                                         for r in reasons if r.signal not in ("p_signal", "base_rate")])
+                                         for r in reasons if r.audience == "customer"])
                 if q:
                     return q
             except Exception:  # Granite trouble must never break a decision
@@ -239,13 +245,15 @@ class Engine:
         flag = s >= self.config.model_flag
         return [Reason("model_flag" if flag else "model_score", "model", "real",
                        f"Weak model signal: score {s:.2f}{' (flagged)' if flag else ''}; "
-                       "AUC 0.57 against similar wallets, so it never holds on its own.")]
+                       "AUC 0.57 against similar wallets, so it never holds on its own.", "officer")]
 
 
 def to_dict(d):
-    """JSON-able decision, for the log and the API."""
+    """JSON-able decision, for the log and the API. customer_reasons is what the customer page may show;
+    reasons (with audience and real/modelled tags) is for the officer's why-card."""
     out = asdict(d)
     out["reasons"] = [asdict(r) for r in d.reasons]
+    out["customer_reasons"] = [r.detail for r in d.reasons if r.audience == "customer"]
     return out
 
 
@@ -388,6 +396,14 @@ def _self_check():
         eng = Engine(history, PayeeMemory(), FixedClock(10 * H), DecisionLog(d / "m_hold.jsonl"), model=lambda f: 0.99)
         eng.record(Report("0xscam", 1))
         assert eng.decide(Withdrawal("carol", "0xscam", 100, 10 * H)).tier == "hold", "a hold still beats a model flag"
+
+        # Review fixes: customer-safe text, partial p_signal overrides.
+        dec = held  # hold from memory, with modelled priors attached
+        shown = to_dict(dec)["customer_reasons"]
+        assert shown and not any("Assumed" in t or "model" in t.lower() for t in shown), shown
+        assert any(r["audience"] == "officer" for r in to_dict(dec)["reasons"]), "officer still sees the priors"
+        assert Config(p_signal={"memory_hit": 0.4}).p_signal["officer_confirmed"] == 0.95, "partial override keeps defaults"
+        assert Config(p_signal={"memory_hit": 0.4}).p_signal["memory_hit"] == 0.4
 
         # ---- #7: question tier ----
         class StubClassifier:  # stands in for D's granite module
