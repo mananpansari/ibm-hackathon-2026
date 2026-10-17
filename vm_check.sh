@@ -16,8 +16,9 @@ if [ -n "$img" ]; then
   ok "lab image" "$(docker image inspect "$img" >/dev/null 2>&1 && echo present || echo "missing: $img")"
   run() { docker run --rm "$img" python3 -c "$1" 2>/dev/null || echo missing; }
   ok "tensorflow" "$(run 'import tensorflow as t; print(t.__version__)')"
-  ok "zDNN plugin" "$(run 'import tensorflow as t; print([d.device_type for d in t.config.list_physical_devices()])')"
+  ok "zDNN plugin (pip)" "$(docker run --rm "$img" sh -c 'pip show ibm-zdnn-plugin 2>/dev/null | grep ^Version' || echo missing)"
+  ok "TF devices" "$(run 'import tensorflow as t; print([d.device_type for d in t.config.list_physical_devices()])')"
   ok "xgboost" "$(run 'import xgboost as x; print(x.__version__)')"
   ok "scikit-learn" "$(run 'import sklearn as s; print(s.__version__)')"
-  ok "llama.cpp" "$(docker run --rm "$img" sh -c 'command -v llama-cli || command -v llama-server' 2>/dev/null || echo missing)"
+  ok "llama.cpp (python)" "$(run 'import llama_cpp as l; print(l.__version__)')"
 fi
