@@ -20,6 +20,17 @@ python feasibility_extra.py volume-matched
 python feasibility_young.py
 ```
 
+## App (D)
+
+```bash
+pip install fastapi uvicorn
+uvicorn app:app --reload        # customer page http://127.0.0.1:8000, officer console /officer
+python engine.py                # C's engine scenario check
+python granite.py eval          # answer classifier accuracy (BothBosu + data/sg_answers.csv)
+```
+
+Runs on the recorded histories in `data/`, so no key is needed (the live box falls back to the snapshot without one). `app.py` wraps C's engine (`engine.py`). Until #7 adds the question tier, a confirming answer is recorded as a payee-memory report by a small bridge in `app.py` (`answered()`). Granite: run `llama-server -m granite-4.2-3b-Q4_K_M.gguf --port 8080` on the same machine; without it, template questions and a keyword classifier are used. Demo wallet: `DEMO_WALLET=0x...` (otherwise a fixed test-set wallet).
+
 ## Re-running the snapshot (costs Blockscout credits)
 
 Put `BLOCKSCOUT_API_KEY=...` in `.env` (it's git-ignored), then run `python fetch.py` (one test call), followed by `python snapshot.py`.
