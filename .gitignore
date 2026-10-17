@@ -1,0 +1,6 @@
+.env
+__pycache__/
+data/blockscout_cache.sqlite*
+data/*.zst
+snapshot.log
+snapshot.err
