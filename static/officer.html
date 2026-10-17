@@ -120,6 +120,11 @@
   .changes p { margin: 4px 0; }
   .err { color: var(--hold); font-weight: 700; }
   [hidden] { display: none !important; }
+  .newhold { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; padding: 10px 14px; border: 2px solid var(--hold); background: #fdeeee; font-weight: 700; }
+  .newhold button { padding: 6px 12px; }
+  .pill { font: 700 11px var(--mono); text-transform: uppercase; padding: 1px 6px; border: 1.5px solid currentColor; border-radius: 3px; white-space: nowrap; }
+  .pill.hold { color: var(--hold); } .pill.question { color: var(--q); } .pill.warning { color: var(--warn); } .pill.release { color: var(--ok); }
+  #feed-wrap { margin-top: 28px; }
 </style>
 </head>
 <body>
@@ -132,7 +137,7 @@ FORM: Chain Ledger, seed 5feb93dd, on the UI v2 officer wireframe.
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 -->
 <header>
-  <div class="bar"><span class="brand">Score<i>/</i>Before You Sign</span><h1>Fraud operations console</h1><span class="me">Signed in as FO-20417 · Officer<span class="tag sample">demo login</span></span></div>
+  <div class="bar"><span class="brand">Starlock</span><h1>Fraud operations console</h1><span class="me">Signed in as FO-20417 · Officer<span class="tag sample">demo login</span></span></div>
   <div class="tools">
     <span class="h">Demo mode</span>
     <button id="reset">Reset</button>
@@ -149,6 +154,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 </header>
 
 <main>
+  <div class="newhold" id="newhold" role="status" hidden><span id="newhold-t"></span><button class="pri" id="newhold-go">Back to queue</button></div>
   <div id="v-queue">
     <div class="summary" id="summary"></div>
     <div class="tabs" role="tablist">
@@ -162,6 +168,10 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         <tbody id="queue"></tbody>
       </table>
     </div>
+    <section id="feed-wrap">
+      <h2>Every check, live <span class="muted">all tiers, newest first; only holds wait for a call-back</span></h2>
+      <div class="scroll"><table><thead><tr><th>TIME</th><th>REFERENCE</th><th>CUSTOMER</th><th>WALLET</th><th class="num">AMOUNT</th><th>TIER</th><th>STATUS</th></tr></thead><tbody id="feed"></tbody></table></div>
+    </section>
     <p class="foot">Sorted by expected loss, not by P(scam). A claimed case is locked to one officer. Amber: waiting 10 minutes or more. Red: past the 15-minute target <span class="tag sample">sample target</span>.</p>
   </div>
   <div id="v-case" hidden></div>
@@ -179,7 +189,7 @@ const MOCK = (() => {
   const t = now(), p = (name, masked, acct, phone) => ({ name, name_masked: masked, account_ending: acct, phone_masked: phone, language: "English", sample: true });
   const tan = p("TAN SIEW LIAN", "TA* SI** LI**", "4821", "+65 **** 5678");
   const W = "0x44ea04886b5b67f0f861a37254e43beee2f3b050";
-  const row = (id, persona, wallet, amount, p_scam, top, waiting) => ({ id, ref: "SBYS-" + String(id).padStart(4, "0"), customer: "c" + id, wallet, amount, time: t - waiting,
+  const row = (id, persona, wallet, amount, p_scam, top, waiting) => ({ id, ref: "SL-" + String(id).padStart(4, "0"), customer: "c" + id, wallet, amount, time: t - waiting,
     expected_loss: amount * p_scam, p_scam, persona, top_reason: top, status: "open", claimed_by: null, waiting_s: waiting });
   const rows = [
     row(412, tan, W, 12000, 0.5, { signal: "answer_confirms_script", detail: "Your answer matches a known scam pattern (government impersonation).", kind: "real" }, 660),
@@ -258,13 +268,14 @@ const el = (tag, text, cls) => { const e = document.createElement(tag); if (text
 const date = (ts) => new Date(ts * 1000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
 const short = (a) => a.slice(0, 8) + "…" + a.slice(-6);
 const usdt = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 0 }) + " USDT";
+const sentAs = (r) => (r.asset && r.asset !== "USDT" && r.qty ? `sent as ${r.qty.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${r.asset}` : null);
 const mins = (s) => (s < 60 ? "<1 min" : Math.floor(s / 60) + " min");
 const ago = (ts) => { const d = now() - ts; return d < 3600 ? mins(d) + " ago" : d < 86400 ? Math.round(d / 3600) + " h ago" : Math.round(d / 86400) + " days ago"; };
 const tag = (kind) => el("span", kind, "tag " + kind);
 const TIER_COLOR = { hold: "#d7261e", question: "#2c3fd6", warning: "#a35f00", release: "#1f7a4d" };
 let tab = "open", openCase = null, cy = null, playing = null, seen = null, QUESTIONS = null, REASONS = null;
 
-function view(name) { for (const v of ["queue", "case", "outcome"]) $("v-" + v).hidden = v !== name; window.scrollTo(0, 0); }
+function view(name) { for (const v of ["queue", "case", "outcome"]) $("v-" + v).hidden = v !== name; if (name === "queue") $("newhold").hidden = true; window.scrollTo(0, 0); }
 
 // ---- queue
 function cell(main, sub, cls) { const td = el("td", main, cls); if (sub) td.append(el("span", sub, "sub")); return td; }
@@ -278,6 +289,8 @@ async function refresh() {
     box("Closed today", String(s.closed_today), "cancelled or released"),
     box("Officers on shift", "4", "1 free · 2 on a call · 1 break", true),
     box("Calls per hour (team)", "9 of 12", "capacity", true));
+  noteNewHolds(q.rows);
+  feed().catch(() => {});
   const rows = q.rows.filter((r) => tab === "open" ? r.status === "open" : tab === "mine" ? r.status === "claimed" && r.claimed_by === ME : r.status === "closed" || r.status === "cancelled");
   if (seen == null) seen = new Set(q.rows.map((r) => r.id));
   const tb = $("queue");
@@ -296,10 +309,38 @@ async function refresh() {
     else { const b = el("button", r.status === "claimed" && r.claimed_by !== ME ? "Claimed by " + r.claimed_by : "Open"); b.disabled = r.status === "claimed" && r.claimed_by !== ME; b.onclick = () => showCase(r.id); act.append(b); }
     tr.append(el("td", String(i + 1), "num"), el("td", r.ref || "#" + r.id, "mono"),
               cell(r.persona?.name_masked || r.customer, r.persona ? "Acct ending " + r.persona.account_ending : null),
-              el("td", short(r.wallet), "mono"), cell(usdt(r.amount), null, "num"), cell(usdt(r.expected_loss), null, "num"), p, why, wait, act);
+              el("td", short(r.wallet), "mono"), cell(usdt(r.amount), sentAs(r), "num"), cell(usdt(r.expected_loss), null, "num"), p, why, wait, act);
     tb.append(tr);
   });
 }
+// Every check (all tiers), so a new customer-page entry shows up here even when it isn't a hold.
+async function feed() {
+  if (MOCK_MODE) return;
+  const rows = await api("/activity?limit=25"), tb = $("feed");
+  tb.replaceChildren();
+  if (!rows.length) { const tr = el("tr"), td = el("td", "No checks yet. Use the customer page or the demo controls.", "muted"); td.colSpan = 7; tr.append(td); tb.append(tr); return; }
+  for (const r of rows) {
+    const tr = el("tr"), tier = el("td");
+    tier.append(el("span", r.tier, "pill " + r.tier));
+    tr.append(el("td", new Date(r.at * 1000).toTimeString().slice(0, 8), "mono"), el("td", r.ref, "mono"),
+              el("td", r.persona?.name_masked || r.customer), el("td", short(r.wallet), "mono"), cell(usdt(r.amount), sentAs(r), "num"), tier,
+              el("td", r.answered ? r.status + " · answered" : r.status, "muted"));
+    tb.append(tr);
+  }
+}
+// A banner for holds that arrive while the officer is in a case, so nothing waits unseen.
+let known = null;
+function noteNewHolds(rows) {
+  const open = rows.filter((r) => r.status === "open");
+  if (known == null) { known = new Set(open.map((r) => r.id)); return; }
+  const fresh = open.filter((r) => !known.has(r.id));
+  for (const r of open) known.add(r.id);
+  if (fresh.length && $("v-queue").hidden) {
+    $("newhold-t").textContent = `New hold: ${fresh.map((r) => `${r.ref} · ${r.persona?.name_masked || r.customer} · ${usdt(r.amount)}`).join("; ")}`;
+    $("newhold").hidden = false;
+  }
+}
+$("newhold-go").onclick = () => { $("newhold").hidden = true; view("queue"); refresh(); };
 for (const b of document.querySelectorAll("[data-tab]")) b.onclick = () => {
   tab = b.dataset.tab;
   for (const x of document.querySelectorAll("[data-tab]")) x.setAttribute("aria-selected", String(x === b));
@@ -327,7 +368,7 @@ async function showCase(id) {
   if (mine) head.append(el("span", "Claimed by you · lock held", "lock"));
 
   const addr = el("span", w.wallet, "addr");
-  const pay = block("Payment on hold", dl([["Amount", usdt(w.amount)], ["To wallet", addr], ["Network", "Ethereum · USDT"], ["Held at", date(w.time)], ["Tier", d.tier]]));
+  const pay = block("Payment on hold", dl([["Amount", sentAs(w) ? `${usdt(w.amount)} (${sentAs(w)})` : usdt(w.amount)], ["To wallet", addr], ["Network", "Ethereum · USDT"], ["Held at", date(w.time)], ["Tier", d.tier]]));
   const cust = block("Customer", dl([
     ["Name", mine ? [p.name || w.customer, el("span", " shown because you claimed this case · logged", "muted")] : (p.name_masked || w.customer)],
     ["Account", "Ending " + (p.account_ending || "–")], ["Phone on file", p.phone_masked || "–"], ["Language", p.language || "English"]]));
@@ -476,7 +517,7 @@ async function step() {
   await refresh();
 }
 function stop() { clearInterval(playing); playing = null; $("play").textContent = "Play"; }
-$("reset").onclick = async () => { stop(); const r = await realApi("/demo/reset", {}); seen = null; $("demo-status").textContent = `Demo wallet ${short(r.wallet)} reset.`; view("queue"); refresh(); };
+$("reset").onclick = async () => { stop(); const r = await realApi("/demo/reset", {}); seen = null; known = null; $("newhold").hidden = true; $("demo-status").textContent = `Demo wallet ${short(r.wallet)} reset.`; view("queue"); refresh(); };
 $("next").onclick = step;
 $("play").onclick = () => { if (playing) return stop(); $("play").textContent = "Pause"; playing = setInterval(step, 1500); step(); };
 $("live").addEventListener("submit", async (e) => {
@@ -490,7 +531,12 @@ $("live").addEventListener("submit", async (e) => {
 });
 
 refresh().catch(() => {});
-setInterval(() => { if (!playing && !$("v-queue").hidden) refresh().catch(() => {}); }, 3000);
+// Every 3 s: the queue view redraws; in a case or the outcome form only the new-hold banner updates.
+setInterval(() => {
+  if (playing) return;
+  if (!$("v-queue").hidden) refresh().catch(() => {});
+  else api("/queue").then((q) => noteNewHolds(q.rows)).catch(() => {});
+}, 3000);
 </script>
 </body>
 </html>

@@ -97,7 +97,9 @@ app = FastAPI(title="Score Before You Sign")
 class WithdrawalIn(BaseModel):
     customer: str = Field(min_length=1, max_length=64)
     wallet: str = Field(pattern=WALLET)
-    amount: float = Field(gt=0, le=1e9)
+    amount: float = Field(gt=0, le=1e9)  # in USDT: the engine scores every payment in USDT
+    asset: Literal["USDT", "ETH"] = "USDT"  # what the customer sends; display only (an ETH amount arrives as its USDT value)
+    qty: Optional[float] = Field(default=None, gt=0, le=1e9)  # the amount in `asset`, for display
 
 
 class Answer(BaseModel):
@@ -142,7 +144,7 @@ def decide(w, answer=None, answer_kind=None):
     d = to_dict(engine.decide(Withdrawal(w["customer"], w["wallet"], w["amount"], w["time"]), answer, answer_kind))
     d["decide_ms"] = round((time.perf_counter() - t0) * 1000, 2)
     d["id"] = next(ids)
-    d.update(ref=f"SBYS-{d['id']:04d}", host=HOST, model_on=model_score is not None, persona=persona(w["customer"]))
+    d.update(ref=f"SL-{d['id']:04d}", host=HOST, model_on=model_score is not None, persona=persona(w["customer"]))
     cases[d["id"]] = {"decision": d, "withdrawal": w, "answer": answer, "status": "open", "held_at": int(time.time()),
                       "claimed_by": None, "events": [{"ts": int(time.time()), "what": f"Decided: {d['tier']}", "who": "engine"}]}
     return d
@@ -156,6 +158,18 @@ def answered(w, answer, kind=None):
 @app.post("/score")
 async def score(w: WithdrawalIn):
     return decide({**w.model_dump(), "wallet": w.wallet.lower(), "time": int(time.time())})
+
+
+@app.get("/activity")
+async def activity(limit: int = 50):
+    """Every check, newest first, for the officer console's live feed (not just holds)."""
+    rows = []
+    for id, c in sorted(cases.items(), reverse=True)[:max(1, min(limit, 200))]:
+        d, w = c["decision"], c["withdrawal"]
+        rows.append({"id": id, "ref": d["ref"], "tier": d["tier"], "status": c["status"], "at": c["held_at"],
+                     "customer": w["customer"], "persona": d["persona"], "wallet": w["wallet"], "amount": w["amount"],
+                     "asset": w.get("asset", "USDT"), "qty": w.get("qty"), "answered": c["answer"] is not None})
+    return rows
 
 
 @app.get("/questions")
@@ -196,6 +210,18 @@ async def cancel(c: CaseId):
     case_["status"] = "cancelled"  # this payment only: payee memory is unchanged
     event(case_, "Cancelled by the customer", "customer")
     return {"id": c.id, "status": "cancelled"}
+
+
+@app.post("/sent")
+async def sent(c: CaseId):  # the customer pressed Send after go-ahead or a warning (simulated: no signing here)
+    if c.id not in cases:
+        raise HTTPException(404, "unknown withdrawal")
+    case_ = cases[c.id]
+    if case_["decision"]["tier"] not in ("release", "warning"):
+        raise HTTPException(409, "only a released or warned payment can be sent")
+    case_["status"] = "sent"
+    event(case_, "Sent by the customer", "customer")
+    return {"id": c.id, "status": "sent"}
 
 
 @app.post("/claim")
