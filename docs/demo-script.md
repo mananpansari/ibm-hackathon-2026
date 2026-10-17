@@ -1,8 +1,8 @@
-# Demo script (#16, rewritten for UI v2)
+# Demo script (#16, rewritten for UI v2; updated at the code freeze, 18 Oct)
 
 The 3-minute video, shot by shot: what is on screen, the voice-over, and where every number comes from. It follows the UI v2 screens and issue #1's framing: **the first warning is the last payment**.
 
-**Budget:** 180 s at about 150 words a minute is about 450 spoken words. The voice-over below is about 420, so there's room for pauses. Read it once against a timer before recording; if it runs over, cut the lines marked *(cut first)*.
+**Budget:** 180 s at about 150 words a minute is about 450 spoken words. The voice-over below is about 440, so there's a little room for pauses. Read it once against a timer before recording; if it runs over, cut the lines marked *(cut first)*.
 
 **Name:** the product is **Starlock** (renamed from "Score Before You Sign" on 18 Oct); tagline "the first warning is the last payment". The team is Bintang Boys, so the submission title is `[Bintang Boys_IBM Z Datathon 2026 Project]`. Don't use "safe" in product wording: the scam script itself says "safe wallet".
 
@@ -12,11 +12,13 @@ The 3-minute video, shot by shot: what is on screen, the voice-over, and where e
 - Anything scripted or simulated is labelled **modelled** on screen when it appears: Mrs Tan's answers, the officer's confirmation, answer rates and officer accuracy.
 - Say plainly that the product is embedded in an exchange's withdrawal flow and that our customer page is a simulated stand-in.
 - Show LinuxONE live (portal, `docker ps`, the app running on the VM), and be honest about what ran where.
+- **Record on the VM build** (the `starlock` container, opened on your laptop through the SSH tunnel at `http://localhost:8000`). On a Mac the free-text box falls back to the keyword rules, because PyTorch and TensorFlow can't share a process there, so mpnet's result won't appear in the why-card.
 
 **Sources**
 - Demo wallet facts (real): `data/demo/0x74f645934fd288dfcb6359870779f68c2b0c48b8.json` (`python demo_candidates.py --export 3`).
 - Demo engine numbers: `data/demo/narration_numbers.json` → `ui_v2_spine` (`python demo_candidates.py --numbers 0x74f645934fd288dfcb6359870779f68c2b0c48b8`), the app's own engine path (`answers.StructuredClassifier`).
 - Results across all wallets: `docs/results.md`, `data/results/replay_summary.json` (Result 2); `docs/result3.md` (Result 3); `docs/nnpa-benchmark.md` (Result 4); `docs/feasibility.md` (the detector no-go).
+- Answer classifier (mpnet + keyword floor): `docs/answer-classifier.md`.
 
 ---
 
@@ -63,17 +65,18 @@ Source: idea doc "The solution" and "Why IBM Z" (Digital Asset Haven signs insid
 
 ## 3. Customer screens (0:45–1:15)
 
-**Screen:** customer page, signed in as TAN SIEW LIAN (fictional persona, `data/demo/personas.json`). Withdrawal of **78,000 USDT** to `0x74f6…c48b8`. The check runs, then Q1 "Why are you sending this money?" with "An officer… asked me to" picked, Q2 "A phone call", Q3 ticking "Keep this a secret", "Act quickly or today" and "Move savings to a safe wallet". Then the call-back hold screen with its reference and masked phone. The demo strip shows "modelled answer".
+**Screen:** customer page, signed in as TAN SIEW LIAN (fictional persona, `data/demo/personas.json`). Withdrawal of **78,000 USDT** to `0x74f6…c48b8`. The check runs, then Q1 "Why are you sending this money?" with "An officer… asked me to" picked and her words typed in the box below it ("In your own words, why are you sending this money, and did anyone ask you to?"): *The police officer on the phone said my account is linked to a crime and I must move my savings to this safe wallet.* (`data/demo/coached_answer.json`, modelled), then Q2 "A phone call", Q3 ticking "Keep this a secret", "Act quickly or today" and "Move savings to a safe wallet". Then the call-back hold screen with its reference and masked phone. The demo strip shows "modelled answer".
 
 **Recording tip:** fill the form with the demo strip's **"Fill Mrs Tan's real payment (video)"** button, not by typing. It checks the payment as of its real time (12 May 2026, `/customer/demo-payment`). Typed in today, the wallet is held straight away by Tether's August freeze and the questions never appear. Crop the demo strip out of the shot or say it's the demo panel.
 
-> This is a real payment to a real wallet: 78,000 USDT on 12 May 2026. It's large, to a wallet she's never paid, so the engine asks three short questions. Her answers match the script. *[On screen: "answers modelled".]* The payment is held for a call-back, and her money stays put. And the wallet goes into a memory every customer is checked against.
+> This is a real payment to a real wallet: 78,000 USDT on 12 May 2026. It's large, to a wallet she's never paid, so the engine asks three short questions and reads what she types. Her answers match the script. *[On screen: "answers modelled".]* The payment is held for a call-back, and her money stays put. And the wallet goes into a memory every customer is checked against.
 
 | Fact | Source |
 |---|---|
 | Payment 2 = 78,000 USDT, 2026-05-12 13:46 UTC, a real payment to the demo wallet | `ui_v2_spine.tan_usdt`, `tan_time` |
 | The engine itself gives `question` before any answer (a first-time payee at 1,000 USDT or more) | `ui_v2_spine.tan_tier_before_answer` = `question`; `engine.Config.large_usdt` |
 | Her answer → hold | `ui_v2_spine.officer_confirms.tiers[1]` = `hold` (answer scripted: `data/demo/coached_answer.json`, modelled) |
+| Her typed words are read by mpnet and the keyword rules; both flag the script | `answer_nlp.classify`; the why-card shows the source "structured+mpnet answer classifier + keyword rules" |
 
 **Why payment 2 and not payment 1:** payment 1 is a 150 USDT test sent ten minutes earlier from the same exchange. The engine gives it a generic warning (under 1,000 USDT) and it goes through. That's real engine behaviour, and also the scammer's usual first step. *(cut first)* "Ten minutes earlier, a 150 USDT test payment went through with a warning." Exchange hot wallets carry many customers' withdrawals, so the spine treats each payment as its own customer.
 
@@ -81,7 +84,7 @@ Source: idea doc "The solution" and "Why IBM Z" (Digital Asset Haven signs insid
 
 **Screen:** officer console queue. Mrs Tan's case is ranked first by expected loss. Claim it, open the case view:
 - her three answers
-- "Why this was held", with each reason tagged real or modelled
+- "Why this was held", with each reason tagged real or modelled and its source (her answer's reason reads "structured+mpnet answer classifier + keyword rules")
 - the wallet record (first seen, payments in, senders)
 
 Then Record outcome: "Cancel the payment", reason "Confirmed scam: police or official impersonation", Submit. The demo strip shows "officer confirmation modelled".
@@ -132,9 +135,11 @@ Keep real and modelled in separate columns. Don't quote a single legitimate-hold
 
 ## 7. LinuxONE (2:25–2:50)
 
-**Screen:** the LinuxONE Community Cloud portal instance page, then a terminal on the VM showing `docker ps` (the app container from the lab image) and the benchmark output. Then back to the customer page's demo strip showing "LinuxONE" and the decision time.
+**Screen:** the LinuxONE Community Cloud portal instance page, then a terminal on the VM showing `docker ps` (the `starlock` app container, built from the lab image) and the benchmark output. Then back to the customer page's demo strip showing "LinuxONE" and the decision time.
 
-> All of this runs on IBM LinuxONE, in a container from the lab image. A decision takes about 1.3 milliseconds: 600 to 750 withdrawals a second on three cores. The wallet model ran on the NNPA accelerator but gave no speed-up, so we don't claim one. Her free-text answer is read by a small language model, mpnet, on the same accelerator: 8 milliseconds an answer, 18 times faster than the CPU. On synthetic test answers it catches 81 percent of scam stories; it hasn't been tested on real customers yet.
+> All of this runs on IBM LinuxONE, in a container from the lab image. A decision takes about 1.3 milliseconds: 600 to 750 withdrawals a second on three cores. Her typed answer is read by mpnet, a small language model, on the NNPA accelerator: 8 milliseconds, 18 times faster than the CPU. On synthetic answers, it catches 81 percent of scam stories.
+
+*(cut first, if time allows)* "The wallet model also ran on NNPA, with no speed-up, so we don't claim one there."
 
 | Claim | Source |
 |---|---|
@@ -156,14 +161,14 @@ Team roles on the card: A (Aanya), data and problem; B (Manan), models and platf
 
 ---
 
-## For D: what the app's demo spine must do
+## Demo spine: what the app does (verified on main, 18 Oct)
 
-What the script needs from the app's demo spine:
+Checked through the API on `main` (`09dd812`) and in the `starlock` container on the VM: payment 1 is a warning, payment 2 (Mrs Tan) is held, and all 11 later payments are held, giving the numbers below.
 
 1. **Mrs Tan is payment 2.** In `/demo/next`, give each payment its own customer, and give payment 2 Mrs Tan's persona (`personas.json` customer-1). Don't map customers by sending wallet: payments 1 and 2 share an exchange hot wallet, and mapping them to the same customer turns payment 2 into a known payee with no questions. These rules must match `demo_candidates.spine_numbers()`, which the numbers above come from.
 2. **Payment 2 shows the real question tier first.** Call `decide(w)` with no answer. It returns `question`, and the customer page shows Q1–Q3. Then call `decide(w, coached_answer, "modelled")`, which returns `hold`. The customer page can drive this step itself, or follow the officer page's demo state; either is fine as long as the tiers come from the engine.
 3. **Officer confirm comes after her hold.** On the record-outcome form, use `OfficerOutcome(kind="modelled", reason="confirmed_impersonation")`, timed a day after her payment as in the spine.
-4. **Checks:** after Next × 13, the officer page shows 12 held (120,228.96 USDT) and 11 after hers (42,228.96 USDT). Payment 1 is a warning.
+4. **Checks:** after Next × 13, the officer page shows 12 held (120,228.96 USDT) and 11 after hers (42,228.96 USDT). Payment 1 is a warning. Verified on 18 Oct: 12 held = 120,228.96 USDT, 11 after hers = 42,228.96 USDT.
 
 ## Backup wallets
 
@@ -176,6 +181,7 @@ If the demo doesn't play well on the top pick, use the next from `python demo_ca
 - "Hours before any blacklist" (the gap is in days).
 - "We detect scam wallets", or any detector headline: it failed (AUC 0.57).
 - "Flagged N days before the freeze" as a detector claim. The 85 days is from Mrs Tan's hold, driven by her (modelled) answer.
-- "NNPA made it faster."
+- "NNPA made the decision faster." It made the **answer classifier** 18× faster; `decide()` itself saw no speed-up.
 - Any answer-classifier accuracy without "on synthetic answers": it has no real-customer test yet.
+- That the answer model reads Chinese, Malay or Tamil: the screens are translated, but free text is classified in English only.
 - "Victims" for payment counts.
