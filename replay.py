@@ -8,16 +8,19 @@ wallet starts with a fresh memory.
 
 Warning sources are replayed separately and never mixed:
 - real: Tether freezes from freezes.csv, loaded into memory only once the clock has passed
-  them. The engine raises a counterparty freeze (or a freeze of the wallet itself).
+  them. The engine raises a counterparty freeze, which warns but never holds (#6), or a freeze
+  of the wallet itself, which holds.
 - modelled: customer answers. After each released or warned payment the customer reports the
-  wallet with probability r (no freezes loaded). r is swept 0.1-0.9 over fixed seeds.
+  wallet with probability r (no freezes loaded). r is swept 0.1-0.9 over fixed seeds. Each held
+  attempt renews the report inside the engine (#6), so a hold lasts while victims keep paying.
+  On comparison wallets the same mechanism runs with a false-report rate f (modelled).
 - model flag: B's weak model signal (#5) is not wired into the engine yet, so it is reported as
   "not available", never estimated.
 
-Each source is also replayed with officers: every hold is a call-back, and a day later the officer
-records "confirmed" (pins the wallet, no decay) or "cleared" (drops the evidence). The officer is
-right with probability q (modelled, swept). An officer only acts on a hold, so the first warning
-still comes from the source alone.
+The modelled source is also replayed with officers: every hold is a call-back, and a day later the
+officer records "confirmed" (pins the wallet) or "cleared" (drops the evidence and ends the
+renewal chain). The officer is right with probability q (modelled, swept). An officer only acts on
+a hold, so the first warning still comes from the source alone.
 
 The positives are payments, not victims: one victim can pay several times and several victims
 can share one exchange address. Quote "up to N victims" at most.
@@ -41,11 +44,15 @@ DATA = Path(__file__).resolve().parent / "data"
 RESULTS = DATA / "results"
 RATES = [round(0.1 * i, 1) for i in range(1, 10)]
 SEEDS = range(20)
+FALSE_REPORT_RATES = (0.001, 0.01)  # legitimate customers who wrongly report a payee: modelled
+NEG_SEEDS = range(5)  # comparison sets are ~150k payments per pass
 OFFICER_Q = (0.8, 0.9, 1.0)  # P(officer gets the call-back right): modelled
 OFFICER_DELAY_S = DAY  # the outcome lands a day after the hold
 REAL_SIGNALS = {"counterparty_freeze", "destination_freeze"}
-CONTEXT = {"first_time_payee", "known_payee", "p_hold", "base_rate"}  # reasons on every decision, not warnings
-MODEL_FLAG = "not available"  # #5 (origin/b/5-weak-model-signal) has model.score() but no engine hook yet
+CONTEXT = {"first_time_payee", "known_payee", "p_signal", "base_rate", "model_score"}  # context, not warnings
+# The engine has the hook (Engine(..., model=model.score)), but model.py and models/ are on
+# origin/b/5-weak-model-signal and need xgboost + Keras/TensorFlow, which this replay doesn't load yet.
+MODEL_FLAG = "not available"
 
 
 class NullLog:
@@ -120,58 +127,47 @@ def replay_wallet(h, freezes=(), reporter=None, report_delay_s=0, officer=None, 
     return out, made
 
 
-def summarise_real(h, decided):
-    """Per-wallet row for the real (Tether freeze) source."""
-    held = [i for i, (_, d) in enumerate(decided) if d.tier == "hold"]
-    for i in held:
-        sigs = {r.signal for r in decided[i][1].reasons} - CONTEXT
-        assert sigs and sigs <= REAL_SIGNALS | {"officer_confirmed"}, f"non-real hold in the real pass: {sigs}"
-        assert all(r.kind == "real" for r in decided[i][1].reasons if r.signal in sigs)
-    row = _base_row(h, decided)
-    if held:
-        first_t, first_d = decided[held[0]]
-        row.update(first_warning_ts=first_t["ts"],
-                   first_warning_source="+".join(sorted({r.signal for r in first_d.reasons} & REAL_SIGNALS)),
-                   payments_after_warning=len(decided) - held[0], held=len(held))
-        row["lead_days"] = _lead(h, first_t["ts"])
-    return row
-
-
-def summarise_modelled(h, decided, report_ts):
-    """Per-wallet row for the modelled (customer answer) source, from one seeded run."""
-    for _, d in decided:
-        if d.tier == "hold":
+def summarise(h, decided, source, report_ts=()):
+    """Per-wallet row for one source: "real" (Tether freezes) or "modelled" (reports)."""
+    if source == "real":
+        cites = [any(r.signal in REAL_SIGNALS for r in d.reasons) for _, d in decided]
+        for _, d in decided:
+            warnings = {r.signal for r in d.reasons} - CONTEXT
+            assert warnings <= REAL_SIGNALS, f"non-real signal in the real pass: {warnings}"
+            assert d.tier != "hold" or "destination_freeze" in warnings, "only the wallet's own freeze holds"
+    else:
+        cites = [any(r.signal in ("memory_hit", "officer_confirmed") for r in d.reasons) for _, d in decided]
+        for _, d in decided:
             warnings = [r for r in d.reasons if r.signal not in CONTEXT]
-            assert warnings and all((r.signal == "memory_hit" and r.kind == "modelled")
-                                    or r.signal == "officer_confirmed" for r in warnings), \
-                f"a non-modelled signal fired in the modelled pass: {warnings}"
-    row = _base_row(h, decided)
-    if report_ts:
+            assert all((r.signal == "memory_hit" and r.kind == "modelled") or r.signal == "officer_confirmed"
+                       for r in warnings), f"a non-modelled signal fired in the modelled pass: {warnings}"
+    row = {"address": h["address"], "truncated": int(h["truncated"]), "payments": len(decided),
+           "first_warning_ts": "", "first_warning_source": "", "payments_after_warning": 0,
+           "source_warned": sum(cites), "held": sum(d.tier == "hold" for _, d in decided),
+           "lead_days": "", "model_flag": MODEL_FLAG}
+    if source == "real" and any(cites):
+        k = cites.index(True)
+        row.update(first_warning_ts=decided[k][0]["ts"], payments_after_warning=len(decided) - k,
+                   first_warning_source="+".join(sorted({r.signal for r in decided[k][1].reasons} & REAL_SIGNALS)))
+    elif source == "modelled" and report_ts:
         first = min(report_ts)
         row.update(first_warning_ts=first, first_warning_source="customer_answer",
-                   payments_after_warning=sum(t["ts"] > first for t, _ in decided),
-                   held=sum(d.tier == "hold" for _, d in decided))
-        row["lead_days"] = _lead(h, first)
+                   payments_after_warning=sum(t["ts"] > first for t, _ in decided))
+    if row["first_warning_ts"] != "" and h["freeze_ts"]:
+        row["lead_days"] = round((h["freeze_ts"] - row["first_warning_ts"]) / DAY, 2)
     return row
 
 
-def _base_row(h, decided):
-    return {"address": h["address"], "truncated": int(h["truncated"]), "payments": len(decided),
-            "first_warning_ts": "", "first_warning_source": "", "payments_after_warning": 0,
-            "held": sum(d.tier == "hold" for _, d in decided), "lead_days": "", "model_flag": MODEL_FLAG}
-
-
-def _lead(h, ts):
-    return round((h["freeze_ts"] - ts) / DAY, 2) if h["freeze_ts"] else ""
-
-
-def aggregate_pos(rows):
+def aggregate(rows):
     warned = [r for r in rows if r["first_warning_ts"] != ""]
     leads = [r["lead_days"] for r in warned if r["lead_days"] != ""]
-    return {"wallets": len(rows), "wallets_warned": len(warned),
-            "payments": sum(r["payments"] for r in rows),
+    n = sum(r["payments"] for r in rows)
+    held = sum(r["held"] for r in rows)
+    return {"wallets": len(rows), "wallets_warned": len(warned), "payments": n,
             "payments_after_warning": sum(r["payments_after_warning"] for r in rows),
-            "payments_held": sum(r["held"] for r in rows),
+            "payments_source_warned": sum(r["source_warned"] for r in rows),
+            "payments_held": held, "wallets_with_any_hold": sum(r["held"] > 0 for r in rows),
+            "payment_hold_rate": round(held / n, 6) if n else None,
             "median_lead_days": round(statistics.median(leads), 1) if leads else None}
 
 
@@ -179,8 +175,15 @@ def spread(values):
     vals = [v for v in values if v is not None]
     if not vals:
         return None
-    return {"mean": round(statistics.mean(vals), 1), "sd": round(statistics.pstdev(vals), 1),
+    nd = 1 if max(abs(v) for v in vals) >= 1 else 6  # rates stay readable
+    return {"mean": round(statistics.mean(vals), nd), "sd": round(statistics.pstdev(vals), nd),
             "min": min(vals), "max": max(vals)}
+
+
+def spreads(per_seed, skip=("wallets", "payments")):
+    out = {m: spread([a[m] for a in per_seed]) for m in per_seed[0] if m not in skip}
+    out.update({m: per_seed[0][m] for m in skip})
+    return out
 
 
 def load_group(group):
@@ -195,7 +198,7 @@ def positives():
 
 def write_csv(path, rows, extra_cols=()):
     cols = list(extra_cols) + ["address", "truncated", "payments", "first_warning_ts", "first_warning_source",
-                               "payments_after_warning", "held", "lead_days", "model_flag"]
+                               "payments_after_warning", "source_warned", "held", "lead_days", "model_flag"]
     with open(path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols)
         w.writeheader()
@@ -214,130 +217,92 @@ def officer_for(seed, q, addr, scam):
     return lambda: right if rng.random() < q else wrong
 
 
+def modelled_runs(hs, rate, seeds, scam, q=None, report_delay_s=0, subsets=None):
+    """{subset: [aggregate per seed]} and the per-wallet rows, for reports at `rate` (and officers if q)."""
+    subsets = subsets or {"all": lambda h: True}
+    per_seed, rows_out = {k: [] for k in subsets}, []
+    for seed in seeds:
+        rows = []
+        for h in hs:
+            officer = officer_for(seed, q, h["address"], scam) if q is not None else None
+            decided, report_ts = replay_wallet(h, reporter=coin(seed, rate, h["address"]),
+                                               report_delay_s=report_delay_s, officer=officer)
+            rows.append(summarise(h, decided, "modelled", report_ts))
+        rows_out += [{"r": rate, "seed": seed, **row} for row in rows]
+        for k, keep in subsets.items():
+            per_seed[k].append(aggregate([row for row, h in zip(rows, hs) if keep(h)]))
+    return per_seed, rows_out
+
+
 def run():
     RESULTS.mkdir(exist_ok=True)
     freezes = sorted((ts, w) for w, ts in load_freezes())
     pos = positives()
     subsets = {"all": lambda h: True, "2plus": lambda h: len(payments(h)) >= 2}
     summary = {"definitions": DEFINITIONS, "model_flag": MODEL_FLAG,
-               "positives": {"group": "test_pos", "truncated_wallets": sum(h["truncated"] for h in pos)}}
+               "positives": {"group": "test_pos", "truncated_wallets": sum(h["truncated"] for h in pos)},
+               "legitimate": {}}
 
     # (a) real: Tether freezes only
-    real = [summarise_real(h, replay_wallet(h, freezes)[0]) for h in pos]
+    real = [summarise(h, replay_wallet(h, freezes)[0], "real") for h in pos]
     write_csv(RESULTS / "replay_test_pos_real.csv", real)
-    summary["positives"]["real"] = {k: aggregate_pos([r for r, h in zip(real, pos) if keep(h)])
-                                    for k, keep in subsets.items()}
+    summary["positives"]["real"] = {k: aggregate([r for r, h in zip(real, pos) if keep(h)]) for k, keep in subsets.items()}
 
-    # (b) modelled: customer answers at rate r, no freezes
+    # (b) modelled: customer answers at rate r, no freezes; then with officers
     mrows, msum = [], {k: {} for k in subsets}
+    osum = {str(q): {} for q in OFFICER_Q}
     for r in RATES:
-        per_seed = {k: [] for k in subsets}
-        for seed in SEEDS:
-            rows = []
-            for h in pos:
-                decided, report_ts = replay_wallet(h, reporter=coin(seed, r, h["address"]))
-                rows.append(summarise_modelled(h, decided, report_ts))
-            mrows += [{"r": r, "seed": seed, **row} for row in rows]
-            for k, keep in subsets.items():
-                per_seed[k].append(aggregate_pos([row for row, h in zip(rows, pos) if keep(h)]))
+        per_seed, rows = modelled_runs(pos, r, SEEDS, scam=True, subsets=subsets)
+        mrows += rows
         for k in subsets:
-            msum[k][str(r)] = {m: spread([a[m] for a in per_seed[k]]) for m in per_seed[k][0]
-                               if m not in ("wallets", "payments")}
-            msum[k][str(r)].update(wallets=per_seed[k][0]["wallets"], payments=per_seed[k][0]["payments"])
+            msum[k][str(r)] = spreads(per_seed[k])
+        for q in OFFICER_Q:
+            osum[str(q)][str(r)] = spreads(modelled_runs(pos, r, SEEDS, scam=True, q=q)[0]["all"])
         print(f"modelled r={r}: held {msum['all'][str(r)]['payments_held']}", flush=True)
     write_csv(RESULTS / "replay_test_pos_modelled.csv", mrows, extra_cols=("r", "seed"))
     summary["positives"]["modelled"] = {"seeds": len(SEEDS), "report_delay_s": 0, **msum}
+    summary["positives"]["modelled_with_officers"] = {"officer_delay_s": OFFICER_DELAY_S, **osum}
+    summary["positives"]["modelled_r0.5_delay_1d"] = spreads(
+        modelled_runs(pos, 0.5, SEEDS, scam=True, report_delay_s=DAY)[0]["all"])
 
-    # Sensitivity: the answer only reaches the bank a day later (r = 0.5).
-    sens = []
-    for seed in SEEDS:
-        rows = [summarise_modelled(h, *replay_wallet(h, reporter=coin(seed, 0.5, h["address"]), report_delay_s=DAY))
-                for h in pos]
-        sens.append(aggregate_pos(rows))
-    summary["positives"]["modelled_r0.5_delay_1d"] = {m: spread([a[m] for a in sens])
-                                                       for m in sens[0] if m not in ("wallets", "payments")}
-
-    # (c) model flag: not wired into the engine
+    # (c) model flag
     summary["positives"]["model_flag"] = MODEL_FLAG
 
-    # Legitimate holds: the real pass over both comparison sets
-    summary["legitimate_holds"] = {}
+    # Comparison wallets: the real pass, then false reports at rate f (modelled), without and with officers
     for g in ("test_neg", "test_negv"):
         hs = [h for h in load_group(g) if payments(h)]
-        rows = [summarise_real(h, replay_wallet(h, freezes)[0]) for h in hs]
+        rows = [summarise(h, replay_wallet(h, freezes)[0], "real") for h in hs]
         write_csv(RESULTS / f"replay_{g}_real.csv", rows)
-        n, held = sum(r["payments"] for r in rows), sum(r["held"] for r in rows)
-        summary["legitimate_holds"][g] = {
-            "wallets": len(rows), "truncated_wallets": sum(r["truncated"] for r in rows),
-            "payments": n, "payments_held": held, "payment_hold_rate": round(held / n, 5),
-            "wallets_with_any_hold": sum(r["held"] > 0 for r in rows),
-            "wallet_hold_rate": round(sum(r["held"] > 0 for r in rows) / len(rows), 4),
-            "modelled": "not replayed: r is the rate at which scam victims report; the false-report "
-                        "rate of legitimate customers is unknown, so no modelled number is given"}
-        print(f"{g}: {held}/{n} payments held", flush=True)
+        out = {"wallets": len(hs), "truncated_wallets": sum(h["truncated"] for h in hs),
+               "real": aggregate(rows), "false_reports": {"seeds": len(NEG_SEEDS)}}
+        for f in FALSE_REPORT_RATES:
+            out["false_reports"][str(f)] = {
+                "no_officer": spreads(modelled_runs(hs, f, NEG_SEEDS, scam=False)[0]["all"]),
+                "officer_q0.9": spreads(modelled_runs(hs, f, NEG_SEEDS, scam=False, q=0.9)[0]["all"]),
+                "officer_q1.0": spreads(modelled_runs(hs, f, NEG_SEEDS, scam=False, q=1.0)[0]["all"])}
+            print(f"{g} f={f}: held {out['false_reports'][str(f)]['no_officer']['payments_held']} without officers, "
+                  f"{out['false_reports'][str(f)]['officer_q0.9']['payments_held']} with", flush=True)
+        summary["legitimate"][g] = out
 
-    summary["officer"] = run_officer(pos, freezes, subsets)
     (RESULTS / "replay_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     return summary
 
 
-def run_officer(pos, freezes, subsets):
-    """The same passes with call-back officers who are right with probability q (modelled)."""
-    out = {"q": list(OFFICER_Q), "officer_delay_s": OFFICER_DELAY_S, "seeds": len(SEEDS),
-           "positives_modelled": {k: {} for k in subsets}, "positives_real": {}, "legitimate_holds": {}}
-    for q in OFFICER_Q:
-        qs = str(q)
-        for k in subsets:
-            out["positives_modelled"][k][qs] = {}
-        for r in RATES:
-            per_seed = {k: [] for k in subsets}
-            for seed in SEEDS:
-                rows = [summarise_modelled(h, *replay_wallet(h, reporter=coin(seed, r, h["address"]),
-                                                             officer=officer_for(seed, q, h["address"], True)))
-                        for h in pos]
-                for k, keep in subsets.items():
-                    per_seed[k].append(aggregate_pos([row for row, h in zip(rows, pos) if keep(h)]))
-            for k in subsets:
-                out["positives_modelled"][k][qs][str(r)] = {m: spread([a[m] for a in per_seed[k]])
-                                                            for m in ("payments_after_warning", "payments_held")}
-        print(f"officer q={q}: modelled r=0.5 held "
-              f"{out['positives_modelled']['all'][qs]['0.5']['payments_held']}", flush=True)
-        held = [sum(summarise_real(h, replay_wallet(h, freezes, officer=officer_for(seed, q, h["address"], True))[0])
-                    ["held"] for h in pos) for seed in SEEDS]
-        out["positives_real"][qs] = spread(held)
-
-    # Officers only act on holds, so a comparison wallet with no hold in the plain real pass is
-    # unchanged; only the wallets that had a hold are replayed again.
-    for g in ("test_neg", "test_negv"):
-        rows = list(csv.DictReader(open(RESULTS / f"replay_{g}_real.csv")))
-        n = sum(int(r["payments"]) for r in rows)
-        hit = {r["address"] for r in rows if int(r["held"]) > 0}
-        hs = [h for h in load_group(g) if h["address"] in hit]
-        out["legitimate_holds"][g] = {"payments": n, "wallets_replayed": len(hs)}
-        for q in OFFICER_Q:
-            held = [sum(summarise_real(h, replay_wallet(h, freezes, officer=officer_for(seed, q, h["address"], False))[0])
-                        ["held"] for h in hs) for seed in SEEDS]
-            out["legitimate_holds"][g][str(q)] = {"payments_held": spread(held),
-                                                  "payment_hold_rate_mean": round(statistics.mean(held) / n, 6)}
-        print(f"officer {g}: {out['legitimate_holds'][g]}", flush=True)
-    return out
-
-
 DEFINITIONS = {
     "payment": "an inbound USDT transfer >= 10 USDT from another wallet, before the freeze; one withdrawal by one customer (the sender)",
-    "first_warning_real": "the first payment at which the engine raised a Tether freeze signal (counterparty or destination)",
+    "first_warning_real": "the first payment at which the engine raised a Tether freeze signal (counterparty: warning; destination: hold)",
     "first_warning_modelled": "the time of the first simulated customer report (made after a released or warned payment)",
     "payments_after_warning": "payments decided after the first warning existed (real: from that payment on, it is decided after the signal)",
-    "payments_held": "payments the engine put in the hold tier (call-back); reports decay with a 7-day half-life, freezes do not",
+    "payments_source_warned": "payments whose decision cites the source's signal (real: a warning shown; modelled: a hold)",
+    "payments_held": "payments the engine put in the hold tier (call-back); each held attempt renews a report, an officer's cleared ends it",
     "lead_days": "freeze_ts - first warning ts, in days; median over wallets with a warning",
-    "legit_hold_rate": "held payments / payments on comparison wallets Tether never froze (real pass only)",
-    "officer": "each hold starts a call-back; a day later the officer records confirmed (no decay) or cleared; "
-               "right with probability q (modelled)",
+    "payment_hold_rate": "held payments / payments; on comparison wallets this is the legitimate-hold rate",
+    "false_report_rate": "f: chance a legitimate customer reports the payee after paying (modelled)",
+    "officer": "each hold starts a call-back; a day later the officer records confirmed or cleared; right with probability q (modelled)",
 }
 
 
 def _self_check():
-    H = 3600
     me = "0xscam"
     tx = lambda ts, a, b, usdt: {"ts": ts, "from": a, "to": b, "usdt": usdt, "nonce": 1, "hash": f"{ts}{a}{b}"}
     victims = ["0xv1", "0xv2", "0xv3", "0xv4", "0xv5"]
@@ -345,51 +310,50 @@ def _self_check():
          [tx((1 + i) * DAY, v, me, 1_000) for i, v in enumerate(victims)]
          + [tx(int(1.5 * DAY), me, "0xmule", 900), tx(int(2.5 * DAY), "0xdust", me, 1), tx(40 * DAY, "0xv6", me, 500)]}
     assert len(payments(h)) == 5, "dust, outbound and post-freeze transfers are not payments"
+    tiers = lambda hh, **kw: [d.tier for _, d in replay_wallet(hh, **kw)[0]]
+    second = lambda i, t, d: i == 1
 
     # Modelled: 5 payments, only the 2nd customer reports -> payments 3, 4, 5 held.
-    decided, report_ts = replay_wallet(h, reporter=lambda i, t, d: i == 1)
+    decided, report_ts = replay_wallet(h, reporter=second)
     assert [d.tier for _, d in decided] == ["warning", "warning", "hold", "hold", "hold"], decided
-    row = summarise_modelled(h, decided, report_ts)
+    row = summarise(h, decided, "modelled", report_ts)
     assert (row["payments"], row["payments_after_warning"], row["held"]) == (5, 3, 3), row
     assert row["first_warning_ts"] == 2 * DAY and row["lead_days"] == 28.0
 
     # A report delayed past the 3rd payment only holds the 4th and 5th.
-    decided, report_ts = replay_wallet(h, reporter=lambda i, t, d: i == 1, report_delay_s=int(1.5 * DAY))
-    assert summarise_modelled(h, decided, report_ts)["held"] == 2
+    decided, report_ts = replay_wallet(h, reporter=second, report_delay_s=int(1.5 * DAY))
+    assert summarise(h, decided, "modelled", report_ts)["held"] == 2
 
-    # Real: the mule (paid at 1.5 days) is frozen at 2.5 days, so the 3rd payment on are held.
-    # A freeze at 100 days (after the wallet's own freeze) and the dust sender's freeze never count.
+    # Real: the mule (paid at 1.5 days) is frozen at 2.5 days, so the 3rd payment on are warned,
+    # never held. A freeze after the wallet's own freeze and the dust sender's freeze never count.
     freezes = sorted([(int(2.5 * DAY), "0xmule"), (int(2.6 * DAY), "0xdust"), (100 * DAY, "0xv1")])
-    row = summarise_real(h, replay_wallet(h, freezes)[0])
-    assert (row["payments_after_warning"], row["held"], row["first_warning_source"]) == (3, 3, "counterparty_freeze"), row
-    assert row["first_warning_ts"] == 3 * DAY and row["lead_days"] == 27.0
-    assert summarise_real(h, replay_wallet(h, [(int(5.5 * DAY), "0xmule")])[0])["held"] == 0, \
+    row = summarise(h, replay_wallet(h, freezes)[0], "real")
+    assert (row["payments_after_warning"], row["source_warned"], row["held"]) == (3, 3, 0), row
+    assert row["first_warning_source"] == "counterparty_freeze" and row["first_warning_ts"] == 3 * DAY
+    assert row["lead_days"] == 27.0
+    assert summarise(h, replay_wallet(h, [(int(5.5 * DAY), "0xmule")])[0], "real")["source_warned"] == 0, \
         "frozen after the last payment"
 
-    # Officers: payments on days 1, 2, 3, 6, 12 and a report after the 2nd. Alone, the report has
-    # faded by day 12 (10 days, under 0.5): 2 held. Confirmed on day 4 pins it: 3 held. Cleared on
-    # day 4 drops it: only the 3rd is held.
-    h2 = {**h, "transfers": [tx(d * DAY, v, me, 1_000) for d, v in zip((1, 2, 3, 6, 12), victims)]}
-    tiers = lambda **kw: [d.tier for _, d in replay_wallet(h2, reporter=lambda i, t, d: i == 1, **kw)[0]]
-    assert tiers() == ["warning", "warning", "hold", "hold", "warning"], tiers()
-    assert tiers(officer=lambda: "confirmed") == ["warning", "warning", "hold", "hold", "hold"]
-    assert tiers(officer=lambda: "cleared") == ["warning", "warning", "hold", "warning", "warning"]
+    # Renewal and officers: payments on days 1, 2, 3, 6, 12, 40 and a report after the 2nd. Held
+    # attempts renew the report, so days 3-12 are held; day 40 comes 28 days after the last renewal.
+    # Confirmed (day 4) pins it, so day 40 is held too. Cleared (day 4) ends it after the 3rd.
+    h2 = {**h, "freeze_ts": 50 * DAY,
+          "transfers": [tx(d * DAY, f"0xv{d}", me, 1_000) for d in (1, 2, 3, 6, 12, 40)]}
+    assert tiers(h2, reporter=second) == ["warning", "warning", "hold", "hold", "hold", "warning"]
+    assert tiers(h2, reporter=second, officer=lambda: "confirmed") == ["warning", "warning"] + ["hold"] * 4
+    assert tiers(h2, reporter=second, officer=lambda: "cleared") == ["warning", "warning", "hold"] + ["warning"] * 3
     calls = []
-    replay_wallet(h2, reporter=lambda i, t, d: i == 1, officer=lambda: calls.append(1) or "confirmed")
+    replay_wallet(h2, reporter=second, officer=lambda: calls.append(1) or "confirmed")
     assert len(calls) == 1, "one call-back per wallet while it is pending or confirmed"
-    row = summarise_modelled(h2, *replay_wallet(h2, reporter=lambda i, t, d: i == 1, officer=lambda: "confirmed"))
-    assert (row["payments_after_warning"], row["held"]) == (3, 3), row
-    assert [d.tier for _, d in replay_wallet(h, officer=lambda: 1 / 0)[0]] == ["warning"] * 5, \
-        "no hold, no call-back: the officer is never asked"
+    assert tiers(h, officer=lambda: 1 / 0) == ["warning"] * 5, "no hold, no call-back: the officer is never asked"
 
-    # No warning at all: nothing held, no lead time.
-    row = summarise_real(h, replay_wallet(h)[0])
-    assert (row["held"], row["first_warning_ts"], row["lead_days"]) == (0, "", ""), row
+    # No warning at all: nothing warned or held, no lead time.
+    row = summarise(h, replay_wallet(h)[0], "real")
+    assert (row["source_warned"], row["held"], row["first_warning_ts"], row["lead_days"]) == (0, 0, "", ""), row
 
     # The leak guard fires if the engine ever asks for history past now.
-    clock = FixedClock(10)
     try:
-        GuardedHistory(h, clock)(me, 11)
+        GuardedHistory(h, FixedClock(10))(me, 11)
         raise RuntimeError("guard did not fire")
     except AssertionError:
         pass
@@ -397,26 +361,22 @@ def _self_check():
     # On real wallets: a replay that can only see each payment's past gives the same decisions
     # as the full replay (no future transfer, freeze or label changes anything).
     freezes = sorted((ts, w) for w, ts in load_freezes())
-    pos = positives()
-    sample = random.Random(0).sample(pos, 15)
+    sample = random.Random(0).sample(positives(), 15)
     for hh in sample:
-        full = [d.tier for _, d in replay_wallet(hh, freezes)[0]]
+        full = [(d.tier, d.reasons) for _, d in replay_wallet(hh, freezes)[0]]
         prefix = []
-        for k, t in enumerate(payments(hh)):
-            cut = {**hh, "freeze_ts": hh["freeze_ts"], "transfers": [x for x in hh["transfers"] if x["ts"] <= t["ts"]]}
-            past = [f for f in freezes if f[0] < t["ts"]]
-            prefix.append(replay_wallet(cut, past)[0][k][1].tier)
-            if k >= 30:
-                break
-        assert full[:len(prefix)] == prefix, (hh["address"], full, prefix)
+        for k, t in enumerate(payments(hh)[:31]):
+            cut = {**hh, "transfers": [x for x in hh["transfers"] if x["ts"] <= t["ts"]]}
+            d = replay_wallet(cut, [f for f in freezes if f[0] < t["ts"]])[0][k][1]
+            prefix.append((d.tier, d.reasons))
+        assert full[:len(prefix)] == prefix, hh["address"]
     print(f"self-check passed: fixed 5-payment replay (warning at the 2nd -> 3 held), real and modelled "
-          f"sources, officer confirm/clear, no-future check on {len(sample)} frozen wallets")
+          f"sources, renewal, officer confirm/clear, no-future check on {len(sample)} frozen wallets")
 
 
 if __name__ == "__main__":
     _self_check()
     if "--check" not in sys.argv:
         s = run()
-        print(json.dumps({k: s["positives"][k] for k in ("real", "model_flag")}, indent=2))
-        print(json.dumps(s["legitimate_holds"], indent=2))
-        print(json.dumps({k: v for k, v in s["officer"].items() if k != "positives_modelled"}, indent=2))
+        print(json.dumps(s["positives"]["real"], indent=2))
+        print(json.dumps({g: v["real"] for g, v in s["legitimate"].items()}, indent=2))

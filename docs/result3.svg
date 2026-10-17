@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" font-family="sans-serif" font-size="12">
+<rect width="720" height="420" fill="white"/>
+<text x="70" y="18" font-size="14" font-weight="bold">Scam USDT averted vs officer call-backs per day (scam rate 0.5%)</text>
+<line x1="70" x2="550" y1="360" y2="360" stroke="#e5e5e5"/><text x="62" y="364" text-anchor="end">0%</text>
+<line x1="70" x2="550" y1="277.5" y2="277.5" stroke="#e5e5e5"/><text x="62" y="281.5" text-anchor="end">25%</text>
+<line x1="70" x2="550" y1="195.0" y2="195.0" stroke="#e5e5e5"/><text x="62" y="199.0" text-anchor="end">50%</text>
+<line x1="70" x2="550" y1="112.5" y2="112.5" stroke="#e5e5e5"/><text x="62" y="116.5" text-anchor="end">75%</text>
+<line x1="70" x2="550" y1="30" y2="30" stroke="#e5e5e5"/><text x="62" y="34" text-anchor="end">100%</text>
+<text x="70.0" y="378" text-anchor="middle">0</text>
+<text x="150.0" y="378" text-anchor="middle">5</text>
+<text x="230.0" y="378" text-anchor="middle">10</text>
+<text x="310.0" y="378" text-anchor="middle">25</text>
+<text x="390.0" y="378" text-anchor="middle">50</text>
+<text x="470.0" y="378" text-anchor="middle">100</text>
+<text x="550.0" y="378" text-anchor="middle">250</text>
+<text x="310.0" y="405" text-anchor="middle">call-backs per day (about 5,093 withdrawals per day)</text>
+<polyline fill="none" stroke="#0b6e4f" stroke-width="2.5" points="70.0,292.5 150.0,291.3 230.0,292.7 310.0,275.9 390.0,260.9 470.0,242.6 550.0,180.3"/>
+<rect x="565" y="30" width="12" height="12" fill="#0b6e4f"/><text x="582" y="40">ladder</text>
+<polyline fill="none" stroke="#8a8a8a" stroke-width="2.5" points="70.0,360.0 150.0,360.0 230.0,360.0 310.0,360.0 390.0,360.0 470.0,360.0 550.0,360.0"/>
+<rect x="565" y="50" width="12" height="12" fill="#8a8a8a"/><text x="582" y="60">rules-only</text>
+<polyline fill="none" stroke="#c77d00" stroke-width="2.5" points="70.0,360.0 150.0,360.0 230.0,360.0 310.0,353.8 390.0,344.0 470.0,337.0 550.0,314.0"/>
+<rect x="565" y="70" width="12" height="12" fill="#c77d00"/><text x="582" y="80">fixed threshold</text>
+<polyline fill="none" stroke="#3b5bdb" stroke-width="2.5" points="70.0,360.0 150.0,359.8 230.0,359.5 310.0,359.5 390.0,357.4 470.0,357.2 550.0,352.1"/>
+<rect x="565" y="90" width="12" height="12" fill="#3b5bdb"/><text x="582" y="100">call everyone</text>
+<text x="565" y="130" font-size="10" fill="#666">Modelled: scam rate, answer</text><text x="565" y="144" font-size="10" fill="#666">confirm rates, stop rates.</text><text x="565" y="158" font-size="10" fill="#666">Real: payments, amounts,</text><text x="565" y="172" font-size="10" fill="#666">order, Tether freezes.</text></svg>
