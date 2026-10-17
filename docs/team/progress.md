@@ -11,7 +11,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 | Ticket | Title | Blocked by | Status | Updated | Notes |
 |---|---|---|---|---|---|
 | [#2](https://github.com/mananpansari/ibm-hackathon-2026/issues/2) | Commit P1 snapshot and feasibility evidence | - | done | 17 Oct | Snapshot + feasibility committed (5be122e) |
-| [#10](https://github.com/mananpansari/ibm-hackathon-2026/issues/10) | Result 2 replay through the engine | #2, #6 | review | 17 Oct | PR #20. Results in `docs/results.md`; model-flag pass still to run on the VM |
+| [#10](https://github.com/mananpansari/ibm-hackathon-2026/issues/10) | Result 2 replay through the engine | #2, #6 | done | 17 Oct | PRs #20 and #31 merged, issue closed. Results in `docs/results.md`. Optional: model-flag pass on the VM |
 | [#16](https://github.com/mananpansari/ibm-hackathon-2026/issues/16) | Demo wallet and narration numbers | #10 | doing | 17 Oct | Shortlist + script draft on `aanya/16-demo-prep`; recheck numbers against the final `docs/results.md` |
 
 ## B: Models and platform
@@ -75,3 +75,4 @@ Short dated lines for anything others need to know (decisions, blockers, handove
 - 17 Oct (D): Pitch, video and slides lead with "the first warning is the last payment" and the what-we-tried-and-dropped story (detector no-go, docs/feasibility.md); no "flagged N days before the freeze" claim. The officer why-card now says only "Tether later froze this wallet, on <date>" (no day count).
 - 17 Oct (C): #9 done (PR #25 merged to `main`, issue closed). All C tickets (#3, #6, #7, #9) done. D: to cap holds in the app, set `Config(daily_capacity=N)` in `new_engine()` and show `decision.bumped`'s question to that customer.
 - 17 Oct (A): #10 re-run on main (#7 question tier, 7-day half-life renewed by held attempts). 134 frozen wallets, 2,791 payments. Tether freezes: 3 payments flagged, 0 held. Customer answers to the question (modelled, r = 0.5): ~1,650 held; with officers (q = 0.9) ~1,920. Legit: questions on 4.5% (random) / 12% (volume-matched) of payments; false confirms (f = 0.001, modelled) hold 1.6% of volume-matched payments even with perfect officers (busy payees). Half-life 3/7/30 d sensitivity in `docs/results.md`. Model flag not run (needs xgboost/TF; run on the VM).
+- 17 Oct (A): #10 done (PR #31 merged to `main`, issue closed). Result 2 numbers for the pitch and #16 are in `docs/results.md` (question-tier run). Model flag still "not available" in Result 2; optional VM run.
