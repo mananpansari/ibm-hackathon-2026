@@ -12,3 +12,6 @@ Training-period validation AUC is in the jsonl; it is size-driven and not a meas
 | 2026-10-17 15:40 UTC | baseline: #5 models on main | `643632b238be` | mlp | 0.590 | 0.0% | 0.0% | 2.2% | 7.7% / 1.9% | 0.775 |
 | 2026-10-17 15:40 UTC | baseline: #5 models on main | `643632b238be` | ensemble | 0.596 | 2.2% | 0.0% | 3.7% | 8.2% / 1.5% | 0.768 |
 | 2026-10-17 16:52 UTC | v2: payment-level data, 26 features, XGBoost vs volume-matched | `de125c0ae63f` | xgb | 0.611 | 3.0% | 2.2% | 4.5% | 35.9% / 5.7% | 0.727 |
+| 2026-10-17 17:36 UTC | hybrid: v1 under 1,000 USDT received, v2 above (percentile scale) | `0961e2392b14` | v1 | 0.596 | 2.2% | 0.0% | 3.7% | 8.2% / 1.5% | 0.768 |
+| 2026-10-17 17:36 UTC | hybrid: v1 under 1,000 USDT received, v2 above (percentile scale) | `0961e2392b14` | v2 | 0.611 | 3.0% | 2.2% | 4.5% | 35.9% / 5.7% | 0.727 |
+| 2026-10-17 17:36 UTC | hybrid: v1 under 1,000 USDT received, v2 above (percentile scale) | `0961e2392b14` | hybrid | 0.600 | 2.2% | 2.2% | 1.5% | 60.3% / 13.5% | 0.765 |
