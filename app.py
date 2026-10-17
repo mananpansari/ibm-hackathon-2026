@@ -1,7 +1,7 @@
 """Score API, customer page and officer console (#4, #8, #12, #13, #17, UI v2). A thin wrapper around
 C's engine (engine.py): every tier comes from engine.decide(); this file loads data, sets the
 injected clock and moves JSON. Structured answers, outcome codes, wallet facts and personas come
-from A's modules (answers.py, payee_memory.py, wallet_facts.py, data/demo/); see docs/team/ui-v2.md.
+from A's modules (answers.py, payee_memory.py, wallet_facts.py, data/demo/).
 
 The engine reads the snapshot's recorded histories. Only the live box (/live) touches
 Blockscout, server-side through fetch.py (key from the environment or .env, never sent to a
@@ -17,6 +17,7 @@ import itertools
 import json
 import os
 import platform
+import sys
 import time
 import types
 from dataclasses import asdict
@@ -29,6 +30,7 @@ from pydantic import BaseModel, Field
 
 import answer_nlp
 import answers
+import granite
 from decision_log import DecisionLog
 from engine import Engine, RecordedHistories, Withdrawal, to_dict
 from payee_memory import REASON_CODES, OfficerOutcome, PayeeMemory, load_freezes, outcome_for
@@ -65,10 +67,14 @@ clock = {"now": 0}  # the engine's injected clock; set to each withdrawal's time
 
 # Only a classify(): the page asks answers.QUESTIONS itself, so the engine needn't wait up to 2 s for
 # Granite to word a question nobody shows (StructuredClassifier falls back to the template).
-# B's mpnet classifier reads the free-text box (granite's keyword rules if the model is missing);
-# one call now loads the model at startup (about 11 s on the VM) instead of on the first customer.
-FREE_TEXT = types.SimpleNamespace(classify=answer_nlp.classify)
-answer_nlp.classify("warm up")
+# B's mpnet classifier reads the free-text box (granite's keyword rules if the model is missing); one call
+# loads it at startup (about 11 s on the VM) instead of on the first customer. On macOS the box uses granite's
+# keyword rules: PyTorch (mpnet) and TensorFlow (the wallet model) segfault in one process there, either order.
+if sys.platform == "darwin":
+    FREE_TEXT = types.SimpleNamespace(classify=granite.classify)
+else:
+    FREE_TEXT = types.SimpleNamespace(classify=answer_nlp.classify)
+    answer_nlp.classify("warm up")
 
 
 def history(wallet, as_of):

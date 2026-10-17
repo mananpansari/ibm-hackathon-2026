@@ -1,6 +1,6 @@
 # Demo script (#16, rewritten for UI v2)
 
-The 3-minute video, shot by shot: what is on screen, the voice-over, and where every number comes from. It follows the UI v2 screens (`docs/team/ui-v2.md`) and issue #1's framing: **the first warning is the last payment**.
+The 3-minute video, shot by shot: what is on screen, the voice-over, and where every number comes from. It follows the UI v2 screens and issue #1's framing: **the first warning is the last payment**.
 
 **Budget:** 180 s at about 150 words a minute is about 450 spoken words. The voice-over below is about 420, so there's room for pauses. Read it once against a timer before recording; if it runs over, cut the lines marked *(cut first)*.
 
@@ -134,16 +134,17 @@ Keep real and modelled in separate columns. Don't quote a single legitimate-hold
 
 **Screen:** the LinuxONE Community Cloud portal instance page, then a terminal on the VM showing `docker ps` (the app container from the lab image) and the benchmark output. Then back to the customer page's demo strip showing "LinuxONE" and the decision time.
 
-> All of this runs on IBM LinuxONE, in a container from the lab image. A decision takes about 1.3 milliseconds: 600 to 750 withdrawals a second on three cores. The model ran on the NNPA accelerator but gave no speed-up, so we don't claim one. Granite was too slow on this VM, so the questions are templates.
+> All of this runs on IBM LinuxONE, in a container from the lab image. A decision takes about 1.3 milliseconds: 600 to 750 withdrawals a second on three cores. The wallet model ran on the NNPA accelerator but gave no speed-up, so we don't claim one. Her free-text answer is read by a small language model, mpnet, on the same accelerator: 8 milliseconds an answer, 18 times faster than the CPU. On synthetic test answers it catches 81 percent of scam stories; it hasn't been tested on real customers yet.
 
 | Claim | Source |
 |---|---|
 | decide() p50 about 1.3 ms; about 600–750 withdrawals/s; 3 vCPU | `docs/nnpa-benchmark.md` (#15) |
 | NNPA verified, no speed-up | `docs/nnpa-benchmark.md` |
-| Granite about 4 s per answer on the VM, so templates + keyword classifier | `docs/team/progress.md`, #14 row |
-| Container from the lab image on the VM | #11 row; `docs/screenshots/` |
+| Answer classifier: mpnet + keyword floor, 8 ms per answer on NNPA vs 143 ms on CPU | `docs/answer-classifier.md` |
+| 81% of scam answers caught, 12% of legitimate flagged (synthetic persona answers, card-grouped CV) | `docs/answer-classifier.md` |
+| Granite about 4 s per answer on the VM, so it isn't used; questions are templates | `docs/answer-classifier.md` |
+| Container from the lab image on the VM | #11; `docs/screenshots/` |
 
-If B's free-text model is merged and measured by 03:00, replace the Granite sentence with its own one-line result (real vs synthetic test accuracy, labelled).
 
 ## 8. Close (2:50–3:00)
 
@@ -157,7 +158,7 @@ Team roles on the card: A (Aanya), data and problem; B (Manan), models and platf
 
 ## For D: what the app's demo spine must do
 
-`docs/team/ui-v2.md` covers the build; this is what the script needs from it.
+What the script needs from the app's demo spine:
 
 1. **Mrs Tan is payment 2.** In `/demo/next`, give each payment its own customer, and give payment 2 Mrs Tan's persona (`personas.json` customer-1). Don't map customers by sending wallet: payments 1 and 2 share an exchange hot wallet, and mapping them to the same customer turns payment 2 into a known payee with no questions. These rules must match `demo_candidates.spine_numbers()`, which the numbers above come from.
 2. **Payment 2 shows the real question tier first.** Call `decide(w)` with no answer. It returns `question`, and the customer page shows Q1–Q3. Then call `decide(w, coached_answer, "modelled")`, which returns `hold`. The customer page can drive this step itself, or follow the officer page's demo state; either is fine as long as the tiers come from the engine.
@@ -176,5 +177,5 @@ If the demo doesn't play well on the top pick, use the next from `python demo_ca
 - "We detect scam wallets", or any detector headline: it failed (AUC 0.57).
 - "Flagged N days before the freeze" as a detector claim. The 85 days is from Mrs Tan's hold, driven by her (modelled) answer.
 - "NNPA made it faster."
-- "Granite reads her answer", unless B's or Granite's measured run is in.
+- Any answer-classifier accuracy without "on synthetic answers": it has no real-customer test yet.
 - "Victims" for payment counts.

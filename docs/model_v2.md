@@ -1,6 +1,6 @@
 # Model v2: an experiment, not wired into the engine
 
-**Status:** experiment on branch `aariv/model-v2` (v2 and a v1/v2 hybrid). The engine and app still use the #5 models in `models/`. Nothing here changes a decision.
+**Status:** experiment, kept in the repo (`train_v2.py`, `features_v2.py`, `hybrid.py`, `models_v2/`; v2 and a v1/v2 hybrid). The engine and app still use the #5 models in `models/`. Nothing here changes a decision.
 
 **Verdict:** mixed. v2 ranks individual **payments** better, which is how the engine uses the score, but it catches **fewer wallets** at a 5% false-alarm budget. At the wallet level, every difference is 1 to 8 of 134 wallets, so v2 is not clearly better. It isn't worth swapping in before the submission.
 

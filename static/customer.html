@@ -208,7 +208,7 @@
 </footer>
 
 <script>
-// ---- API (docs/team/ui-v2.md contract). The page decides nothing: every tier comes from the engine.
+// ---- API (app.py). The page decides nothing: every tier comes from the engine.
 async function api(path, body) {
   const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
   if (!r.ok) throw new Error(r.status);
@@ -216,7 +216,8 @@ async function api(path, body) {
 }
 
 // ---- languages: Singapore's four official languages. Draft translations for the demo; the engine still
-// receives option ids, so the decision never depends on the language. Free text is classified in English only.
+// receives option ids, so the decision never depends on the language. Free text is classified in English only (the
+// mpnet model and the keyword rules are English); its label asks the question the model was trained on.
 const T = {
   en: {
     protected: "Protected by {b}", sim_b: "Simulated exchange withdrawal screen.", sim: "In production this check runs inside the exchange's own withdrawal flow, just before signing.",
@@ -231,7 +232,7 @@ const T = {
     warn_title: "Please review before sending", warn_text: "This wallet looks unusual. Only continue if you personally know and trust its owner.",
     warn_text2: "Scammers often pressure people to move money quickly. You are allowed to take your time.", cancel: "Cancel this payment", continue_anyway: "Continue anyway",
     warn_note: "Not sure? Cancel. Continuing sends the payment as it is.", help: "I need help now: call your bank's 24-hour hotline",
-    q_continue: "Continue", back: "Back", optional: "Anything else you want to tell us?", optional_tag: "(optional)", choose: "Please choose an answer.", question_n: "Question {n} of up to 3",
+    q_continue: "Continue", back: "Back", optional: "In your own words, why are you sending this money, and did anyone ask you to?", optional_tag: "(optional)", choose: "Please choose an answer.", question_n: "Question {n} of up to 3",
     hold_title: "Your payment is on hold for a call-back", hold_1: "Your money has not been sent. It is still in your account.",
     hold_2: "One of our fraud officers will call you on {phone}, the number we have on file.", hold_3: "Please don't try to send this money another way while you wait.",
     hold_4: "If anyone is telling you to move money or keep this secret, you can hang up. Real officers will never ask you to do that.",
@@ -258,7 +259,7 @@ const T = {
     warn_title: "发送前请仔细确认", warn_text: "这个钱包有些不寻常。只有在您本人认识并信任收款人时，才继续付款。",
     warn_text2: "骗子常常催促人们尽快转钱。您可以慢慢来。", cancel: "取消这笔付款", continue_anyway: "仍然继续",
     warn_note: "如果不确定，请取消。选择继续，付款会照原样发出。", help: "我现在需要帮助：拨打银行24小时热线",
-    q_continue: "继续", back: "返回", optional: "还有什么想告诉我们吗？", optional_tag: "（可不填）", choose: "请选择一个答案。", question_n: "第 {n} 题（最多 3 题）",
+    q_continue: "继续", back: "返回", optional: "请用您自己的话说一说：您为什么要发送这笔钱？有没有人叫您这样做？", optional_tag: "（可不填）", choose: "请选择一个答案。", question_n: "第 {n} 题（最多 3 题）",
     hold_title: "您的付款已暂停，等待回电", hold_1: "您的钱还没有转出，仍在您的账户里。",
     hold_2: "我们的反诈骗专员会打 {phone} 给您，这是我们记录中的号码。", hold_3: "等待期间，请不要尝试用其他方式发送这笔钱。",
     hold_4: "如果有人叫您转钱或保密，您可以直接挂断。真正的官员绝不会这样要求您。",
@@ -285,7 +286,7 @@ const T = {
     warn_title: "Sila semak sebelum menghantar", warn_text: "Dompet ini kelihatan luar biasa. Teruskan hanya jika anda sendiri mengenali dan mempercayai pemiliknya.",
     warn_text2: "Penipu sering mendesak orang memindahkan wang dengan cepat. Anda boleh mengambil masa.", cancel: "Batalkan pembayaran ini", continue_anyway: "Teruskan juga",
     warn_note: "Tidak pasti? Batalkan. Jika anda teruskan, pembayaran akan dihantar seperti sedia ada.", help: "Saya perlukan bantuan sekarang: hubungi talian 24 jam bank anda",
-    q_continue: "Teruskan", back: "Kembali", optional: "Ada apa-apa lagi yang ingin anda beritahu kami?", optional_tag: "(tidak wajib)", choose: "Sila pilih satu jawapan.", question_n: "Soalan {n} daripada paling banyak 3",
+    q_continue: "Teruskan", back: "Kembali", optional: "Dengan kata-kata anda sendiri, mengapa anda menghantar wang ini, dan adakah sesiapa meminta anda berbuat begitu?", optional_tag: "(tidak wajib)", choose: "Sila pilih satu jawapan.", question_n: "Soalan {n} daripada paling banyak 3",
     hold_title: "Pembayaran anda ditahan untuk panggilan balik", hold_1: "Wang anda belum dihantar. Ia masih dalam akaun anda.",
     hold_2: "Seorang pegawai pencegahan penipuan kami akan menelefon anda di {phone}, nombor dalam rekod kami.", hold_3: "Sila jangan cuba menghantar wang ini dengan cara lain sementara menunggu.",
     hold_4: "Jika sesiapa menyuruh anda memindahkan wang atau merahsiakannya, anda boleh terus letak telefon. Pegawai sebenar tidak akan meminta anda berbuat begitu.",
@@ -312,7 +313,7 @@ const T = {
     warn_title: "அனுப்பும் முன் சரிபார்க்கவும்", warn_text: "இந்தப் பணப்பை வழக்கத்துக்கு மாறாகத் தெரிகிறது. அதன் உரிமையாளரை நீங்கள் நேரடியாக அறிந்து நம்பினால் மட்டும் தொடரவும்.",
     warn_text2: "மோசடிக்காரர்கள் பெரும்பாலும் விரைவாகப் பணம் அனுப்ப அழுத்தம் தருவார்கள். நீங்கள் நேரம் எடுத்துக்கொள்ளலாம்.", cancel: "இந்தப் பணம் செலுத்துதலை ரத்து செய்", continue_anyway: "இருந்தாலும் தொடர்",
     warn_note: "உறுதியாகத் தெரியவில்லையா? ரத்து செய்யுங்கள். தொடர்ந்தால் பணம் அப்படியே அனுப்பப்படும்.", help: "எனக்கு இப்போது உதவி தேவை: உங்கள் வங்கியின் 24 மணி நேர உதவி எண்ணை அழைக்கவும்",
-    q_continue: "தொடர்", back: "பின்செல்", optional: "வேறு ஏதாவது சொல்ல விரும்புகிறீர்களா?", optional_tag: "(கட்டாயமில்லை)", choose: "ஒரு பதிலைத் தேர்ந்தெடுக்கவும்.", question_n: "கேள்வி {n} (அதிகபட்சம் 3)",
+    q_continue: "தொடர்", back: "பின்செல்", optional: "உங்கள் சொந்த வார்த்தைகளில்: இந்தப் பணத்தை ஏன் அனுப்புகிறீர்கள், யாராவது உங்களை அனுப்பச் சொன்னார்களா?", optional_tag: "(கட்டாயமில்லை)", choose: "ஒரு பதிலைத் தேர்ந்தெடுக்கவும்.", question_n: "கேள்வி {n} (அதிகபட்சம் 3)",
     hold_title: "திரும்ப அழைப்பதற்காக உங்கள் பணம் நிறுத்தி வைக்கப்பட்டுள்ளது", hold_1: "உங்கள் பணம் அனுப்பப்படவில்லை. அது இன்னும் உங்கள் கணக்கில் உள்ளது.",
     hold_2: "எங்கள் மோசடித் தடுப்பு அதிகாரி ஒருவர் {phone} என்ற எண்ணில் உங்களை அழைப்பார்; இது எங்கள் பதிவில் உள்ள எண்.", hold_3: "காத்திருக்கும்போது இந்தப் பணத்தை வேறு வழியில் அனுப்ப முயல வேண்டாம்.",
     hold_4: "யாராவது பணத்தை மாற்றச் சொன்னால் அல்லது இதை ரகசியமாக வைக்கச் சொன்னால், அழைப்பைத் துண்டிக்கலாம். உண்மையான அதிகாரிகள் ஒருபோதும் அப்படிக் கேட்க மாட்டார்கள்.",

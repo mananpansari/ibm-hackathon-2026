@@ -203,7 +203,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 <script>
 // ---- The queue, case and outcome views run on the real API; with ?mock they run on MOCK, shaped exactly like
-// docs/team/ui-v2.md.s contract, for layout work without a server. The demo strip and the
+// app.py's API, for layout work without a server. The demo strip and the
 // live box always call the real server.
 const MOCK_MODE = new URLSearchParams(location.search).has("mock");  // ?mock: lay out without a server
 const ME = "FO-20417";

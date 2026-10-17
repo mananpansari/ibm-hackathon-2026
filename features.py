@@ -1,4 +1,4 @@
-"""features(history, as_of): point-in-time USDT features (build-plan.md section 4).
+"""features(history, as_of): point-in-time USDT features.
 
 history = {"address", "transfers": [{"ts", "from", "to", "usdt", "nonce", "hash"}, ...]}
 (transfers ascending by ts, addresses lowercase). Only transfers with ts < as_of and
