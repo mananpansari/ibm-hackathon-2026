@@ -29,7 +29,7 @@ Per-person ticket details: [A: Data and problem](A-data-and-problem.md) · [B: M
 | [#3](https://github.com/mananpansari/ibm-hackathon-2026/issues/3) | Decision engine core: release or warn, logged | - | done | 17 Oct | Merged (PR #18) and on `main` |
 | [#6](https://github.com/mananpansari/ibm-hackathon-2026/issues/6) | Shared payee memory and call-back hold | #3 | done | 17 Oct | Merged (PR #19) and on `main` via D's merge; includes A's replay fixes (holds renew, counterparty freeze only asks, model hook) |
 | [#7](https://github.com/mananpansari/ibm-hackathon-2026/issues/7) | Question tier in the engine | #6 | done | 17 Oct | Merged (PR #22) and on `main`; D's app uses it. Later review fixes (customer_reasons, model_flag 0.78) ride in PR #25 |
-| [#9](https://github.com/mananpansari/ibm-hackathon-2026/issues/9) | Capacity-aware holds and Result 3 sweep | #6 | review | 17 Oct | PR #25 into `main`: capacity + Result 3 (`sweep.py`, `docs/result3.md`, `docs/result3.svg`); checks pass on laptop and LinuxONE |
+| [#9](https://github.com/mananpansari/ibm-hackathon-2026/issues/9) | Capacity-aware holds and Result 3 sweep | #6 | done | 17 Oct | Merged (PR #25) and on `main`: `Config(daily_capacity=N)` + Result 3 (`docs/result3.md`, `docs/result3.svg`) |
 
 ## D: App and delivery
 
@@ -74,3 +74,4 @@ Short dated lines for anything others need to know (decisions, blockers, handove
 - 17 Oct (C): #3, #6, #7 done (merged, on `main`). Note: #19 and #22 were merged into their stacked base branches, not `p1/data-pipeline`; the work reached `main` through D's merge. #9 is draft PR #25, now targeting `main`.
 - 17 Oct (C): Result 3 done (`docs/result3.md`, chart `docs/result3.svg`). At equal call-backs the ladder averts more scam USDT than rules-only, a fixed threshold and calling everyone in all 21 settings (scam rate 0.1/0.5/1%, 0-250 calls/day); at 0.5% and 100 calls/day: 36% vs 7% for the best baseline. Caveats for the slide: question stop rate (25%), answer rates, officer accuracy and scam rate are modelled; ~20-30% of legitimate payments get a question on this (volume-matched) traffic; Tether-freeze rules alone avert 0%.
 - 17 Oct (D): Pitch, video and slides lead with "the first warning is the last payment" and the what-we-tried-and-dropped story (detector no-go, docs/feasibility.md); no "flagged N days before the freeze" claim. The officer why-card now says only "Tether later froze this wallet, on <date>" (no day count).
+- 17 Oct (C): #9 done (PR #25 merged to `main`, issue closed). All C tickets (#3, #6, #7, #9) done. D: to cap holds in the app, set `Config(daily_capacity=N)` in `new_engine()` and show `decision.bumped`'s question to that customer.
