@@ -121,8 +121,9 @@ class Engine:
         self.config = config or Config()
         self.model, self.known_bad, self.classifier = model, known_bad, classifier
 
-    def decide(self, w, answer=None):
-        """Decide a withdrawal. Call again with the customer's `answer` to re-decide a question."""
+    def decide(self, w, answer=None, answer_kind=None):
+        """Decide a withdrawal. Call again with the customer's `answer` to re-decide a question.
+        answer_kind="modelled" marks a simulated answer (demo, replay) whatever the classifier says."""
         now = self.clock()
         c = self.config
         known = self.memory.paid_before(w.customer_id, w.wallet, now)
@@ -143,7 +144,9 @@ class Engine:
         if answer is not None:
             if self.classifier is None:
                 raise ValueError("an answer needs a classifier (D's granite module or a stub)")
-            cls = self.classifier.classify(answer)
+            cls = dict(self.classifier.classify(answer))
+            if answer_kind:
+                cls["kind"] = answer_kind
             kind = cls.get("kind", "real")  # the replay's simulated answers say "modelled"
             if cls["confirms_script"]:
                 holds.append(Reason("answer_confirms_script", cls["source"], kind,
@@ -450,6 +453,13 @@ def _self_check():
             raise AssertionError("an answer without a classifier must fail loudly")
         except ValueError:
             pass
+
+        # The caller can mark a simulated answer as modelled (the demo's coached customer 1).
+        eng = asking()
+        eng.clock.now = 1 * H
+        demo = eng.decide(Withdrawal("customer-1", "0xscam", 300, 1 * H), answer=coached, answer_kind="modelled")
+        assert demo.tier == "hold" and demo.reasons[0].kind == "modelled"
+        assert {e.kind for e in eng.memory.evidence("0xscam", 2 * H)} == {"modelled"}
 
         # Simulated (modelled) answers stay modelled all the way into payee memory.
         eng = asking(StubClassifier(kind="modelled"))
