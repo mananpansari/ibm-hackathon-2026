@@ -75,7 +75,7 @@ def _complete(prompt, max_tokens):
     global _llm
     if _llm is None:
         from llama_cpp import Llama
-        _llm = Llama(model_path=GRANITE_GGUF, n_ctx=1024, verbose=False)
+        _llm = Llama(model_path=GRANITE_GGUF, n_ctx=1024, n_threads=os.cpu_count(), verbose=False)
     return _llm(prompt, max_tokens=max_tokens, temperature=0, stop=["\n"])["choices"][0]["text"]
 
 
@@ -177,15 +177,27 @@ def evaluate():
     rows = list(csv.DictReader(open(path, encoding="utf-8")))
     # BothBosu: classify only the receiver's side, i.e. what a customer would tell us
     said = lambda d: " ".join(re.findall(r"receiver:(.*?)(?=caller:|$)", d)) or d
-    res = [(classify(said(r["dialogue"])), r) for r in rows]
+    ms = []
+
+    def timed(text):
+        t0 = time.monotonic()
+        out = classify(text)
+        ms.append((time.monotonic() - t0) * 1000)
+        return out
+
+    res = [(timed(said(r["dialogue"])), r) for r in rows]
     ok = sum(c["confirms_script"] == (r["label"] == "1") for c, r in res)
     print(f"BothBosu test, scam vs not (receiver side): {ok}/{len(res)} = {ok / len(res):.0%}  [{res[0][0]['source']}]")
     sg = list(csv.DictReader(open(HERE / "data" / "sg_answers.csv", encoding="utf-8")))
-    cs = [(classify(r["answer"]), r) for r in sg]
+    cs = [(timed(r["answer"]), r) for r in sg]
     conf = sum(c["confirms_script"] == (r["confirms_script"] == "1") for c, r in cs)
     kind = sum(c["scam_type"] == r["scam_type"] for c, r in cs)
     print(f"SG answers ({len(cs)}): confirms_script {conf}/{len(cs)} = {conf / len(cs):.0%}; "
           f"scam type {kind}/{len(cs)} = {kind / len(cs):.0%}  [{cs[0][0]['source']}]")
+    ms.sort()
+    srcs = {c["source"] for c, _ in res + cs}
+    print(f"latency per answer: p50 {ms[len(ms) // 2]:.0f} ms, p95 {ms[int(len(ms) * .95)]:.0f} ms, max {ms[-1]:.0f} ms; "
+          f"sources {sorted(srcs)}")
     for c, r in cs:
         if c["scam_type"] != r["scam_type"] or c["confirms_script"] != (r["confirms_script"] == "1"):
             print(f"  miss: {r['answer'][:70]!r} -> {c['scam_type']}/{c['confirms_script']}, want {r['scam_type']}/{r['confirms_script']}")
