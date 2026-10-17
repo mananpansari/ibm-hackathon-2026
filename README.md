@@ -30,12 +30,20 @@ Put `BLOCKSCOUT_API_KEY=...` in `.env` (it's git-ignored), then run `python fetc
 
 ## Deploy on LinuxONE (#11)
 
-On the VM (s390x), from a clone of this repo:
+VM: LinuxONE Community Cloud `bob1`, Ubuntu 24.04 on s390x, 3 vCPU, 8 GB, NNPA present. Lab image: `registry.linuxone.cloud.marist.edu/l1cc/jupyterlab-image-s390x:latest` (TF 2.18 + ibm-zdnn-plugin 2.3, XGBoost 3.4, scikit-learn 1.9, llama_cpp_python 0.3.36; Python is a venv at `/opt/venv`, running as `ibm-user`).
+
+The repo is private, so copy committed files to the VM instead of cloning there (no GitHub credentials on the VM):
+
+```bash
+git archive --format=tar HEAD | ssh -i bob.pem linux1@148.100.108.187 'mkdir -p ~/sbys && tar -x -C ~/sbys'
+```
+
+Then on the VM, in `~/sbys`:
 
 ```bash
 bash vm_check.sh <lab-image>                      # read-only: NNPA, docker, TF/zDNN, XGBoost, llama.cpp
 docker build --build-arg BASE=<lab-image> -t sbys .
-docker run -d --name sbys -p 8000:8000 --env-file .env -v "$PWD/data:/app/data" sbys
+docker run -d --name sbys --restart unless-stopped -p 127.0.0.1:8000:8000 --env-file .env -v "$PWD/data:/app/data" sbys   # drop --env-file until .env exists
 curl -s localhost:8000/score -H 'content-type: application/json' \
   -d '{"customer":"c1","wallet":"0x0000000000000000000000000000000000000001","amount":500}'
 ```
@@ -43,3 +51,5 @@ curl -s localhost:8000/score -H 'content-type: application/json' \
 - The snapshot comes from git, so there's no Blockscout pull on the VM. To give the live box free lookups for wallets already seen, copy `data/blockscout_cache.sqlite` over with `scp`.
 - `data/` is a volume, so payee memory survives container rebuilds. The key only enters at run time via `--env-file` (create `.env` with `chmod 600`). Neither is baked into the image.
 - `.env` is optional until the live box (#17).
+- The app binds to localhost on the VM, so it isn't public. View it from your laptop through a tunnel: `ssh -i bob.pem -L 8000:localhost:8000 linux1@148.100.108.187`, then open http://localhost:8000.
+- TensorFlow lists only a CPU device in a bare check, even though ibm-zdnn-plugin is installed. Confirming that inference really runs on NNPA is part of #15.
