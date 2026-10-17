@@ -7,7 +7,8 @@ wallets it reaches AUC ~0.57 (docs/feasibility.md). Models are saved in portable
     python model.py train   # train on data/features.csv train_* rows, save to models/
     python model.py         # self-check (score range, missing models -> None)
 
-Train with the TensorFlow backend (the LinuxONE/zDNN path). A .keras file trained on another
+Train inside the lab image on the VM (Keras 3.14): a .keras saved by a newer Keras (3.15 on a Mac)
+fails to load there. Use the TensorFlow backend (the LinuxONE/zDNN path). A .keras file trained on another
 backend makes Keras import that backend at load time; torch + TensorFlow in one process
 segfaults on macOS.
 """
@@ -92,7 +93,11 @@ def _load():
     if MLP.exists():
         try:
             import keras
-            loaded["mlp"] = keras.models.load_model(MLP)
+            import tensorflow as tf
+            m = keras.models.load_model(MLP)
+            # Graph mode: zDNN (NNPA) only accelerates graph execution; an eager m(x) stays on the CPU (#15).
+            loaded["mlp"] = tf.function(lambda x: m(x, training=False),
+                                        input_signature=[tf.TensorSpec((None, len(F.FEATURES)), tf.float32)])
         except Exception as e:
             print("mlp not loaded:", e, file=sys.stderr)
     return loaded
@@ -108,8 +113,7 @@ def score(feats):
     if "xgb" in models:
         ps.append(float(models["xgb"].predict_proba(x)[0, 1]))
     if "mlp" in models:
-        import keras
-        ps.append(float(keras.ops.convert_to_numpy(models["mlp"](_squash(x), training=False)).ravel()[0]))
+        ps.append(float(models["mlp"](_squash(x)).numpy().ravel()[0]))
     return sum(ps) / len(ps)
 
 
